@@ -1,7 +1,7 @@
-# Messaging machines
-
 [![Build Status](https://travis-ci.org/Comcast/sheens.svg?branch=master)](https://travis-ci.org/Comcast/sheens)
 [![Documentation](https://godoc.org/github.com/Comcast/sheens/core?status.svg)](http://godoc.org/github.com/Comcast/sheens/core) 
+
+# Messaging machines
 
 Sheens are state machines that consume and produce messages.  This
 work is a successor to [Rulio](https://github.com/Comcast/rulio),
