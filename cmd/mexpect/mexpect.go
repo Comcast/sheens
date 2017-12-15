@@ -16,7 +16,7 @@ import (
 func main() {
 
 	var (
-		inputFilename = flag.String("f", "double.test.yaml", "filename for test session")
+		inputFilename = flag.String("f", "../../specs/tests/double.test.yaml", "filename for test session")
 		dir           = flag.String("d", ".", "working directory")
 		showStderr    = flag.Bool("e", true, "show subprocess stderr")
 		timeout       = flag.Duration("t", 10*time.Second, "main timeout")
