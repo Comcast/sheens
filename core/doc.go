@@ -30,4 +30,6 @@
 // To use this package, make a Spec. Then Compile() it.  You might
 // also want to Analyze() it.  Then, given an initial State an a
 // sequence of messages, you can Walk() to the next State.
+//
+// See https://github.com/Comcast/sheens for an overview.
 package core
