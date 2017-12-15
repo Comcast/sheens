@@ -261,10 +261,21 @@ func (spec *Spec) Compile(ctx context.Context, interpreters map[string]Interpret
 // current node (At) and (2) the current Bindings.  A Node given a
 // optional Action and possible state transitions.
 type Node struct {
-	Doc          string        `json:"doc,omitempty" yaml:",omitempty"`
-	Action       Action        `json:"-" yaml:"-"`
+	// Doc is optional document in a format of your choosing.
+	Doc string `json:"doc,omitempty" yaml:",omitempty"`
+
+	// Action is an optional action that will be executed upon
+	// transition to this node.
+	//
+	// Note that a node with "message"-based branching cannot have
+	// an Action.
+	Action Action `json:"-" yaml:"-"`
+
+	// ActionSource, if given, is Compile()ed to an Action.
 	ActionSource *ActionSource `json:"action,omitempty" yaml:"action,omitempty"`
-	Branches     *Branches     `json:"branching,omitempty" yaml:"branching,omitempty"`
+
+	// Branches contains the transitions out of this node.
+	Branches *Branches `json:"branching,omitempty" yaml:"branching,omitempty"`
 }
 
 // Copy makes a deep copy of the Node.
@@ -342,14 +353,17 @@ type Branch struct {
 	// transition if the procedure returns nil Bindings.
 	Guard Action `json:"-" yaml:"-"`
 
-	// ToDo: GuardSource
+	// GuardSource is an ActionSource that serves as a guard to
+	// following this branch.  If the guard returns nil bindings,
+	// the branch isn't followed.  Otherwise, the returns bindings
+	// are used and the branch is followed.
 	GuardSource *ActionSource `json:"guard,omitempty" yaml:"guard,omitempty"`
 
 	// Target is the name of the next state for this transition.
 	Target string `json:"target,omitempty" yaml:",omitempty"`
 }
 
-// Copy doesn't actually copy the Pattern, Action, or GuardSource.
+// Copy makes a shallow copy of the Branch.
 func (b *Branch) Copy() *Branch {
 	if b == nil {
 		return nil
