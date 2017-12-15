@@ -14,6 +14,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
+	. "github.com/Comcast/sheens/util"
 
 	"github.com/jsccast/yaml"
 )
@@ -102,7 +103,7 @@ func (p *FileSystemSpecProvider) ReadSpecs(ctx context.Context) error {
 			return err
 		}
 
-		core.Logf("Read and compiled %s [%s]", spec.Name, spec.Id)
+		Logf("Read and compiled %s [%s]", spec.Name, spec.Id)
 		specs[name] = &spec
 	}
 	log.Printf("Loaded %d specs", len(specs))

@@ -7,8 +7,13 @@ import (
 )
 
 var (
+	// InterpreterNotFound occurs when you try to Compile an
+	// ActionSource, and the required interpreter isn't in the
+	// given map of interpreters.
 	InterpreterNotFound = errors.New("interpreter not found")
 
+	// DefaultInterpreters will be used in ActionSource.Compile if
+	// the given nil interpreters.
 	DefaultInterpreters = make(map[string]Interpreter)
 
 	// Exp_PermanentBindings is a switch to enable an experiment

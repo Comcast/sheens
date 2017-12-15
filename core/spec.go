@@ -6,28 +6,40 @@ import (
 	"errors"
 )
 
-var DefaultBranchType = "bindings"
-
-var DefaultPatternParser = func(syntax string, p interface{}) (interface{}, error) {
-	switch syntax {
-	case "none", "":
-		if s, is := p.(string); is {
-			return nil, errors.New("warning: pattern is a string: " + s)
-		}
-		return p, nil
-	case "json":
-		if js, is := p.(string); is {
-			var x interface{}
-			if err := json.Unmarshal([]byte(js), &x); err != nil {
-				return nil, err
+var (
+	// DefaultPatternParser is used during Spec.Compile if the
+	// given Spec has no PatternParser.
+	//
+	// This function is useful to allow a Spec to provide branch
+	// patterns in whatever syntax is convenient.  For example, if
+	// a Spec is authored in YAML, patterns in JSON might be more
+	// convenient (or easier to read) that patterns in YAML.
+	DefaultPatternParser = func(syntax string, p interface{}) (interface{}, error) {
+		switch syntax {
+		case "none", "":
+			if s, is := p.(string); is {
+				return nil, errors.New("warning: pattern is a string: " + s)
 			}
-			return x, nil
+			return p, nil
+		case "json":
+			if js, is := p.(string); is {
+				var x interface{}
+				if err := json.Unmarshal([]byte(js), &x); err != nil {
+					return nil, err
+				}
+				return x, nil
+			}
+			return p, nil
+		default:
+			return nil, errors.New("unsupposed pattern syntax: " + syntax)
 		}
-		return p, nil
-	default:
-		return nil, errors.New("unsupposed pattern syntax: " + syntax)
 	}
-}
+
+	// DefaultBranchType is used for Branches.Type when
+	// Branches.Type is zero.  This var should probably be a
+	// const.
+	DefaultBranchType = "bindings"
+)
 
 // Spec is a specification used to build a machine.
 //

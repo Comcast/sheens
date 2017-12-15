@@ -2,18 +2,18 @@ package core
 
 import (
 	"encoding/json"
-	"log"
 	"math/rand"
 	"strings"
 	"time"
 )
 
-var Logging = false
-
 // alphabet is used by Gensym.
 var alphabet = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // Gensym makes a random string of the given length.
+//
+// Should be name something else.  Using this name just brings back
+// good memories.
 func Gensym(n int) string {
 	bs := make([]byte, n)
 	for i := 0; i < len(bs); i++ {
@@ -103,11 +103,4 @@ func Unquestion(p string) string {
 
 // Context is a shim for legacy Match() code.
 type Context struct {
-}
-
-func Logf(format string, args ...interface{}) {
-	if !Logging {
-		return
-	}
-	log.Printf(format, args...)
 }

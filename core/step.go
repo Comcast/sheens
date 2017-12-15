@@ -16,6 +16,8 @@ var (
 	EmittedMessagesInitialCap = 16
 	// ToDo: Provide a configurable limit.
 
+	// DefaultControl will be used by Spec.Step (and therefore
+	// Spec.Walk) if the given control is nil.
 	DefaultControl = &Control{
 		Limit: 100,
 	}
@@ -192,6 +194,10 @@ func NewStride() *Stride {
 // The given pending message (if any) will be consumed by "message"
 // type Branches.
 func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Control, params Params) (*Stride, error) {
+
+	if c == nil {
+		c = DefaultControl
+	}
 
 	// Each error case should be scrutinized.  It might be
 	// possible (and desirable?) to have any error transition to

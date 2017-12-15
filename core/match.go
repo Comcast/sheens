@@ -5,21 +5,24 @@ import (
 	"strings"
 )
 
-// AllowPropertyVariables enables the experimental support for a
-// property variable in a pattern that contains only one property.
-var AllowPropertyVariables = true
+var (
 
-// CheckForBadPropertyVariables runs a test to verify that a pattern
-// does not contain a property variable along with other properties.
-//
-// This check might not be necessary because the other code will
-// report an error if a bad property variable is actually enountered
-// during matching.  The interesting twist is that if a match fails
-// before encountering the bad property variable, then that code will
-// not report the problem.  In order to report the problem always,
-// turn on this switch.  Performance will suffer, but any bad property
-// variable will at least be caught.
-var CheckForBadPropertyVariables = true
+	// AllowPropertyVariables enables the experimental support for a
+	// property variable in a pattern that contains only one property.
+	AllowPropertyVariables = true
+
+	// CheckForBadPropertyVariables runs a test to verify that a pattern
+	// does not contain a property variable along with other properties.
+	//
+	// This check might not be necessary because the other code will
+	// report an error if a bad property variable is actually enountered
+	// during matching.  The interesting twist is that if a match fails
+	// before encountering the bad property variable, then that code will
+	// not report the problem.  In order to report the problem always,
+	// turn on this switch.  Performance will suffer, but any bad property
+	// variable will at least be caught.
+	CheckForBadPropertyVariables = true
+)
 
 func checkForBadPropertyVariables(pattern map[string]interface{}) error {
 	if !CheckForBadPropertyVariables {
