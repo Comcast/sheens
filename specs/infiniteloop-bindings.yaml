@@ -1,0 +1,14 @@
+name: infiniteloop-bindings
+doc: |-
+  A little machine that loops infinitely using only bindings.
+
+  Could have just a single node, of course, but it doesn't.
+nodes:
+  start:
+    branching:
+      branches:
+      - target: loop
+  loop:
+    branching:
+      branches:
+      - target: start

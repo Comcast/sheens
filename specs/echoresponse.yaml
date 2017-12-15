@@ -1,0 +1,21 @@
+name: echoresponse
+doc: |-
+  A demo machine that just echos HTTP responses.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"request":{"url":"?url"}, "status": "?status", "body": "?body"}
+        target: echo
+  echo:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({echo: {url: _.bindings["?url"], status: _.bindings["?status"], body: _.bindings["?body"]}});
+        return {};
+    branching:
+      branches:
+      - target: start

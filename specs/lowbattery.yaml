@@ -1,0 +1,117 @@
+name: lowbattery
+doc: |-
+  Send a notification when a device's battery is low.  After some
+  interval (e.g., seven days), if the battery is still low, send a
+  reminder.
+
+  This specification works with multiple devices simultaneously.
+
+  When we hear "senLowBat" for any device, request a notification.
+  Also schedule the same notification (as a reminder) after an
+  interval.  If/when we hear "senLowBatRes", then cancel any pending
+  reminder.
+
+  Ignore duplicate "senLowBat" or "senLowBatRes" messages.
+
+  This specification uses a 'nag' node that is called initially and
+  then repeatedly (by invoking itself).
+
+patternsyntax: json
+paramspecs:
+  interval:
+    doc: The time interval before sending a reminder.
+    primitiveType: duration
+requires:
+  - spec: notifs
+    id: notifs
+  - spec: timers
+    id: timers
+nodes:
+  start:
+    action:
+      doc: Initialize our timers map.
+      interpreter: goja
+      source: |-
+        _.bindings.timers = {};
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"device":"?d","props":{"name":"cvTroubleValue","value":"senLowBat"}}
+        target: low
+      - pattern: |
+          {"device":"?d","props":{"name":"cvTroubleValue","value":"senLowBatRes"}}
+        target: resolved
+      - pattern: |
+          {"nag":"?d"}
+        target: nag
+      - pattern: |
+          {"ctl":"reset"}
+        target: reset
+  low:
+    action:
+      doc: Request nagging.
+      interpreter: goja
+      source: |-
+        var deviceId = _.bindings["?d"];
+        var timerId = _.bindings.timers[deviceId];
+        if (!timerId) {
+          _.out({nag: deviceId});
+        } // Otherwise the message was a duplicate.
+        delete _.bindings["?d"];
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  nag:
+    action:
+      interpreter: goja
+      doc: Send a notification and schedule another reminder.
+      source: |-
+        var deviceId = _.bindings["?d"];
+        // Send a notification.
+        _.out({notice: "Device " + deviceId + " battery is low."});
+        // Schedule the reminder.
+         var timerId = _.gensym();
+         _.bindings.timers[deviceId] = timerId;
+         _.out({makeTimer: {id: timerId, in: _.bindings.interval, message: {nag: deviceId}}});
+        delete _.bindings["?d"];
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  resolved:
+    action:
+      doc: Cancel the pending reminder
+      interpreter: goja
+      source: |-
+        var deviceId = _.bindings["?d"];
+        var timerId = _.bindings.timers[deviceId];
+        if (timerId) {
+           _.out({deleteTimer: timerId});
+           delete _.bindings.timers[deviceId];
+        }
+        delete _.bindings["?d"];
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  reset:
+    action:
+      doc: Cancel all pending reminders
+      interpreter: goja
+      source: |-
+        for (var deviceId in _.bindings.timers) {
+            var timerId = _.bindings.timers[deviceId];
+            _.out({deleteTimer: timerId});
+        }
+        delete _.bindings.timers;
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

@@ -1,0 +1,133 @@
+name: state
+doc: |-
+  A machine that maintains ... state.  Yes, a state state machine.
+
+  This machine accepts queries, assertions, and deletions.
+
+  An assertion is added to a list of assertions that the machine
+  maintains.  An assertion can have an id, which which case any
+  previous assertion with that id is overwritten.  If an assertion
+  doesn't have an id, a random id is generated for the assertion.  The
+  assertions are maintained as a map that's the binding for
+  "assertions", and the map keys are the assertion ids.
+
+  {"assert": ASSERTIONS}
+  {"assert": ASSERTIONS, "ids": IDS}
+
+  To delete assertions, give a list of assertion ids.  If you don't
+  know what assertion ids, use a query to find out.
+
+  {"unassert": IDS}
+
+  A query is just pattern matching against that map.
+
+  {"query": PATTERN}
+
+  Example:
+
+  {"makeMachine":{"id":"state", "spec": "state", "bindings": {}}}
+  {"assert":[{"likes":"tacos"}],"ids":["a42"]}
+  {"query":{"?id":{"likes":"?likes"}}}
+  {"unassert":["a42"]}
+
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"assert": "?assertions", "ids": "?ids"}
+        target: assert
+      - pattern: |
+          {"assert": "?assertions"}
+        target: assert
+      - pattern: |
+          {"unassert": "?ids"}
+        target: unassert
+      - pattern: |
+          {"query": "?query"}
+        target: query
+  assert:
+    action:
+      interpreter: goja
+      source: |-
+        var asses = _.bindings["?assertions"];
+        delete _.bindings["?assertions"];
+        var ids = _.bindings["?ids"];
+        delete _.bindings["?ids"];
+
+        if (!ids) {
+           ids = [];
+           for (var i = 0; i < asses.length; i++) {
+               ids.push( _.gensym());
+           }
+        }
+
+        var current = _.bindings["assertions"];
+        if (!current) {
+           current = {};
+        }
+
+        for (var i = 0; i < asses.length; i++) {
+            current[ids[i]] = asses[i];
+        }
+
+        _.bindings.assertions = current;
+        return _.bindings;
+    branching:
+      branches:
+      - pattern: |
+          {"actionError": "?err"}
+        target: problem
+      - target: listen
+  query:
+    action:
+      interpreter: goja
+      source: |-
+        var bss = _.match(_.bindings["?query"], _.bindings.assertions, {});
+        delete _.bindings["?query"];
+        _.out({found: bss});
+        return _.bindings;
+    branching:
+      branches:
+      - pattern: |
+          {"actionError": "?err"}
+        target: problem
+      - target: listen
+  unassert:
+    action:
+      interpreter: goja
+      source: |-
+        var ids = _.bindings["?ids"];
+        delete _.bindings["?ids"];
+        var current = _.bindings.assertions;
+        if (!current) {
+           current = {};
+        }
+        for (var i = 0; i < ids.length; i++) {
+           delete current[ids[i]];
+        }
+        _.bindings.assertions = current;
+        return _.bindings;
+    branching:
+      branches:
+      - pattern: |
+          {"actionError": "?err"}
+        target: problem
+      - target: listen
+  problem:
+    action:
+      interpreter: goja
+      source: |-
+        var err = _.bindings.actionError;
+        delete  _.bindings.actionError;
+        _.out({error: err});
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

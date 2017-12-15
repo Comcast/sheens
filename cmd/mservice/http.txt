@@ -1,0 +1,13 @@
+# If it exists, remove the "simpsons" crew.
+{"rem":"simpsons"}
+# Make the "simpsons" crew.
+{"make":"simpsons"}
+# Listen for outbound messages.
+outsub simpsons
+# Listen for inbound messages.
+insub simpsons
+# Make a machine to fetch the time.
+{"cop":{"cid":"simpsons","add":{"m":{"id":"gettime","spec":{"name":"gettime"}}}}}
+# Try to get the time.
+{"cop":{"cid":"simpsons","process":{"message":{"to":{"mid":"gettime"},"get":"time"}}}}
+sleep 3s

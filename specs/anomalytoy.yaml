@@ -1,0 +1,89 @@
+name: anomalytoy
+doc: |
+
+  A toy anomaly detection and reporting machine.
+  
+    "Notify me if my door opens at an unusual time"
+  
+  This machine listens for door openings.  When the door opens, the
+  machine remembers the hour that the door opens, and the machine
+  maintains counts of door-openings by hour.
+  
+  Once enough data is accumulated, this (toy!) machine will consider
+  whether a door opening is unusual.  If so, the machine emits a
+  message stating that the door opening at that hour is surprising.
+  
+  As time passes, the machine's understanding of what's unusual will
+  evolve.
+  
+  See cmd/mservice/anomalytoy.txt and the README in that directory.
+  
+  Of course, there are many, many caveats here.  This machine is a
+  toy.  Real anomaly detection can and should be fairly sophisticated.
+  The traditional approach is to build and update models using fancy
+  gear in dedicated infrastructure.  In this setting, a machine could
+  either query that service or, alternatively, that service would
+  itself emit messages when it detects unusual events.  (A proper
+  anomaly detection service will want to hear all incoming events in
+  order to update its understand of what's anomalous.)
+  
+  Machine action interpreters are pluggable.  You can provide any
+  crazy sort of action interpreter you want.  If you want to provide a
+  Python-with-Tensorflow action interpreter, go right ahead.  The Goja
+  (ECMAScript) interpreter is part of this repo, and machines can be
+  given Goja interpreters that including bindings for native
+  functions. So you can add and expose native functions quickly via
+  Goja if you want.
+
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"door":"opened","hour":"?h"}
+        target: think
+  think:
+    action:
+      doc: |
+        
+        Maintain a histogram of door opening events by hour.  If we
+        have enough data and if a door opening happens in an hour when
+        door openings rarely occur, emit a message.
+        
+      interpreter: goja
+      source: |
+        var hist = _.bindings["hist"];
+        if (!hist) {
+           hist = {};
+           _.bindings["hist"] = hist;
+        }
+        var hour = _.bindings["?h"];
+        delete(_.bindings["?h"]);
+        var count = hist[hour];
+        if (!count) {
+           count = 0;
+        }
+        count++;
+        hist[hour] = count;
+        var total = 0;
+        for (var h in hist) {
+            total += hist[h];
+        }
+        if (20 < total) {
+           // That constant should be exposed as a machine parameter.
+           var percent = 1.0 * count / total;
+           if (percent < 0.10) {
+              // var now = new Date();
+              _.out({"unusual":"opening","at":hour});
+           }
+        }
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

@@ -1,0 +1,24 @@
+name: notices
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"notice":"?msg"}
+        target: sms
+  sms:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: "ic", message: {sms: _.bindings["?msg"]}});
+        delete _.bindings["?msg"];
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

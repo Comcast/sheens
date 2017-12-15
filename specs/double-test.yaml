@@ -1,0 +1,101 @@
+name: double-test
+doc: |
+  A machine that tests a 'double' machine.
+
+  This machine will halt the process.  Non-zero exit code on the first
+  failure; zero exit code if everything passes.
+
+  There are two test cases: good input and bad input.
+requires:
+  - spec: timers
+    id: timers
+  - spec: double
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+        - target: test-1
+  test-1:
+    action:
+      interpreter: goja
+      source: |-
+        // Request a timeout message.
+        var message = {timeout: "double-test-1"};
+        _.out({to: "timers", message: {makeTimer: {id: "double-test-1", in: "1s", message: message}}});
+        // Request doubling of 2.
+        _.out({"double": 2});
+        return _.bindings;
+    branching:
+      branches:
+      - target: test-1-get
+  test-1-get:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"doubled": 4}
+        target: test-2
+      - pattern: |
+          {"doubled": "?x"}
+        target: test-1-failed
+      - pattern: |
+          {"timeout":"double-test-1"}
+        target: test-1-failed
+  test-1-failed:
+    action:
+      interpreter: goja
+      source: |-
+        var msg = {test: "double-test-1", success: false};
+        _.out(msg);
+        _.exit(1, JSON.stringify(msg));
+        return _.bindings;
+  test-2:
+    action:
+      interpreter: goja
+      source: |-
+        // Request a timeout message.
+        var message = {timeout: "double-test-2"};
+        _.out({to: "timers", message: {makeTimer: {id: "double-test-2", in: "1s", message: message}}});
+        // Request doubling of "tacos", which should be allowed but isn't.
+        _.out({"double": "tacos"});
+        return _.bindings;
+    branching:
+      branches:
+      - target: test-2-get
+  test-2-get:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"protest": "tacos"}
+        target: success
+      - pattern: |
+          {"doubled": "?x"}
+        target: test-2-failed
+      - pattern: |
+          {"timeout":"double-test-2"}
+        target: test-2-failed
+  test-2-failed:
+    action:
+      interpreter: goja
+      source: |-
+        var msg = {test: "double-test-2", success: false};
+        _.out(msg);
+        _.exit(2, JSON.stringify(msg));
+        return _.bindings;
+    branching:
+      branches:
+        - target: success
+  success:
+    action:
+      interpreter: goja
+      source: |-
+        var msg = {test: "double-test", success: true};
+        _.out(msg);
+        _.exit(0, JSON.stringify(msg));
+        return _.bindings;
+    branching:
+      branches:
+        - target: done
+  done:

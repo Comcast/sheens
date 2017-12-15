@@ -1,0 +1,166 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"time"
+
+	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/interpreters/goja"
+
+	"github.com/jsccast/yaml"
+)
+
+func run() error {
+
+	var (
+		n      = 5
+		in     = make(chan interface{})
+		spec   *core.Spec
+		libDir = "."
+
+		ctl = &core.Control{
+			Limit: 20,
+		}
+
+		state = core.State{
+			NodeName: "start",
+			Bs:       core.NewBindings(),
+		}
+	)
+
+	state.Bs["pad"] = 5
+
+	gi := goja.NewInterpreter()
+	gi.LibraryProvider = goja.MakeFileLibraryProvider(libDir)
+
+	interpreters := map[string]core.Interpreter{
+		"goja": gi,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(n+1)*time.Second)
+	defer cancel()
+
+	bs, err := ioutil.ReadFile("agent.yaml")
+	if err != nil {
+		return err
+	}
+
+	if err = yaml.Unmarshal(bs, &spec); err != nil {
+		return err
+	}
+
+	if err = spec.Compile(ctx, interpreters, true); err != nil {
+		return err
+	}
+
+	// Compile spec
+
+	// Send a message every second.
+	go func() {
+	LOOP:
+		for i := 0; i < n; i++ {
+			select {
+			case <-ctx.Done():
+				break LOOP
+			default:
+				in <- map[string]interface{}{
+					"n": i,
+				}
+				time.Sleep(time.Second)
+			}
+		}
+	}()
+
+	nodeType := func() (string, error) {
+		n, have := spec.Nodes[state.NodeName]
+		if !have {
+			return "", fmt.Errorf(`no node "%s"`, state.NodeName)
+		}
+		if n.Branches != nil {
+			return n.Branches.Type, nil
+		}
+		return "unknown", nil
+	}
+
+LOOP:
+	for {
+		log.Printf("state %s", state.String())
+
+		var message interface{}
+		kind, err := nodeType()
+		if err != nil {
+			return err
+		}
+		log.Printf("  type: %s", kind)
+
+		switch kind {
+		case "select":
+			select {
+			case <-ctx.Done():
+				break LOOP
+			case message = <-in:
+			default:
+				message = "continue"
+			}
+		default:
+			select {
+			case <-ctx.Done():
+				break LOOP
+			case message = <-in:
+			}
+		}
+
+		{
+			js, err := json.Marshal(message)
+			if err != nil {
+				return err
+			}
+			log.Printf("  sending %s", js)
+		}
+
+		walked, err := spec.Walk(ctx, &state, []interface{}{message}, ctl, nil)
+		if err != nil {
+			return err
+		}
+
+		err = walked.DoEmitted(func(x interface{}) error {
+			js, err := json.Marshal(&x)
+			if err != nil {
+				return err
+			}
+			log.Printf("  heard %s", js)
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		if false {
+			bs, err := yaml.Marshal(walked)
+			if err != nil {
+				return err
+			}
+			log.Printf("  walked\n%s\n", bs)
+		}
+
+		next := walked.To()
+		if next == nil {
+			log.Printf("  walked to nowhere")
+		} else {
+			state = *next
+		}
+
+	}
+
+	return nil
+}
+
+func main() {
+	if err := run(); err != nil {
+		panic(err)
+	}
+}

@@ -1,0 +1,57 @@
+name: double2
+doc: |-
+  A machine that double numbers and protests requests for doubling non-numbers.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"double":"?x"}
+        guard:
+          interpreter: goja
+          source: |-
+            var bs = _.bindings;
+            var f = parseFloat(bs["?x"]);
+            if (isNaN(f)) {
+               bs = nil;
+            } else {
+               bs["?x"] = f;
+            }
+            return bs;
+        target: double
+      - pattern: |
+          {"double": "?x"}
+        target: complain
+  double:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({doubled: _.bindings["?x"]*2});
+        return _.bindings;
+    branching:
+      branches:
+        - target: cleanup
+  complain:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({bad: _.bindings["?x"]});
+        return _.bindings;
+    branching:
+      branches:
+        - target: cleanup
+  cleanup:
+    action:
+      interpreter: goja
+      source: |-
+        delete _.bindings["?x"];
+        return _.bindings;
+    branching:
+      branches:
+        - target: listen

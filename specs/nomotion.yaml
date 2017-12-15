@@ -1,0 +1,41 @@
+name: nomotion
+doc: |-
+  Given an interval and a camera, this machine will emit a "no motion"
+  message when the camera hasn't reported any motion for the given
+  interval.  Once that report is emitted, no additional report will be
+  emitted until new motion is detected.
+paramspecs:
+  camera:
+    doc: The motion-detecting camera.
+    primitiveType: string
+  interval:
+    doc: The interval during which no motion should be detected.
+    primitiveType: string
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"event":{"instance":"?camera","mediaType":"event/cameraMotion","metaData":[{"name":"inMotion","value":"true"}]}}
+        target: sawMotion
+  sawMotion:
+    action:
+      doc: Cancel any pending timer, and make new timer.
+      interpreter: goja
+      source: |-
+        if (_.bindings.timerId) {
+           _.out({"deleteTimer": _.bindings.timerId});
+        }
+        _.bindings.timerId = _.gensym();
+        var message = {no:"motion", for: _.bindings.interval, from: _.bindings["?camera"]};
+        _.out({"makeTimer": {id: _.bindings.timerId, in: _.bindings.interval, message: message}});
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

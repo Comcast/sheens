@@ -1,0 +1,69 @@
+name: test
+
+doc: |
+  A little three-node machine that emits messages that depend on a
+  parameter and a counter.
+
+  When given a message like
+
+    {"message":{"wants":"tacos"}}
+
+  and assuming a parameters
+
+    {"has": "beer", "n": 3}
+
+  the machine will emit a message like
+
+    {"server": "tacos", "with": "beer", "remaining": 2}
+
+  Subsequent requests decrement the counter until it reaches 0, at
+  which point the binding for "has" changes to "water".
+
+paramspecs:
+  has:
+    doc: What the user has on hand.
+    primitiveType: string
+  n:
+    doc: The number that we have.
+    primitiveType: int
+
+patternsyntax: json
+
+nodes:
+  start:
+    doc: |
+      The starting node. Waits for the right kind of message.
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"message":{"wants":"?wants"}}
+        target: deliver
+  deliver:
+    doc: |
+      Decrement the counter and emit a message.
+    action:
+      interpreter: goja
+      source: |
+        var remaining = _.bindings["n"] - 1;
+        _.bindings["n"] = remaining;
+        _.out({serve: _.bindings["?wants"], with: _.bindings["has"], remaining: remaining});
+        delete _.bindings["?wants"];
+        return _.bindings;
+    branching:
+      branches:
+      - pattern: |
+          {"n": 0}
+        target: change
+      - target: start
+  change:
+    doc: |
+      Insist on water from now on.
+    action:
+      interpreter: goja
+      source: |
+        return {n: 1, has: "water"};
+    branching:
+      branches:
+      - target: start
+        

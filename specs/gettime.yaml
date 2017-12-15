@@ -1,0 +1,40 @@
+name: gettime
+doc: |-
+  A demo machine that tries to obtain the time via an HTTP request.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"get":"time"}
+        target: request
+  request:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: {mid: "HTTP"}, 
+               url:"http://time.jsontest.com/",
+               replyTo: {mid: _.params.mid}});
+        return {};
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"request":{"url":"http://time.jsontest.com/"}, "body": "?body"}
+        target: report
+  report:
+    action:
+      interpreter: goja
+      source: |-
+        var body = JSON.parse(_.bindings["?body"]);
+        _.out({time: body.time});
+        return {};
+    branching:
+      branches:
+        - target: start

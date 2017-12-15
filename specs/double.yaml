@@ -1,0 +1,35 @@
+name: double
+doc: |-
+  A machine that double numbers and protests any other requests.
+
+  This machine helps with an experiment that uses machines to test
+  machines.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"double":"?n"}
+        target: process
+  process:
+    action:
+      interpreter: goja
+      source: |-
+        var n = _.bindings["?n"];
+        delete _.bindings["?n"];
+        var f = parseFloat(n);
+        if (isNaN(f)) {
+           _.out({"protest": n});
+        } else {
+          _.out({"doubled": f*2});
+        }
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

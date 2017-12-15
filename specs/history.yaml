@@ -1,0 +1,74 @@
+name: history
+doc: |-
+  A machine that remembers what is has seen.
+
+  ToDo: Support changing the limit.
+
+  Warning to developers: Be careful about emitting messages from this
+  machine's actions!
+
+  Dev note: Got "TypeError: Cannot extend Go slice" from push(). I
+  think that's because the 'hist' value becomes a Go slice (instead of
+  an array) at some point in the Go/Goja churning.  Should look into
+  that.  For now, I just construct a Javascript array from the slice.
+
+paramspecs:
+  limit:
+    doc: The maximum number of messages to retain.
+    primitiveType: int
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"from":"history"}
+        doc: Skip our own output!
+        target: listen
+      - pattern: |
+          {"query":"?pattern"}
+        target: query
+      - pattern: |
+          "?heard"
+        target: heard
+  heard:
+    action:
+      interpreter: goja
+      source: |-
+        var heard = _.bindings["?heard"];
+        delete _.bindings["?heard"];
+        var hist = _.bindings.hist;
+        if (!hist) {
+           hist = [];
+        } else {
+           hist = [].concat(hist);
+        }
+        var limit = _.bindings["?limit"]
+        if (!limit) {
+           limit = 10;
+        }
+        while (limit <= hist.length) {
+           hist.splice(0,1);
+        }
+        hist.push({ts: new Date(), message: heard});
+        _.bindings.hist = hist;
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  query:
+    action:
+      interpreter: goja
+      source: |-
+        var bss = _.match(_.bindings["?pattern"], _.bindings.hist, {});
+        delete _.bindings["?pattern"];
+        _.out({found: bss, from: "history"});
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

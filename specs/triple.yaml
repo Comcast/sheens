@@ -1,0 +1,32 @@
+name: triple
+doc: |-
+  A machine that triples numbers that were doubled previously.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"doubled":"?n"}
+        target: process
+  process:
+    action:
+      interpreter: goja
+      source: |-
+        var n = _.bindings["?n"];
+        delete _.bindings["?n"];
+        var f = parseFloat(n);
+        if (isNaN(f)) {
+           _.out({"protest": n});
+        } else {
+          _.out({"tripled": f*3});
+        }
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen

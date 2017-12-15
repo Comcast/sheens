@@ -1,0 +1,28 @@
+name: infiniteloop-messages
+doc: |-
+  A machine that uses messages to get into an infinite loop.
+
+  Start this machine by sending it {"infinite":"loop"}
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: {"infinite":"loop"}
+        target: emit
+  emit:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({"infinite":"tacos"});
+        return _.bindings;
+    branching:
+      branches:
+      - target: loop
+  loop:
+    branching:
+      type: message
+      branches:
+      - pattern: {"infinite":"tacos"}
+        target: emit

@@ -1,0 +1,117 @@
+name: doorOpenTooLong
+doc: |-
+  A machine that notifies you when you leave your door open.
+paramspecs:
+  door:
+    doc: The id for the door (or whatever).
+    primitiveType: string
+    required: true
+  doorName:
+    doc: The pretty name for the door (or whatever).
+    primitiveType: string
+    required: true
+  during:
+    doc: |-
+      A specification of when this automation should be active.
+      Example {"startTime": "19:00", "stopTime": "22:00"}
+    primitiveType: activeTimeSpec
+  interval:
+    doc: The time interval before sending a notification.
+    primitiveType: duration
+    required: true
+  audience:
+    doc: The id for the entity to receive the notification.
+    primitiveType: string
+requires:
+  - spec: timers # Need a timers machine.
+    id: timers
+  - spec: notices # Need (not really) a notices machine.
+    id: notices
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listenForOpen
+  listenForOpen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"device":"?door","state":"open"}
+        guard:
+          interpreter: goja
+          source:
+            requires:
+              - 'file://interpreters/goja/libs/time.js'
+            code: |-
+              return isCurrent(_.bindings.during) ? _.bindings : null;
+        target: startTimer
+      - pattern: |
+          {"ctl":"disable"}
+        target: disable
+  startTimer:
+    action:
+      doc: Make a timer.
+      interpreter: goja
+      source: |-
+        // Make an id for the timer we're going to create.
+        _.bindings.timerId = _.gensym();
+        // Compose a message for the notification that our timer will request.
+        var msg = "Did you leave the " + _.bindings.doorName + " open?";
+        // Construct the message that the timer will emit.
+        var notice = {notice: msg, re: _.bindings["?door"]};
+        // If we are using a notice machine, we could route this message directly to that machine.
+        notice.to = {mid: "notices"};
+        // Emit a request to make the timer.
+        _.out({makeTimer: {id: _.bindings.timerId, in: _.bindings.interval, message: notice}});
+        // Return the current bindings, which have been updated with our timer id.
+        return _.bindings;
+    branching:
+      branches:
+      - target: listenForClose
+  listenForClose:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"device":"?door","state":"closed"}
+        target: closed
+      - pattern: |
+          {"ctl":"disable"}
+        target: disable
+  closed:
+    action:
+      doc: Cancel pending timer then restart.
+      interpreter: goja
+      source: |-
+        // Send a request to cancel our timer.
+        // It's okay if the timer no longer exists.
+        _.out({deleteTimer: _.bindings.timerId});
+        // Forget our timer id.
+        delete _.bindings.timerId;
+        // Return the bindings (without that timer id).
+        return _.bindings;
+    branching:
+      branches:
+      - target: listenForOpen
+  disable:
+    action:
+      doc: Cancel any pending timer then stop.
+      interpreter: goja
+      source: |-
+        if (_.bindings.timerId) {
+           _.out({to: "timers", message: {deleteTimer: _.bindings.timerId}});
+           delete _.bindings.timerId;
+        }
+        return _.bindings;
+    branching:
+      branches:
+      - target: listenForEnable
+  listenForEnable:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"ctl":"enable"}
+        target: listenForOpen
