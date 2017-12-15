@@ -39,10 +39,10 @@ var (
 	Exp_BranchTargetVariables = true
 )
 
-type Params map[string]interface{}
+type StepProps map[string]interface{}
 
-func (ps Params) Copy() Params {
-	acc := make(Params, len(ps))
+func (ps StepProps) Copy() StepProps {
+	acc := make(StepProps, len(ps))
 	for p, v := range ps {
 		acc[p] = v
 	}
@@ -193,7 +193,7 @@ func NewStride() *Stride {
 //
 // The given pending message (if any) will be consumed by "message"
 // type Branches.
-func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Control, params Params) (*Stride, error) {
+func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Control, props StepProps) (*Stride, error) {
 
 	if c == nil {
 		c = DefaultControl
@@ -244,7 +244,7 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 	stride.From = st.Copy()
 
 	if haveAction {
-		if e, err = n.Action.Exec(ctx, bs, params); err == nil {
+		if e, err = n.Action.Exec(ctx, bs, props); err == nil {
 			bs = e.Bs
 		} else {
 			// Bind "actionError" to the error string.  We
@@ -270,7 +270,7 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 	}
 
 	// Now evaluate the branches (if any).
-	st, ts, consumed, err := n.Branches.consider(ctx, bs, pending, c, params)
+	st, ts, consumed, err := n.Branches.consider(ctx, bs, pending, c, props)
 	if consumed {
 		stride.Consumed = pending
 	}
@@ -290,7 +290,7 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 //
 // If this method returns more than one set of Bindings, new machines
 // will be created!  ToDo: A switch to warn or prevent.
-func (b *Branches) consider(ctx context.Context, bs Bindings, pending interface{}, c *Control, params Params) (*State, *Traces, bool, error) {
+func (b *Branches) consider(ctx context.Context, bs Bindings, pending interface{}, c *Control, props StepProps) (*State, *Traces, bool, error) {
 
 	// This method will return an error only if its call to try()
 	// returns an error.
@@ -322,7 +322,7 @@ func (b *Branches) consider(ctx context.Context, bs Bindings, pending interface{
 	}
 
 	for _, br := range b.Branches {
-		to, more, err := br.try(ctx, bs, against, params)
+		to, more, err := br.try(ctx, bs, against, props)
 
 		ts.Add(more.Messages...)
 		if err != nil {
@@ -358,7 +358,7 @@ func (b *Branch) target(bs Bindings) string {
 }
 
 // try evaluates this Branch to see if it applies.
-func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, params Params) (*State, *Traces, error) {
+func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, props StepProps) (*State, *Traces, error) {
 
 	ts := NewTraces()
 
@@ -404,7 +404,7 @@ func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, para
 				"guarding": bs,
 			})
 
-			exe, err := b.Guard.Exec(ctx, candidate, params)
+			exe, err := b.Guard.Exec(ctx, candidate, props)
 
 			if exe != nil {
 				ts.Add(exe.Events.Traces.Messages...)
@@ -517,7 +517,7 @@ func (w *Walked) add(s *Stride) {
 // Any unprocessed messages are returned. This method should only
 // returned some unprocessed messages if the method encountered an
 // internal error.
-func (s *Spec) Walk(ctx context.Context, st *State, pendings []interface{}, c *Control, params Params) (*Walked, error) {
+func (s *Spec) Walk(ctx context.Context, st *State, pendings []interface{}, c *Control, props StepProps) (*Walked, error) {
 
 	// This method should (probably) neven return an error.  When
 	// an error of some sort occurs during the processing, the
@@ -547,7 +547,7 @@ func (s *Spec) Walk(ctx context.Context, st *State, pendings []interface{}, c *C
 		if 0 < len(pendings) {
 			pending = pendings[0]
 		}
-		stride, err := s.Step(ctx, st, pending, c, params)
+		stride, err := s.Step(ctx, st, pending, c, props)
 
 		if stride == nil {
 			// We hope we never get here. ToDo: Warn?

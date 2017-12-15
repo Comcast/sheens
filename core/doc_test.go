@@ -33,7 +33,7 @@ func Example() {
 			},
 			"obey": &Node{
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						e := NewExecution(make(Bindings)) // Forget current bindings.
 						e.Events.AddEmitted(bs["?something"])
 						e.Events.AddTrace(note("polite"))
@@ -50,7 +50,7 @@ func Example() {
 			},
 			"ignore": &Node{
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						e := NewExecution(make(Bindings)) // Forget current bindings.
 						e.Events.AddTrace(note("rude"))
 						return e, nil

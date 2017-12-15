@@ -59,7 +59,7 @@ type Interpreter interface {
 
 	// Exec executes the code.  The result of previous Compile()
 	// might be provided.
-	Exec(ctx context.Context, bs Bindings, params Params, code interface{}, compiled interface{}) (*Execution, error)
+	Exec(ctx context.Context, bs Bindings, props StepProps, code interface{}, compiled interface{}) (*Execution, error)
 }
 
 // Action returns Bindings based on the given (current) Bindings.
@@ -70,7 +70,7 @@ type Action interface {
 	// the Action's dynamic environment).
 	//
 	// ToDo: Generalize to return []Bindings?
-	Exec(context.Context, Bindings, Params) (*Execution, error)
+	Exec(context.Context, Bindings, StepProps) (*Execution, error)
 
 	// Binds optionally gives the set of patterns that match
 	// bindings that could be bound during execution.
@@ -88,7 +88,7 @@ type Action interface {
 // will eventually be a specification for generating an outbound
 // message.
 type FuncAction struct {
-	F func(context.Context, Bindings, Params) (*Execution, error) `json:"-" yaml:"-"`
+	F func(context.Context, Bindings, StepProps) (*Execution, error) `json:"-" yaml:"-"`
 
 	// Binds is an optional declaration that specifies what new
 	// bindings this action might create.
@@ -112,7 +112,7 @@ func isPermanent(p string) bool {
 }
 
 // Exec runs the given action.
-func (a *FuncAction) Exec(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+func (a *FuncAction) Exec(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 	if a == nil {
 		return NewExecution(bs), nil
 	}
@@ -127,7 +127,7 @@ func (a *FuncAction) Exec(ctx context.Context, bs Bindings, params Params) (*Exe
 		}
 	}
 
-	exe, err := a.F(ctx, bs, params)
+	exe, err := a.F(ctx, bs, props)
 
 	if Exp_PermanentBindings {
 		for p, v := range permanent {
@@ -196,8 +196,8 @@ func (a *ActionSource) Compile(ctx context.Context, interpreters map[string]Inte
 	}
 
 	return &FuncAction{
-		F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
-			return interpreter.Exec(ctx, bs, params, a.Source, x)
+		F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
+			return interpreter.Exec(ctx, bs, props, a.Source, x)
 		},
 		binds: a.Binds,
 	}, nil

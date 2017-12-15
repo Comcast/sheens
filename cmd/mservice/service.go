@@ -258,11 +258,11 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 		if !have {
 			return nil, errors.New("internal error: lost spec for " + mid)
 		}
-		params := core.Params{
+		props := core.StepProps{
 			"mid": mid,
 			"cid": c.Id,
 		}
-		walked, err := spec.Walk(ctx, m.State, messages, ctl, params)
+		walked, err := spec.Walk(ctx, m.State, messages, ctl, props)
 		if err != nil {
 			if walked.Error != nil {
 				walked.Error = NewWrappedError(err, walked.Error)

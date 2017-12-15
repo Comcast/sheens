@@ -43,8 +43,8 @@ func TestActionsSimple(t *testing.T) {
 }
 
 func TestActionsParam(t *testing.T) {
-	code := `return {machineId:_.params.mid};`
-	params := map[string]interface{}{
+	code := `return {machineId:_.props.mid};`
+	props := map[string]interface{}{
 		"mid": "simpsons",
 	}
 
@@ -58,7 +58,7 @@ func TestActionsParam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exe, err := i.Exec(ctx, nil, params, code, compiled)
+	exe, err := i.Exec(ctx, nil, props, code, compiled)
 	if err != nil {
 		t.Fatal(err)
 	}

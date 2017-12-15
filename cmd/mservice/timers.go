@@ -233,7 +233,7 @@ func NewTimersSpec() *Spec {
 			"make": &Node{
 				Doc: "Try to make the timer.",
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						x, have := bs["?in"]
 						if !have {
 							return NewExecution(bs.Extend("error", "no in")), nil
@@ -291,7 +291,7 @@ func NewTimersSpec() *Spec {
 			"delete": &Node{
 				Doc: "Try to delete the timer.",
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						x, have := bs["?id"]
 						if !have {
 							return NewExecution(bs.Extend("error", "no id")), nil
@@ -329,7 +329,7 @@ func NewTimersSpec() *Spec {
 			"emitted": &Node{
 				Doc: "State change to force a write.",
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						return NewExecution(bs.DeleteExcept("timers")), nil
 					},
 				},
@@ -344,7 +344,7 @@ func NewTimersSpec() *Spec {
 			"problem": &Node{
 				Doc: "Report the problem.",
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						id, have := bs["?id"]
 						if !have {
 							id = "NA"
@@ -378,7 +378,7 @@ func NewTimersSpec() *Spec {
 			"success": &Node{
 				Doc: "Report happiness.",
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						id, have := bs["?id"]
 						if !have {
 							id = "NA"

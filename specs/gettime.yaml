@@ -16,7 +16,7 @@ nodes:
       source: |-
         _.out({to: {mid: "HTTP"}, 
                url:"http://time.jsontest.com/",
-               replyTo: {mid: _.params.mid}});
+               replyTo: {mid: _.props.mid}});
         return {};
     branching:
       branches:

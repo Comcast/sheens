@@ -260,7 +260,7 @@ func protest(o *goja.Runtime, x interface{}) {
 //      For testing.
 //
 // The Testing flag must be set to see sleep().
-func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, params core.Params, src interface{}, compiled interface{}) (*core.Execution, error) {
+func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.StepProps, src interface{}, compiled interface{}) (*core.Execution, error) {
 
 	exe := core.NewExecution(nil)
 
@@ -277,13 +277,12 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, params core.Pa
 	}
 
 	env := map[string]interface{}{
-		"ctx":    ctx,
-		"params": params.Copy(),
+		"ctx": ctx,
 	}
-	if params == nil {
-		env["params"] = map[string]interface{}{}
+	if props == nil {
+		env["props"] = map[string]interface{}{}
 	} else {
-		env["params"] = map[string]interface{}(params.Copy())
+		env["props"] = map[string]interface{}(props.Copy())
 	}
 
 	if bs != nil {

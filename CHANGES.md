@@ -1,5 +1,21 @@
 # Ch-ch-changes
 
+## `Params` renamed to `StepProps`
+
+`core.Params` was a confusing name since a `Spec` can have
+`ParamSpecs`, which are related.
+
+`core.Params` has been renamed to `core.StepProps`.  With the standard
+Goja interpreter, that data is at `_.props` (instead of at
+`_.params`).
+
+
+## Explicit `return` required by standard Goja actions/guards
+
+Now you must explicit `return` your bindings in Goja actions and
+guards.
+
+
 ## Experimental permanent bindings
 
 A binding key ending in "!" will survive any Action's attempt to

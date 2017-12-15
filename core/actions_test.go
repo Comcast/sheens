@@ -13,7 +13,7 @@ func TestPermanentBindings(t *testing.T) {
 	ctx := context.Background()
 
 	action := &FuncAction{
-		F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+		F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 			return &Execution{
 				Bs:     bs.Remove("ephemeral", "permament!"),
 				Events: newEvents(),

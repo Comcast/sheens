@@ -29,7 +29,7 @@ func TestStepSimple(t *testing.T) {
 			},
 			"do": &Node{
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						count++
 						e := NewExecution(bs)
 						e.Events.AddEmitted("tacos")
@@ -88,7 +88,7 @@ func TestActionErrors(t *testing.T) {
 		Nodes: map[string]*Node{
 			"start": &Node{
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						return nil, fmt.Errorf("something terrible happened")
 					},
 				},
@@ -106,7 +106,7 @@ func TestActionErrors(t *testing.T) {
 			},
 			"handle": &Node{
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						return NewExecution(make(Bindings)), nil
 					},
 				},
@@ -256,7 +256,7 @@ func TestWalkLimit(t *testing.T) {
 			},
 			"loop": &Node{
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						count++
 						return NewExecution(make(Bindings)), nil
 					},
@@ -320,7 +320,7 @@ func TestWalkBreakpoint(t *testing.T) {
 			},
 			"loop": &Node{
 				Action: &FuncAction{
-					F: func(ctx context.Context, bs Bindings, params Params) (*Execution, error) {
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						x, have := bs["n"]
 						if !have {
 							x = 0
