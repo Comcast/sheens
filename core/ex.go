@@ -4,8 +4,10 @@ import (
 	"context"
 )
 
+// TurnstileSpec makes an example Spec that's useful to have around.
+//
+// See https://en.wikipedia.org/wiki/Finite-state_machine#Example:_coin-operated_turnstile.
 func TurnstileSpec(ctx context.Context) (*Spec, error) {
-	// https://en.wikipedia.org/wiki/Finite-state_machine#Example:_coin-operated_turnstile
 
 	makePattern := func(input string) interface{} {
 		return map[string]interface{}{
