@@ -216,7 +216,7 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 
 	if all {
 		mids = make([]string, 0, len(c.Machines))
-		for mid, _ := range c.Machines {
+		for mid := range c.Machines {
 			mids = append(mids, mid)
 		}
 	}

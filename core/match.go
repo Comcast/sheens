@@ -31,7 +31,7 @@ func checkForBadPropertyVariables(pattern map[string]interface{}) error {
 	if len(pattern) <= 1 {
 		return nil
 	}
-	for k, _ := range pattern {
+	for k := range pattern {
 		if IsVariable(k) {
 			return errors.New(`can't have a variable as a key ("` + k + `") with other keys`)
 		}
@@ -88,7 +88,7 @@ func (bs Bindings) Remove(ps ...string) Bindings {
 // Does not copy.
 func (bs Bindings) DeleteExcept(keeps ...string) Bindings {
 REM:
-	for p, _ := range bs {
+	for p := range bs {
 		for _, keep := range keeps {
 			if keep == p {
 				continue REM
@@ -429,7 +429,7 @@ func Match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 				}
 			}
 
-			bsss := [][]Bindings{[]Bindings{bindings}}
+			bsss := [][]Bindings{{bindings}}
 			fxas := []map[int]interface{}{fxa}
 
 			// iterate pattern values and match with fact values
@@ -460,7 +460,7 @@ func Match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 			// merge left-over facts
 			for _, fxa := range fxas {
 				i := len(fa)
-				for fact, _ := range fxs {
+				for fact := range fxs {
 					fxa[i] = fact
 					i++
 				}

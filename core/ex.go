@@ -18,30 +18,30 @@ func TurnstileSpec(ctx context.Context) (*Spec, error) {
 	spec := &Spec{
 		Name: "turnstile",
 		Nodes: map[string]*Node{
-			"locked": &Node{
+			"locked": {
 				Branches: &Branches{
 					Type: "message",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: makePattern("coin"),
 							Target:  "unlocked",
 						},
-						&Branch{
+						{
 							Pattern: makePattern("push"),
 							Target:  "locked",
 						},
 					},
 				},
 			},
-			"unlocked": &Node{
+			"unlocked": {
 				Branches: &Branches{
 					Type: "message",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: makePattern("coin"),
 							Target:  "unlocked",
 						},
-						&Branch{
+						{
 							Pattern: makePattern("push"),
 							Target:  "locked",
 						},

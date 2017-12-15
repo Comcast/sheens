@@ -457,7 +457,7 @@ type Walked struct {
 	// StoppedBecause reports the reason why the Walk stopped.
 	StoppedBecause StopReason `json:"stoppedBecause,omitempty" yaml:",omitempty"`
 
-	// Error stores an internal error that occured (if any).
+	// Error stores an internal error that occurred (if any).
 	Error error `json:"error,omitempty" yaml:",omitempty"`
 
 	// BreakpointId is the id of the breakpoint, if any, that

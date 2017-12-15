@@ -22,19 +22,19 @@ func TestExpectBasic(t *testing.T) {
 		Doc:           "A test session",
 		ParsePatterns: true,
 		IOs: []IO{
-			IO{
+			{
 				Doc:        "Create a crew and wait to hear that that worked",
 				WaitBefore: 100 * time.Millisecond,
 				Inputs: []interface{}{
 					`{"make":"simpsons"}`,
 				},
 				OutputSet: []Output{
-					Output{
+					{
 						Pattern: `{"make":"simpsons"}`,
 					},
 				},
 			},
-			IO{
+			{
 				Doc:         "Create a machine, send it a message, and verify the result",
 				WaitBetween: 100 * time.Millisecond,
 				Inputs: []interface{}{
@@ -42,10 +42,10 @@ func TestExpectBasic(t *testing.T) {
 					`{"cop":{"cid":"simpsons","process":{"message":{"to":{"mid":"doubler"},"double":1}}}}`,
 				},
 				OutputSet: []Output{
-					Output{
+					{
 						Pattern: `{"doubled":2}`,
 					},
-					Output{
+					{
 						Doc:     "Just an example of using a guard.",
 						Pattern: `{"doubled":"?n"}`,
 						GuardSource: &core.ActionSource{

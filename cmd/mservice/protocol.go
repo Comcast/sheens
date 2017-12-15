@@ -119,7 +119,8 @@ func (o *OpAdd) Do(ctx context.Context, s *Service, cid string) error {
 			Bs:       core.NewBindings(),
 		}
 	}
-	// get spec and set default values if they are not provided by inital bindings
+	// get spec and set default values if they are not provided by
+	// initial bindings
 	specter, err := s.SpecProvider(ctx, o.Machine.SpecSource)
 	if err != nil {
 		return err

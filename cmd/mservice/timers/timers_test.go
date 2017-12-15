@@ -177,7 +177,7 @@ func testTimersLag(t *testing.T, dMax time.Duration, n int) {
 
 	select {
 	case <-time.NewTimer(timeout).C:
-		for id, _ := range wanted {
+		for id := range wanted {
 			log.Printf("waiting on %s", id)
 		}
 		t.Fatal("timeout")

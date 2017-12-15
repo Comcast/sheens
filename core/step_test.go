@@ -16,18 +16,18 @@ func TestStepSimple(t *testing.T) {
 		Name:          "test",
 		PatternSyntax: "json",
 		Nodes: map[string]*Node{
-			"start": &Node{
+			"start": {
 				Branches: &Branches{
 					Type: "message",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: `{"trigger":"?triggered"}`,
 							Target:  "do",
 						},
 					},
 				},
 			},
-			"do": &Node{
+			"do": {
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						count++
@@ -39,7 +39,7 @@ func TestStepSimple(t *testing.T) {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "start",
 						},
 					},
@@ -86,7 +86,7 @@ func TestActionErrors(t *testing.T) {
 		Name:          "test",
 		PatternSyntax: "json",
 		Nodes: map[string]*Node{
-			"start": &Node{
+			"start": {
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						return nil, fmt.Errorf("something terrible happened")
@@ -94,17 +94,17 @@ func TestActionErrors(t *testing.T) {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: Dwimjs(`{"actionError":"?err"}`),
 							Target:  "handle",
 						},
-						&Branch{
+						{
 							Target: "start",
 						},
 					},
 				},
 			},
-			"handle": &Node{
+			"handle": {
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						return NewExecution(make(Bindings)), nil
@@ -112,13 +112,13 @@ func TestActionErrors(t *testing.T) {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "recovered",
 						},
 					},
 				},
 			},
-			"recovered": &Node{},
+			"recovered": {},
 		},
 	}
 
@@ -243,18 +243,18 @@ func TestWalkLimit(t *testing.T) {
 		Name:          "test",
 		PatternSyntax: "json",
 		Nodes: map[string]*Node{
-			"start": &Node{
+			"start": {
 				Branches: &Branches{
 					Type: "message",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: `{"trigger":"?triggered"}`,
 							Target:  "loop",
 						},
 					},
 				},
 			},
-			"loop": &Node{
+			"loop": {
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						count++
@@ -263,7 +263,7 @@ func TestWalkLimit(t *testing.T) {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "loop",
 						},
 					},
@@ -298,7 +298,7 @@ func TestWalkLimit(t *testing.T) {
 	}
 
 	if walked.StoppedBecause != Limited {
-		t.Fatalf("bad reason: %s", walked.StoppedBecause)
+		t.Fatalf("bad reason: %v", walked.StoppedBecause)
 	}
 }
 
@@ -307,18 +307,18 @@ func TestWalkBreakpoint(t *testing.T) {
 		Name:          "test",
 		PatternSyntax: "json",
 		Nodes: map[string]*Node{
-			"start": &Node{
+			"start": {
 				Branches: &Branches{
 					Type: "message",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: `{"trigger":"?triggered"}`,
 							Target:  "loop",
 						},
 					},
 				},
 			},
-			"loop": &Node{
+			"loop": {
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						x, have := bs["n"]
@@ -333,7 +333,7 @@ func TestWalkBreakpoint(t *testing.T) {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "loop",
 						},
 					},
@@ -377,7 +377,7 @@ func TestWalkBreakpoint(t *testing.T) {
 	}
 
 	if walked.StoppedBecause != BreakpointReached {
-		t.Fatalf("bad reason: %s", walked.StoppedBecause)
+		t.Fatalf("bad reason: %v", walked.StoppedBecause)
 	}
 
 	toState := walked.To()

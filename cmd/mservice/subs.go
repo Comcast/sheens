@@ -48,7 +48,7 @@ func (s *Subs) rem(cid string, h Hook) {
 
 func (s *Subs) RemAll(h Hook) {
 	s.Lock()
-	for cid, _ := range s.hooks {
+	for cid := range s.hooks {
 		s.rem(cid, h)
 	}
 	s.Unlock()

@@ -37,7 +37,7 @@ type Mod interface {
 // Spec. The added branches match the given pattern and target the
 // given target.
 //
-// The Spec's Doc is updated to note that this processing has occured.
+// The Spec's Doc is updated to note that this processing has occurred.
 func AddMessageBranches(s *core.Spec, pattern interface{}, target string) error {
 	if _, have := s.Nodes[target]; !have {
 		return NoTargetNode
@@ -216,7 +216,7 @@ func (m *AddOrderedOutMessagesMod) F(s *core.Spec) error {
 		node := &core.Node{
 			Branches: &core.Branches{
 				Branches: []*core.Branch{
-					&core.Branch{
+					{
 						Target: targetNodeName,
 					},
 				},
@@ -284,7 +284,7 @@ func (m *AddOrderedOutMessagesMod) F(s *core.Spec) error {
 				},
 				Branches: &core.Branches{
 					Branches: []*core.Branch{
-						&core.Branch{
+						{
 							Target: targetNodeName,
 						},
 					},
@@ -322,7 +322,7 @@ func (m *AddOrderedOutMessagesMod) F(s *core.Spec) error {
 				Branches: &core.Branches{
 					Type: "message",
 					Branches: []*core.Branch{
-						&core.Branch{
+						{
 							Pattern: oi.In,
 							Target:  targetNodeName,
 						},
@@ -370,7 +370,7 @@ func (m *AddOrderedOutMessagesMod) F(s *core.Spec) error {
 				},
 				Branches: &core.Branches{
 					Branches: []*core.Branch{
-						&core.Branch{
+						{
 							Pattern: oi.In,
 							Target:  targetNodeName,
 						},

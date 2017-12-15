@@ -205,32 +205,32 @@ func NewTimersSpec() *Spec {
 		Name: "timers",
 		Doc:  "A machine that makes in-memory timers that send messages.",
 		ParamSpecs: map[string]ParamSpec{
-			"timers": ParamSpec{
+			"timers": {
 				PrimitiveType: "timers",
 			},
 		},
 		Nodes: map[string]*Node{
-			"start": &Node{
+			"start": {
 				Doc: "Wait to hear a request to create or delete a timer.",
 				Branches: &Branches{
 					Type: "message",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: Dwimjs(`{"makeTimer":{"in":"?in", "message":"?m", "id":"?id"}}`),
 							Target:  "make",
 						},
-						&Branch{
+						{
 							Pattern: Dwimjs(`{"deleteTimer":"?id"}`),
 							Target:  "delete",
 						},
-						&Branch{
+						{
 							Pattern: Dwimjs(`{"emitted":"?id"}`),
 							Target:  "emitted",
 						},
 					},
 				},
 			},
-			"make": &Node{
+			"make": {
 				Doc: "Try to make the timer.",
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
@@ -278,17 +278,17 @@ func NewTimersSpec() *Spec {
 				Branches: &Branches{
 					Type: "bindings",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: Dwimjs(`{"error":"?oops"}`),
 							Target:  "problem",
 						},
-						&Branch{
+						{
 							Target: "success",
 						},
 					},
 				},
 			},
-			"delete": &Node{
+			"delete": {
 				Doc: "Try to delete the timer.",
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
@@ -316,17 +316,17 @@ func NewTimersSpec() *Spec {
 				Branches: &Branches{
 					Type: "bindings",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: Dwimjs(`{"error":"?oops"}`),
 							Target:  "problem",
 						},
-						&Branch{
+						{
 							Target: "success",
 						},
 					},
 				},
 			},
-			"emitted": &Node{
+			"emitted": {
 				Doc: "State change to force a write.",
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
@@ -335,13 +335,13 @@ func NewTimersSpec() *Spec {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "start",
 						},
 					},
 				},
 			},
-			"problem": &Node{
+			"problem": {
 				Doc: "Report the problem.",
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
@@ -369,13 +369,13 @@ func NewTimersSpec() *Spec {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "start",
 						},
 					},
 				},
 			},
-			"success": &Node{
+			"success": {
 				Doc: "Report happiness.",
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
@@ -394,7 +394,7 @@ func NewTimersSpec() *Spec {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "start",
 						},
 					},

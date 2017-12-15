@@ -100,38 +100,38 @@ func Analyze(s *core.Spec) (*SpecAnalysis, error) {
 	a.TerminalNodes = terminal
 
 	emptyTargets := make([]string, 0, len(hasEmptyTargets))
-	for name, _ := range hasEmptyTargets {
+	for name := range hasEmptyTargets {
 		emptyTargets = append(emptyTargets, name)
 	}
 	a.EmptyTargets = emptyTargets
 
 	all := make(map[string]bool, len(s.Nodes))
-	for name, _ := range s.Nodes {
+	for name := range s.Nodes {
 		all[name] = true
 	}
-	for name, _ := range targeted {
+	for name := range targeted {
 		delete(all, name)
 	}
 	orphans := make([]string, 0, len(all))
-	for name, _ := range all {
+	for name := range all {
 		orphans = append(orphans, name)
 	}
 	a.Orphans = orphans
 
 	missing := make([]string, 0, len(missingTargets))
-	for name, _ := range missingTargets {
+	for name := range missingTargets {
 		missing = append(missing, name)
 	}
 	a.MissingTargets = missing
 
 	vars := make([]string, 0, len(branchTargetVariables))
-	for name, _ := range branchTargetVariables {
+	for name := range branchTargetVariables {
 		vars = append(vars, name)
 	}
 	a.BranchTargetVariables = vars
 
 	interps := make([]string, 0, len(interpreters))
-	for name, _ := range interpreters {
+	for name := range interpreters {
 		if name == "" {
 			name = "default"
 		}

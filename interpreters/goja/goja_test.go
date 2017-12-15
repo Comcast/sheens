@@ -168,33 +168,33 @@ func TestActionsMachinePrimitive(t *testing.T) {
 	spec := &core.Spec{
 		Name: "test",
 		Nodes: map[string]*core.Node{
-			"start": &core.Node{
+			"start": {
 				Branches: &core.Branches{
 					Type: "message",
 					Branches: []*core.Branch{
-						&core.Branch{
+						{
 							Pattern: Dwimjs(`{"trigger":"?triggered"}`),
 							Target:  "do",
 						},
 					},
 				},
 			},
-			"do": &core.Node{
+			"do": {
 				Action: action,
 				Branches: &core.Branches{
 					Branches: []*core.Branch{
-						&core.Branch{
+						{
 							Pattern: Dwimjs(`{"want":"tacos"}`),
 							Target:  "happy",
 						},
-						&core.Branch{
+						{
 							Target: "sad",
 						},
 					},
 				},
 			},
-			"happy": &core.Node{},
-			"sad":   &core.Node{},
+			"happy": {},
+			"sad":   {},
 		},
 	}
 
@@ -227,36 +227,36 @@ func TestActionsMachineFancy(t *testing.T) {
 	spec := &core.Spec{
 		Name: "test",
 		Nodes: map[string]*core.Node{
-			"start": &core.Node{
+			"start": {
 				Branches: &core.Branches{
 					Type: "message",
 					Branches: []*core.Branch{
-						&core.Branch{
+						{
 							Pattern: Dwimjs(`{"trigger":"?triggered"}`),
 							Target:  "do",
 						},
 					},
 				},
 			},
-			"do": &core.Node{
+			"do": {
 				ActionSource: &core.ActionSource{
 					Interpreter: "goja",
 					Source:      `var bs = _.bindings; bs.want = "tacos"; return bs;`,
 				},
 				Branches: &core.Branches{
 					Branches: []*core.Branch{
-						&core.Branch{
+						{
 							Pattern: Dwimjs(`{"want":"tacos"}`),
 							Target:  "happy",
 						},
-						&core.Branch{
+						{
 							Target: "sad",
 						},
 					},
 				},
 			},
-			"happy": &core.Node{},
-			"sad":   &core.Node{},
+			"happy": {},
+			"sad":   {},
 		},
 	}
 

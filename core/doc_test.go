@@ -16,22 +16,22 @@ func Example() {
 		Name:          "test",
 		PatternSyntax: "json",
 		Nodes: map[string]*Node{
-			"start": &Node{
+			"start": {
 				Branches: &Branches{
 					Type: "message",
 					Branches: []*Branch{
-						&Branch{
+						{
 							Pattern: `{"request":"?something"}`,
 							Target:  "obey",
 						},
-						&Branch{
+						{
 							Pattern: `{"gimme":"?something"}`,
 							Target:  "ignore",
 						},
 					},
 				},
 			},
-			"obey": &Node{
+			"obey": {
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						e := NewExecution(make(Bindings)) // Forget current bindings.
@@ -42,13 +42,13 @@ func Example() {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "start",
 						},
 					},
 				},
 			},
-			"ignore": &Node{
+			"ignore": {
 				Action: &FuncAction{
 					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
 						e := NewExecution(make(Bindings)) // Forget current bindings.
@@ -58,7 +58,7 @@ func Example() {
 				},
 				Branches: &Branches{
 					Branches: []*Branch{
-						&Branch{
+						{
 							Target: "start",
 						},
 					},
