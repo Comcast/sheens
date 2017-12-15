@@ -55,7 +55,7 @@ func TestBasics(t *testing.T) {
 	{
 
 		mss := []*storage.MachineState{
-			&storage.MachineState{
+			{
 				Mid:        "a",
 				SpecSource: crew.NewSpecSource("aspec"),
 				NodeName:   "anode",
@@ -63,7 +63,7 @@ func TestBasics(t *testing.T) {
 					"likes": "tacos",
 				},
 			},
-			&storage.MachineState{
+			{
 				Mid:        "b",
 				SpecSource: crew.NewSpecSource("bspec"),
 				NodeName:   "bnode",
@@ -111,7 +111,7 @@ func TestBasics(t *testing.T) {
 	{
 
 		mss := []*storage.MachineState{
-			&storage.MachineState{
+			{
 				Mid:        "a",
 				SpecSource: crew.NewSpecSource("aspec1"),
 				NodeName:   "anode1",
@@ -133,7 +133,7 @@ func TestBasics(t *testing.T) {
 	{
 
 		mss := []*storage.MachineState{
-			&storage.MachineState{
+			{
 				Mid:     "a",
 				Deleted: true,
 			},
@@ -190,7 +190,7 @@ func BenchmarkBolt(b *testing.B) {
 	}
 
 	mss := []*storage.MachineState{
-		&storage.MachineState{
+		{
 			Mid:        "a",
 			SpecSource: crew.NewSpecSource("aspec"),
 			NodeName:   "anode",
@@ -198,7 +198,7 @@ func BenchmarkBolt(b *testing.B) {
 				"likes": "tacos",
 			},
 		},
-		&storage.MachineState{
+		{
 			Mid:        "b",
 			SpecSource: crew.NewSpecSource("bspec"),
 			NodeName:   "bnode",
