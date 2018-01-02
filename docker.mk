@@ -1,5 +1,5 @@
 IMG ?= sheens
-NAMESPACE ?= sheens
+NAMESPACE ?= williamofockham
 TAG ?= latest
 CONTAINER ?= sheens-build
 DOCKER_SOCKET_ARG := $(if $(DOCKER_HOST), -e DOCKER_HOST=$(DOCKER_HOST), -v \
