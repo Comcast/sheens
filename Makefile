@@ -1,9 +1,8 @@
 .PHONY: test install
 
-all: install test
+all: test
 
-test:
-	@make install
+test: install
 	@cd core && go generate && go test
 	@cd crew && go test
 	@cd tools && go test
