@@ -12,7 +12,7 @@ Goja interpreter, that data is at `_.props` (instead of at
 
 ## Explicit `return` required by standard Goja actions/guards
 
-Now you must explicit `return` your bindings in Goja actions and
+Now you must explicitly `return` your bindings in Goja actions and
 guards.
 
 
