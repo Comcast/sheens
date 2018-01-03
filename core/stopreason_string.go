@@ -2,7 +2,7 @@
 
 package core
 
-import "fmt"
+import "strconv"
 
 const _StopReason_name = "DoneLimitedInternalErrorBreakpointReached"
 
@@ -10,7 +10,7 @@ var _StopReason_index = [...]uint8{0, 4, 11, 24, 41}
 
 func (i StopReason) String() string {
 	if i < 0 || i >= StopReason(len(_StopReason_index)-1) {
-		return fmt.Sprintf("StopReason(%d)", i)
+		return "StopReason(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _StopReason_name[_StopReason_index[i]:_StopReason_index[i+1]]
 }
