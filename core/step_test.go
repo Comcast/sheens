@@ -433,3 +433,23 @@ func BenchmarkTurnstile(b *testing.B) {
 		}
 	}
 }
+
+func TestNilBindings(t *testing.T) {
+	var bs Bindings = nil
+	b := Branch{
+		Target: "there",
+	}
+	
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s, _, err := b.try(ctx, bs, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s == nil {
+		t.Fatal("didn't follow")
+	}
+	if s.NodeName != "there" {
+		t.Fatal(s.NodeName)
+	}
+}

@@ -428,17 +428,19 @@ func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, prop
 		}
 	}
 
+	target := b.target(bs)
+	
 	ts.Add(map[string]interface{}{
 		"bs":     bs,
-		"target": b.target(bs),
+		"target": target,
 	})
 
-	if bs == nil {
+	if bs == nil && b.Pattern != nil { // See #5
 		return nil, ts, nil
 	}
 
 	st := &State{
-		NodeName: b.target(bs),
+		NodeName: target,
 		Bs:       bs,
 	}
 
