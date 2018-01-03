@@ -2,8 +2,12 @@
 
 all:	test
 
-test:
-	cd core && go get golang.org/x/tools/cmd/stringer && go generate && go test
+prereqs:
+	which string || go get golang.org/x/tools/cmd/stringer
+	which jsonenums || go get github.com/campoy/jsonenums
+
+test:	prereqs
+	cd core && go generate && go test
 	cd crew && go test 
 	cd tools && go test
 	cd interpreters/goja && go test
