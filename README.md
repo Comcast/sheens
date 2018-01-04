@@ -15,7 +15,15 @@ This repo is licensed under [Apache License 2.0](LICENSE).
 
 ## Usage (demo)
 
-See [`cmd/mservice`](cmd/mservice).
+```Shell
+go get github.com/Comcast/sheens/...
+cd $GOPATH/src/github.com/Comcast/sheens # Or equivalent
+mservice -s specs -i .
+cat cmd/mservice/input.txt | nc localhost 8081
+kill %%
+```
+
+See [`cmd/mservice`](cmd/mservice) for a bit more discussion.
 
 More documentation below and at [`doc/by-example.md`](doc/by-example.md).
 

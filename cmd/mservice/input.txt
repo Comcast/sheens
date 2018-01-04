@@ -12,6 +12,6 @@
 {"cop":{"cid":"simpsons","process":{"message":{"makeTimer":{"in":"2s","id":"chips","message":{"to":{"mid":"doubler"},"double":100}}}}}}
 echo sleeping
 sleep 3s
-echo starting exercise
-{"cop":{"cid":"simpsons","exercise":{"background":true,"count":10,"port":"localhost:8081"}}}
+# echo starting exercise
+# {"cop":{"cid":"simpsons","exercise":{"background":true,"count":10,"port":"localhost:8081"}}}
 
