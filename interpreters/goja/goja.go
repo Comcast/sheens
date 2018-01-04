@@ -303,6 +303,10 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 		return core.Gensym(32)
 	}
 
+	env["genstr"] = func() interface{} {
+		return core.Gensym(32)
+	}
+
 	env["cronNext"] = func(x interface{}) interface{} {
 		switch vv := x.(type) {
 		case goja.Value:
@@ -332,28 +336,30 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 		return url.QueryEscape(s)
 	}
 
-	env["exit"] = func(n interface{}, msg interface{}) interface{} {
-		switch vv := msg.(type) {
-		case goja.Value:
-			msg = vv.Export()
+	if i.Testing {
+		env["exit"] = func(n interface{}, msg interface{}) interface{} {
+			switch vv := msg.(type) {
+			case goja.Value:
+				msg = vv.Export()
+			}
+			s, is := msg.(string)
+			if !is {
+				panic("not a string")
+			}
+			switch vv := n.(type) {
+			case goja.Value:
+				n = vv.Export()
+			}
+			ec, is := n.(int64)
+			if !is {
+				panic(fmt.Sprintf("a %T is not an %T", n, ec))
+			}
+			log.Println(s)
+			if !IgnoreExit {
+				os.Exit(int(ec))
+			}
+			return msg
 		}
-		s, is := msg.(string)
-		if !is {
-			panic("not a string")
-		}
-		switch vv := n.(type) {
-		case goja.Value:
-			n = vv.Export()
-		}
-		ec, is := n.(int64)
-		if !is {
-			panic(fmt.Sprintf("a %T is not an %T", n, ec))
-		}
-		log.Println(s)
-		if !IgnoreExit {
-			os.Exit(int(ec))
-		}
-		return msg
 	}
 
 	// "output" adds the given message to the list of messages to
