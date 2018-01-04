@@ -12,8 +12,9 @@ var alphabet = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // Gensym makes a random string of the given length.
 //
-// Should be name something else.  Using this name just brings back
-// good memories.
+// Since we're returning a string and not (somehow a symbol), should
+// be named something else.  Using this name just brings back good
+// memories.
 func Gensym(n int) string {
 	bs := make([]byte, n)
 	for i := 0; i < len(bs); i++ {
