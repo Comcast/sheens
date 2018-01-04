@@ -4,4 +4,4 @@ COPY . /sheens
 
 WORKDIR /sheens
 
-RUN make install
+RUN make prereqs
