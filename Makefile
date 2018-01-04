@@ -14,5 +14,4 @@ test: prereqs
 	@cd cmd/patmatch && go test
 	@cd cmd/mservice/storage/bolt && go test
 	@cd cmd/mservice && go test
-	@cd cmd/mexpect && go test # Requires mservice executable
 	@cd cmd/spectool && go test
