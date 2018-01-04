@@ -13,12 +13,14 @@ which is a rule engine.
 
 This repo is licensed under [Apache License 2.0](LICENSE).
 
-## Usage (demo)
+## Usage
+
+A demo:
 
 ```Shell
 go get github.com/Comcast/sheens/...
 cd $GOPATH/src/github.com/Comcast/sheens # Or equivalent
-mservice -s specs -i .
+mservice -s specs -i . &
 cat cmd/mservice/input.txt | nc localhost 8081
 kill %%
 ```
@@ -26,6 +28,16 @@ kill %%
 See [`cmd/mservice`](cmd/mservice) for a bit more discussion.
 
 More documentation below and at [`doc/by-example.md`](doc/by-example.md).
+
+Applications will all use the `core` package.  If an application wants
+a little help with containers of machines, then the `crew` package
+might be a good start.  An application should provide its own message
+transport (both in and out), and an application should provide its own
+persistence.  See [`cmd/mservice`](cmd/mservice) for a somewhat crude
+example of all of the above.  For another example, see
+[`cmd/msimple`](cmd/msimple), which is a very simple machine-running
+process.
+
 
 ## Primary goals
 
@@ -314,8 +326,8 @@ works.  That's what the current implementations do, I think.
 1.  The basic structures and algorithms are pretty simple.  Should be
     feasible to have multiple implementations for different settings
     as appropriate.
-
-
+	
+	
 ## Code of Conduct
 
 We take our [code of conduct](CODE_OF_CONDUCT.md) seriously. Please
