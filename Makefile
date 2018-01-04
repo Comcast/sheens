@@ -5,6 +5,7 @@ all: test
 prereqs:
 	which stringer || go get golang.org/x/tools/cmd/stringer
 	which jsonenums || go get github.com/campoy/jsonenums
+	go get github.com/Comcast/sheens/...
 
 test: prereqs
 	@cd core && go generate && go test
