@@ -249,9 +249,9 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 	)
 
 	if message == nil {
-		message = []interface{}{}
+		messages = []interface{}{}
 	} else {
-		message = []interface{}{message}
+		messages = []interface{}{message}
 	}
 
 	for _, mid := range mids {
