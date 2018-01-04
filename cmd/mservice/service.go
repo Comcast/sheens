@@ -238,7 +238,7 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 
 	var (
 		// The batch of messages we're submitting.
-		messages = []interface{}{message}
+		messages []interface{}
 
 		// Processed will accumulate each Machine's Walked.
 		processed = make(map[string]*core.Walked, len(c.Machines))
@@ -247,6 +247,12 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 		// We'll probably want to write these all out.
 		states = make(map[string]*core.State, len(c.Machines))
 	)
+
+	if message == nil {
+		message = []interface{}{}
+	} else {
+		message = []interface{}{message}
+	}
 
 	for _, mid := range mids {
 		m, have := c.Machines[mid]
