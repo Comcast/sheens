@@ -3,9 +3,8 @@
 all: test
 
 prereqs:
-	which stringer || go get golang.org/x/tools/cmd/stringer
-	which jsonenums || go get github.com/campoy/jsonenums
-	go get github.com/Comcast/sheens/...
+	@which stringer || go get golang.org/x/tools/cmd/stringer
+	@which jsonenums || go get github.com/campoy/jsonenums
 
 test: prereqs
 	@cd core && go generate && go test

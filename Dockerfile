@@ -1,7 +1,9 @@
 FROM golang:latest
 
-COPY . /sheens
+RUN mkdir -p $GOPATH/src/github.com/sheens
 
-WORKDIR /sheens
+COPY . $GOPATH/src/github.com/sheens
 
-RUN make prereqs
+WORKDIR $GOPATH/src/github.com/sheens
+
+RUN go get ./... && make prereqs
