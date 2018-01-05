@@ -12,6 +12,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/interpreters/goja"
@@ -46,7 +49,7 @@ func main() {
 		"goja": gi,
 	}
 
-	// Parse the initial bindings (as JSON).
+	// Parse the given initial bindings (as JSON).
 	var bs core.Bindings
 	if err := json.Unmarshal([]byte(*startingBindings), &bs); err != nil {
 		panic(err)
@@ -67,14 +70,14 @@ func main() {
 
 	// Set up our execution environment.
 	var (
-		// The state that we'll update as we go.
+		// The machine's state that we'll update as we go.
 		st = &core.State{
 			NodeName: *startingNode,
 			Bs:       bs,
 		}
 
-		// Static properties that are exposed via '_.params'
-		// to the actions (and guards).
+		// Some static properties that are exposed to actions
+		// (and guards) via '_.params'
 		props = map[string]interface{}{
 			"mid": "default",
 			"cid": "default",
@@ -85,71 +88,92 @@ func main() {
 	)
 
 	// Utility functions for processing (and ingesting emitted)
-	// messages.
+	// messages.  These functions call themselves mututally
+	// recursively, so we define them this clumsy way.
 	var (
-		process   func(message interface{}) error
+		// process sends a message to the machine.
+		process func(message interface{}) error
+
+		// reprocess takes an emitted message, prints it, and
+		// optionally sends the message back to the machine as
+		// an in-bound message (via process()).
 		reprocess func(message interface{}) error
 	)
 
-	// This function calls itself.
-	process = func(message interface{}) error {
-		walked, err := spec.Walk(ctx, st, []interface{}{message}, ctl, props)
-		if err != nil {
-			return err
-		}
+	{
+		process = func(message interface{}) error {
 
-		if *diag {
-			fmt.Printf("# walked\n")
-			fmt.Printf("#   message    %s\n", JS(message))
+			walked, err := spec.Walk(ctx, st, []interface{}{message}, ctl, props)
+			if err != nil {
+				return err
+			}
+
+			if *diag {
+				fmt.Printf("# walked\n")
+				fmt.Printf("#   message    %s\n", JS(message))
+				if walked.Error != nil {
+					fmt.Printf("#   error    %v\n", walked.Error)
+				}
+				for i, stride := range walked.Strides {
+					fmt.Printf("#   %02d from     %s\n", i, JS(stride.From))
+					fmt.Printf("#      to       %s\n", JS(stride.To))
+					if stride.Consumed != nil {
+						fmt.Printf("#      consumed %s\n", JS(stride.Consumed))
+					}
+					if 0 < len(stride.Events.Emitted) {
+						fmt.Printf("#      emitted\n")
+					}
+					for _, emitted := range stride.Events.Emitted {
+						fmt.Printf("#         %s\n", JS(emitted))
+					}
+				}
+			}
+
 			if walked.Error != nil {
-				fmt.Printf("#   error    %v\n", walked.Error)
+				return err
 			}
-			for i, stride := range walked.Strides {
-				fmt.Printf("#   %02d from     %s\n", i, JS(stride.From))
-				fmt.Printf("#      to       %s\n", JS(stride.To))
-				if stride.Consumed != nil {
-					fmt.Printf("#      consumed %s\n", JS(stride.Consumed))
-				}
-				if 0 < len(stride.Events.Emitted) {
-					fmt.Printf("#      emitted\n")
-				}
-				for _, emitted := range stride.Events.Emitted {
-					fmt.Printf("#         %s\n", JS(emitted))
-				}
+
+			if next := walked.To(); next != nil {
+				st = next
 			}
+
+			if *diag {
+				// If we had persistence, we'd
+				// probably write out the new state
+				// here.
+				fmt.Printf("# next %s\n", JS(st))
+			}
+
+			// For each "emitted" message, reprocess it.
+			if err = walked.DoEmitted(reprocess); err != nil {
+				return err
+			}
+
+			return nil
 		}
 
-		if walked.Error != nil {
-			return err
-		}
+		reprocess = func(message interface{}) error {
+			js, err := json.Marshal(message)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s\n", js)
 
-		if next := walked.To(); next != nil {
-			st = next
-		}
+			if err = handle(ctx, message, process); err != nil {
+				return err
+			}
 
-		if *diag {
-			fmt.Printf("# next %s\n", JS(st))
-		}
+			if *recycle {
+				return process(message)
+			}
 
-		if err = walked.DoEmitted(reprocess); err != nil {
-			return err
+			return nil
 		}
-
-		return nil
 	}
 
-	// For dealing with messages that were emitted.
-	reprocess = func(message interface{}) error {
-		js, err := json.Marshal(message)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s\n", js)
-		if *recycle {
-			return process(message)
-		}
-		return nil
-	}
+	// We can accept input like "sleep 1s" to pause for 1 second.
+	// We'll check for that kind of input with this regexp.
+	sleeper := regexp.MustCompile("sleep +(.*)")
 
 	in := bufio.NewReader(os.Stdin)
 	for {
@@ -160,9 +184,40 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
+		{
+			// We can accept some non-message input.
+
+			s := strings.TrimSpace(string(line))
+			if strings.HasPrefix(s, "#") {
+				// Comment input.
+				continue
+			}
+			if s == "timers" {
+				// Show pending timers.
+				timers.Range(func(k, v interface{}) bool {
+					t := v.(*timer)
+					fmt.Printf("# %s %s %s\n", t.id, t.at.Format(time.RFC3339), JS(t.message))
+					return true
+				})
+				continue
+			}
+			if ss := sleeper.FindStringSubmatch(s); ss != nil {
+				// A request to sleep.
+				d, err := time.ParseDuration(ss[1])
+				if err != nil {
+					warn(err)
+					continue
+				}
+				time.Sleep(d)
+				continue
+			}
+		}
+
+		// Parse the input line as message in JSON.
 		var message interface{}
 		if err = json.Unmarshal(line, &message); err != nil {
-			fmt.Printf("error: %s\n", err)
+			warn(err)
 			continue
 		}
 
@@ -170,16 +225,13 @@ func main() {
 			fmt.Printf("in: %s\n", JS(message))
 		}
 
+		// Allow input to make and cancel timers.
+		if err = handle(ctx, message, process); err != nil {
+			warn(err)
+		}
+
 		if err = process(message); err != nil {
-			fmt.Printf("error: %s\n", err)
+			warn(err)
 		}
 	}
-}
-
-func JS(x interface{}) string {
-	js, err := json.Marshal(&x)
-	if err != nil {
-		panic(err)
-	}
-	return string(js)
 }

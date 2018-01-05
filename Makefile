@@ -3,8 +3,8 @@
 all: test
 
 prereqs:
-	@which stringer || go get golang.org/x/tools/cmd/stringer
-	@which jsonenums || go get github.com/campoy/jsonenums
+	@(which stringer > /dev/null) || go get golang.org/x/tools/cmd/stringer
+	@(which jsonenums > /dev/null) || go get github.com/campoy/jsonenums
 
 test: prereqs
 	@cd core && go generate && go test
@@ -15,3 +15,6 @@ test: prereqs
 	@cd cmd/mservice/storage/bolt && go test
 	@cd cmd/mservice && go test
 	@cd cmd/spectool && go test
+
+install: prereqs
+	@go install cmd/...

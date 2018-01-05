@@ -8,6 +8,8 @@ Outbound messages are written to `stdout`.
 
 ### Basic
 
+Using the spec [`double.yaml`](../../specs/double.yaml):
+
 ```Shell
 echo '{"double":10}' | msimple -s ../../specs/double.yaml
 ```
@@ -20,6 +22,8 @@ Output:
 
 
 ### Fancier
+
+Using the spec [`test.yaml`](../../specs/test.yaml):
 
 ```Shell
 cat<<EOF | msimple -s ../../specs/test.yaml -b '{"has":"beer","n":2}'
