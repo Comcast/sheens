@@ -85,6 +85,17 @@ func makeDemoService(ctx context.Context, routed chan interface{}, specDir, libD
 	// This function also sends messages to the routed channel (if
 	// it's not nil), so we can easily watch what is routed.
 	router := func(ctx context.Context, c *crew.Crew, message interface{}) ([]string, bool, error) {
+
+		if s.firehose != nil {
+			msg := map[string]interface{}{
+				"routing": message,
+			}
+			select {
+			case s.firehose <- msg:
+			default:
+				log.Printf("firehouse (routing) blocked")
+			}
+		}
 		log.Printf("routing %s", JS(message))
 
 		if routed != nil {

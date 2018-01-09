@@ -36,6 +36,10 @@ type Service struct {
 
 	InSubs  *Subs
 	OutSubs *Subs
+
+	// firehose is a crude mechanism to get ALL protocol ops (see
+	// protocol.go) to Websocket clients.
+	firehose chan interface{}
 }
 
 // NewService makes a new, empty Service.

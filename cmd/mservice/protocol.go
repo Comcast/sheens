@@ -21,6 +21,16 @@ type SOp struct {
 	// Rem gives the id of the Crew to be removed.
 	Rem string `json:"rem,omitempty"`
 
+	// GetSpec is a utility that invokes the service's SpecProvider.
+	GetSpec *GetSpecOp `json:"getSpec,omitempty" yaml:",omitempty"`
+
+	// ToDo: UpdateSpec.
+
+	// GetCrewOp that gets (a copy of) a Crew.
+	GetCrewOp *GetCrewOp `json:"getCrew,omitempty" yaml:",omitempty"`
+
+	// ToDo: UpdateCrewOp -- or something like that.
+
 	// Error will hold an error (if any) that results from
 	// processing this operation.
 	Error error `json:"-" yaml:"-"`
@@ -42,20 +52,70 @@ func erred(err error) (error, string) {
 	return err, err.Error()
 }
 
+func (o *SOp) wrapForFirehose(tag string) map[string]*SOp {
+	return map[string]*SOp{
+		tag: o,
+	}
+}
+
 func (o *SOp) Do(ctx context.Context, s *Service) error {
+
+	var err error
 	if o.Make != "" {
-		o.Error, o.Err = erred(s.MakeCrew(ctx, o.Make))
-		return nil
-	}
-	if o.Rem != "" {
-		o.Error = s.RemCrew(ctx, o.Rem)
-		return nil
-	}
-	if o.COp != nil {
-		return o.COp.Do(ctx, s)
+		err = s.MakeCrew(ctx, o.Make)
+	} else if o.Rem != "" {
+		err = s.RemCrew(ctx, o.Rem)
+	} else if o.GetSpec != nil {
+		err = o.GetSpec.Do(ctx, s)
+	} else if o.GetCrewOp != nil {
+		err = o.GetCrewOp.Do(ctx, s)
+	} else if o.COp != nil {
+		err = o.COp.Do(ctx, s)
+	} else {
+		err = fmt.Errorf("not implemented: %s", JS(o))
 	}
 
-	return fmt.Errorf("not implemented: %s", JS(o))
+	if err != nil && o.Error == nil {
+		o.Error, o.Err = erred(err)
+	}
+
+	if s.firehose != nil {
+		select {
+		case s.firehose <- o.wrapForFirehose("op"):
+		default:
+			log.Printf("s.firehose blocked")
+		}
+	}
+
+	return o.Error
+}
+
+type GetSpecOp struct {
+	Source *crew.SpecSource `json:"source,omitempty" yaml:",omitempty"`
+	Spec   *core.Spec       `json:"spec,omitempty" yaml:",spec"`
+}
+
+func (o *GetSpecOp) Do(ctx context.Context, s *Service) error {
+	var spec core.Specter
+	spec, err := s.SpecProvider(ctx, o.Source)
+	if err == nil {
+		o.Spec = spec.Spec()
+	}
+	return err
+}
+
+type GetCrewOp struct {
+	Cid  string     `json:"cid,omitempty", yaml:",omitempty"`
+	Crew *crew.Crew `json:"crew,omitempty" yaml:",omitempty"`
+}
+
+func (o *GetCrewOp) Do(ctx context.Context, s *Service) error {
+	c, err := s.findCrew(ctx, o.Cid)
+	if err != nil {
+		return err
+	}
+	o.Crew = c.Copy()
+	return nil
 }
 
 // COp is a Crew Operation.

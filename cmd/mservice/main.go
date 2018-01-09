@@ -19,12 +19,13 @@ func init() {
 func main() {
 
 	var (
-		httpPort = flag.String("h", ":8080", "Control plane (HTTP) service port")
-		tcpPort  = flag.String("t", ":8081", "Data plane (TCP) service port")
-		repl     = flag.Bool("r", false, "REPL")
-		specDir  = flag.String("s", DefaultSpecDir, "specs directory")
-		libDir   = flag.String("i", "../..", "directory containing 'interpreters'")
-		ttl      = flag.Duration("e", 60*time.Second, "crew cache TTL (0 to disable)")
+		httpPort   = flag.String("h", ":8080", "Control plane (HTTP) service port")
+		websockets = flag.Bool("w", false, "start Web sockets service (requires HTTP service)")
+		tcpPort    = flag.String("t", ":8081", "Data plane (TCP) service port")
+		repl       = flag.Bool("r", false, "REPL")
+		specDir    = flag.String("s", DefaultSpecDir, "specs directory")
+		libDir     = flag.String("i", "../..", "directory containing 'interpreters'")
+		ttl        = flag.Duration("e", 60*time.Second, "crew cache TTL (0 to disable)")
 	)
 
 	flag.Parse()
@@ -57,11 +58,18 @@ func main() {
 	}
 
 	if *httpPort != "" {
+		if *websockets {
+			if err = s.WebSockets(ctx, *httpPort); err != nil {
+				panic(err)
+			}
+		}
+
 		go func() {
 			if err = s.HTTPServer(ctx, *httpPort); err != nil {
 				panic(err)
 			}
 		}()
+
 	}
 
 	if *repl {
