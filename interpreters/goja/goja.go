@@ -382,20 +382,20 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 		return x
 	}
 
-	// env["log"] = func(x interface{}) interface{} {
-	// 	switch vv := x.(type) {
-	// 	case goja.Value:
-	// 		x = vv.Export()
-	// 	}
-	// 	js, err := json.Marshal(&x)
-	// 	if err != nil {
-	// 		log.Println("goja.log (can't marshal: " + err.Error() + ")")
-	// 	} else {
-	// 		log.Println(string(js))
-	// 	}
+	env["log"] = func(x interface{}) interface{} {
+		switch vv := x.(type) {
+		case goja.Value:
+			x = vv.Export()
+		}
+		js, err := json.Marshal(&x)
+		if err != nil {
+			log.Println("goja.log (can't marshal: " + err.Error() + ")")
+		} else {
+			log.Println(string(js))
+		}
 
-	// 	return x
-	// }
+		return x
+	}
 
 	// match is a utility that invokes the pattern matcher.
 	env["match"] = func(pat, mess, bs goja.Value) interface{} {
