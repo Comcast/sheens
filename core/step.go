@@ -199,6 +199,8 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 		c = DefaultControl
 	}
 
+	st = st.Copy()
+
 	// Each error case should be scrutinized.  It might be
 	// possible (and desirable?) to have any error transition to
 	// an "error" node, which should have been added during Spec
@@ -244,29 +246,30 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 	stride.From = st.Copy()
 
 	if haveAction {
-		if e, err = n.Action.Exec(ctx, bs, props); err == nil {
+		e, err = n.Action.Exec(ctx, bs, props)
+		if e != nil {
+			stride.AddEvents(e.Events)
+		}
+
+		if err == nil {
 			bs = e.Bs
 		} else {
-			// Bind "actionError" to the error string.  We
-			// don't do m.toError since the branches could
-			// handle this error themselves.
+			// Bind "actionError" to the error string.
 			bs.Extend("actionError", err.Error())
 			bs.Extend("error", err.Error())
-			// ToDo: Reconsider reporting this error. Note: it's
-			// a user error.
 			if !s.ActionErrorBranches {
-				// Error (from Action and will not be handled)
-				//
-				// Don't even give the branches a chance to
-				// find (or miss) this error.
-				return nil, err
+				if s.ActionErrorNode == "" {
+					return nil, err
+				}
+				stride.To = &State{
+					NodeName: s.ActionErrorNode,
+					Bs:       bs.Copy(),
+				}
+				return stride, nil
 			}
 		}
 		// Bindings have been updated.
 
-		if e != nil {
-			stride.AddEvents(e.Events)
-		} // e might be nil if the Exec returned an error.
 	}
 
 	// Now evaluate the branches (if any).
@@ -322,11 +325,20 @@ func (b *Branches) consider(ctx context.Context, bs Bindings, pending interface{
 	}
 
 	for _, br := range b.Branches {
-		to, more, err := br.try(ctx, bs, against, props)
+		to, traces, err := br.try(ctx, bs, against, props)
 
-		ts.Add(more.Messages...)
+		ts.Add(traces.Messages...)
+
+		ts.Add(map[string]interface{}{
+			"tried": br,
+			"to":    to,
+			"err":   err,
+		})
+
 		if err != nil {
-			// Error (forwarded)
+			ts.Add(map[string]interface{}{
+				"err": "forwarded",
+			})
 			return nil, ts, consumer, err
 		}
 		if to != nil {
@@ -359,7 +371,6 @@ func (b *Branch) target(bs Bindings) string {
 
 // try evaluates this Branch to see if it applies.
 func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, props StepProps) (*State, *Traces, error) {
-
 	ts := NewTraces()
 
 	ts.Add(map[string]interface{}{
@@ -372,7 +383,7 @@ func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, prop
 
 	if b.Pattern != nil {
 		var err error
-		if bss, err = Match(nil, b.Pattern, against, bs); err != nil {
+		if bss, err = Match(nil, b.Pattern, against, bs.Copy()); err != nil {
 			ts.Add(map[string]interface{}{
 				"error":   err.Error(),
 				"pattern": b.Pattern,
@@ -401,7 +412,7 @@ func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, prop
 		bs = nil
 		for _, candidate := range bss {
 			ts.Add(map[string]interface{}{
-				"guarding": bs,
+				"guardingWith": candidate,
 			})
 
 			exe, err := b.Guard.Exec(ctx, candidate, props)
@@ -418,30 +429,32 @@ func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, prop
 				return nil, ts, err
 			}
 
+			ts.Add(map[string]interface{}{
+				"guardReturned": exe.Bs,
+			})
+
 			if exe.Bs != nil {
-				ts.Add(map[string]interface{}{
-					"guarded": exe.Bs,
-				})
+				// Guard allowed us follow this branch.
 				bs = exe.Bs
 				break
 			}
 		}
 	}
 
+	if bs == nil {
+		return nil, ts, nil
+	}
+
 	target := b.target(bs)
-	
+
 	ts.Add(map[string]interface{}{
 		"bs":     bs,
 		"target": target,
 	})
 
-	if bs == nil && b.Pattern != nil { // See #5
-		return nil, ts, nil
-	}
-
 	st := &State{
-		NodeName: target,
 		Bs:       bs,
+		NodeName: target,
 	}
 
 	return st, ts, nil

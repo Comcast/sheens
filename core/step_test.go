@@ -163,11 +163,12 @@ func TestActionErrors(t *testing.T) {
 				t.Fatalf("went to '%s' instead of 'error'", to.NodeName)
 			}
 			if _, have := to.Bs["actionError"]; !have {
-				t.Fatal("no actionError")
+				t.Fatal("no actionError: " + JS(to.Bs))
 			}
 		}
 	}
 
+	spec.ActionErrorNode = "error"
 	t.Run("not handling", f)
 	spec.ActionErrorBranches = true
 	t.Run("handling", f)
@@ -431,25 +432,5 @@ func BenchmarkTurnstile(b *testing.B) {
 		if _, err := spec.Walk(ctx, st, pending, c, nil); err != nil {
 			b.Fatal(err)
 		}
-	}
-}
-
-func TestNilBindings(t *testing.T) {
-	var bs Bindings = nil
-	b := Branch{
-		Target: "there",
-	}
-	
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	s, _, err := b.try(ctx, bs, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s == nil {
-		t.Fatal("didn't follow")
-	}
-	if s.NodeName != "there" {
-		t.Fatal(s.NodeName)
 	}
 }

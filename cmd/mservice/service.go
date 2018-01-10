@@ -268,6 +268,7 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 			"mid": mid,
 			"cid": c.Id,
 		}
+
 		walked, err := spec.Walk(ctx, m.State, messages, ctl, props)
 		if err != nil {
 			if walked.Error != nil {
@@ -279,7 +280,6 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 		processed[mid] = walked
 
 		if to := walked.To(); to != nil {
-			to = to.Copy()
 			states[mid] = to
 		}
 	}
