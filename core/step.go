@@ -383,7 +383,7 @@ func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, prop
 
 	if b.Pattern != nil {
 		var err error
-		if bss, err = Match(nil, b.Pattern, against, bs.Copy()); err != nil {
+		if bss, err = Match(nil, b.Pattern, against, bs); err != nil {
 			ts.Add(map[string]interface{}{
 				"error":   err.Error(),
 				"pattern": b.Pattern,

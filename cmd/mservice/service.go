@@ -280,7 +280,7 @@ func (s *Service) Process(ctx context.Context, cid string, message interface{}, 
 		processed[mid] = walked
 
 		if to := walked.To(); to != nil {
-			states[mid] = to
+			states[mid] = to.Copy()
 		}
 	}
 
