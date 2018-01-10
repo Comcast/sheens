@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -432,5 +433,55 @@ func BenchmarkTurnstile(b *testing.B) {
 		if _, err := spec.Walk(ctx, st, pending, c, nil); err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+func TestNoMatchGuardLeak(t *testing.T) {
+	spec := &Spec{
+		Name:          "test",
+		PatternSyntax: "json",
+		Nodes: map[string]*Node{
+			"start": {
+				Branches: &Branches{
+					Type: "message",
+					Branches: []*Branch{
+						{
+							Pattern: `{"x":"?x"}`,
+							Guard: &FuncAction{
+								F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
+									e := NewExecution(nil)
+									return e, nil
+								},
+							},
+							Target: "other",
+						},
+					},
+				},
+			},
+			"other": {},
+		},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := spec.Compile(ctx, nil, true); err != nil {
+		t.Fatal(err)
+	}
+
+	st := &State{
+		NodeName: "start",
+		Bs:       make(Bindings),
+	}
+
+	c := DefaultControl
+
+	_, err := spec.Step(ctx, st, Dwimjs(`{"x":"a"}`), c, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if x, have := st.Bs["?x"]; have {
+		log.Fatal(x)
 	}
 }

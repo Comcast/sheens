@@ -199,8 +199,6 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 		c = DefaultControl
 	}
 
-	st = st.Copy()
-
 	// Each error case should be scrutinized.  It might be
 	// possible (and desirable?) to have any error transition to
 	// an "error" node, which should have been added during Spec

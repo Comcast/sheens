@@ -310,7 +310,15 @@ func fudge(x interface{}) interface{} {
 }
 
 // Match is a verion of 'Matches' that takes initial bindings.
+//
+// Those initial bindings are not modified.
 func Match(ctx *Context, pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
+	return match(ctx, pattern, fact, bindings.Copy())
+}
+
+// match is a verion of 'Matches' that takes initial bindings (which
+// can be modified).
+func match(ctx *Context, pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
 
 	pattern = fudge(pattern)
 	fact = fudge(fact)
@@ -335,7 +343,7 @@ func Match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 		}
 
 	// case reflect.Value:
-	// 	return Match(ctx, vv.Interface(), fact, bindings)
+	// 	return match(ctx, vv.Interface(), fact, bindings)
 
 	case bool:
 		switch f.(type) {
@@ -379,7 +387,7 @@ func Match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 			binding, found := bs[vv]
 			if found {
 				// check whether new binding is the same as existing
-				return Match(ctx, binding, fact, bindings)
+				return match(ctx, binding, fact, bindings)
 			} else {
 				// add new binding
 				bs[vv] = fact
