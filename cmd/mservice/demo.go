@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Comcast/sheens/cmd/mservice/storage"
 	"github.com/Comcast/sheens/cmd/mservice/storage/bolt"
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
@@ -16,7 +17,7 @@ var (
 	DefaultLibDir  = "../.."
 )
 
-func makeDemoService(ctx context.Context, routed chan interface{}, specDir, libDir string) (*Service, error) {
+func makeDemoService(ctx context.Context, routed chan interface{}, specDir, libDir, storeFile string) (*Service, error) {
 
 	if specDir == "" {
 		specDir = DefaultSpecDir
@@ -30,12 +31,16 @@ func makeDemoService(ctx context.Context, routed chan interface{}, specDir, libD
 
 	log.Printf(`libDir: "%s"`, specDir)
 
-	bs, err := bolt.NewStorage("storage.db")
-	if err != nil {
-		return nil, err
+	var bs storage.Storage = &storage.NoopStorage{}
+	if storeFile != "" {
+		var err error
+		if bs, err = bolt.NewStorage(storeFile); err != nil {
+			return nil, err
+		}
+		// bs.Debug = true
 	}
-	// bs.Debug = true
-	if err = bs.Open(); err != nil {
+
+	if err := bs.Open(ctx); err != nil {
 		return nil, err
 	}
 
@@ -85,6 +90,18 @@ func makeDemoService(ctx context.Context, routed chan interface{}, specDir, libD
 	// This function also sends messages to the routed channel (if
 	// it's not nil), so we can easily watch what is routed.
 	router := func(ctx context.Context, c *crew.Crew, message interface{}) ([]string, bool, error) {
+
+		if s.firehose != nil {
+			msg := map[string]interface{}{
+				"routing": message,
+				"cid":     c.Id,
+			}
+			select {
+			case s.firehose <- msg:
+			default:
+				log.Printf("firehouse (routing) blocked")
+			}
+		}
 		log.Printf("routing %s", JS(message))
 
 		if routed != nil {

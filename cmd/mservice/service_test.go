@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Comcast/sheens/cmd/mservice/storage/bolt"
 	"github.com/Comcast/sheens/core"
 )
 
@@ -30,13 +29,13 @@ func run() error {
 	defer cancel()
 
 	routed := make(chan interface{}, 1024)
-	s, err := makeDemoService(ctx, routed, "", "")
+	s, err := makeDemoService(ctx, routed, "", "", "")
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if err := s.Storage.(*bolt.Storage).Close(); err != nil {
+		if err := s.Storage.Close(ctx); err != nil {
 			log.Printf("warning storage.Close() error %v", err)
 		}
 	}()

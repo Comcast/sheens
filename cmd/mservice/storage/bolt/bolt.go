@@ -32,7 +32,7 @@ func NewStorage(filename string) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) Open() error {
+func (s *Storage) Open(ctx context.Context) error {
 	opts := &bolt.Options{
 		Timeout: time.Second,
 	}
@@ -45,7 +45,7 @@ func (s *Storage) Open() error {
 	return nil
 }
 
-func (s *Storage) Close() error {
+func (s *Storage) Close(ctx context.Context) error {
 	return s.db.Close()
 }
 

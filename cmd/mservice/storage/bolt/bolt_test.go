@@ -35,18 +35,18 @@ func TestBasics(t *testing.T) {
 		}
 	}()
 
-	if err := s.Open(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := s.Open(ctx); err != nil {
 		t.Fatal(err)
 	}
 
 	defer func() {
-		if err := s.Close(); err != nil {
+		if err := s.Close(ctx); err != nil {
 			t.Fatal(err)
 		}
 	}()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	if err := s.MakeCrew(ctx, pid); err != nil {
 		t.Fatal(err)
@@ -172,18 +172,18 @@ func BenchmarkBolt(b *testing.B) {
 		}
 	}()
 
-	if err := s.Open(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := s.Open(ctx); err != nil {
 		b.Fatal(err)
 	}
 
 	defer func() {
-		if err := s.Close(); err != nil {
+		if err := s.Close(ctx); err != nil {
 			b.Fatal(err)
 		}
 	}()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	if err := s.MakeCrew(ctx, pid); err != nil {
 		b.Fatal(err)

@@ -16,9 +16,9 @@ import (
 type emitter func(ctx context.Context, message interface{}) error
 
 type timerEntry struct {
-	Id      string
-	Message interface{}
-	At      time.Time
+	Id      string      `json:"id"`
+	Message interface{} `json:"message"`
+	At      time.Time   `json:"at"`
 
 	// Ctx: Probably shouldn't have this field!
 	Ctx context.Context `json:"-" yaml:"-"`
@@ -32,7 +32,7 @@ var (
 )
 
 type timers struct {
-	Debug bool
+	Debug bool `json:"-"`
 
 	// See MarshalJSON, which is defined in order to obtain the
 	// lock before permitting marshalling.
@@ -46,7 +46,7 @@ type timers struct {
 	// This data is used to emit a message directly to this
 	// machine in order to change states in order to write out
 	// updated data in this instance!
-	Id string
+	Id string `json:"id,omitempty"`
 
 	Timers map[string]*timerEntry `json:"map"`
 
