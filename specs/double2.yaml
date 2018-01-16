@@ -19,11 +19,11 @@ nodes:
             var bs = _.bindings;
             var f = parseFloat(bs["?x"]);
             if (isNaN(f)) {
-               bs = nil;
+               return null;
             } else {
-               bs["?x"] = f;
+               bs["?x"] = f; // Overwrite with the number.
+               return bs;
             }
-            return bs;
         target: double
       - pattern: |
           {"double": "?x"}

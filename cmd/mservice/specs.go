@@ -86,6 +86,7 @@ func (p *FileSystemSpecProvider) ReadSpecs(ctx context.Context) error {
 
 		var spec core.Spec
 		if err = yaml.Unmarshal(bs, &spec); err != nil {
+			err = fmt.Errorf("%s with '%s'", err, name)
 			return err
 		}
 		// log.Printf("ReadSpecs loaded spec from %s", name)

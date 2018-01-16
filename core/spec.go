@@ -108,6 +108,13 @@ type Spec struct {
 	// you want.
 	ActionErrorBranches bool `json:"actionErrorBranches,omitempty" yaml:",omitempty"`
 
+	// ActionErrorNode is the name of the target node when an
+	// action produces an error.
+	//
+	// If no value is given, then Step() will return an error
+	// rather than a stride ending at a node given by this value.
+	ActionErrorNode string `json:"actionErrorNode,omitempty" yaml:",omitempty"`
+
 	// Boot is an optional Action that should be (?) executed when
 	// the machine is loaded.  Not implemented yet.
 	Boot Action `json:"-" yaml:"-"`

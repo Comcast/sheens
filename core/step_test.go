@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -163,11 +164,12 @@ func TestActionErrors(t *testing.T) {
 				t.Fatalf("went to '%s' instead of 'error'", to.NodeName)
 			}
 			if _, have := to.Bs["actionError"]; !have {
-				t.Fatal("no actionError")
+				t.Fatal("no actionError: " + JS(to.Bs))
 			}
 		}
 	}
 
+	spec.ActionErrorNode = "error"
 	t.Run("not handling", f)
 	spec.ActionErrorBranches = true
 	t.Run("handling", f)
@@ -434,22 +436,52 @@ func BenchmarkTurnstile(b *testing.B) {
 	}
 }
 
-func TestNilBindings(t *testing.T) {
-	var bs Bindings = nil
-	b := Branch{
-		Target: "there",
+func TestNoMatchGuardLeak(t *testing.T) {
+	spec := &Spec{
+		Name:          "test",
+		PatternSyntax: "json",
+		Nodes: map[string]*Node{
+			"start": {
+				Branches: &Branches{
+					Type: "message",
+					Branches: []*Branch{
+						{
+							Pattern: `{"x":"?x"}`,
+							Guard: &FuncAction{
+								F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
+									e := NewExecution(nil)
+									return e, nil
+								},
+							},
+							Target: "other",
+						},
+					},
+				},
+			},
+			"other": {},
+		},
 	}
-	
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	s, _, err := b.try(ctx, bs, nil, nil)
+
+	if err := spec.Compile(ctx, nil, true); err != nil {
+		t.Fatal(err)
+	}
+
+	st := &State{
+		NodeName: "start",
+		Bs:       make(Bindings),
+	}
+
+	c := DefaultControl
+
+	_, err := spec.Step(ctx, st, Dwimjs(`{"x":"a"}`), c, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s == nil {
-		t.Fatal("didn't follow")
-	}
-	if s.NodeName != "there" {
-		t.Fatal(s.NodeName)
+
+	if x, have := st.Bs["?x"]; have {
+		log.Fatal(x)
 	}
 }
