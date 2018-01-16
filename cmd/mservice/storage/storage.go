@@ -33,7 +33,9 @@ type Storage interface {
 
 	WriteState(ctx context.Context, pid string, ss []*MachineState) error
 
-	// Iterate over Crews?
+	Open(ctx context.Context) error
+
+	Close(ctx context.Context) error
 }
 
 func AsMachinesStates(changes map[string]*core.State) []*MachineState {

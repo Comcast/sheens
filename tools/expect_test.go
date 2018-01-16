@@ -12,6 +12,15 @@ import (
 	"github.com/jsccast/yaml"
 )
 
+// TestExpectBasic runs a real "expect" test on a real mservice
+// process, so another mservice can't be running at the same time.
+//
+// Requires a current mservice in the path.
+//
+// If this test hangs, check to see if there's a (unclosed) storage.db
+// file.  If there is, remove it.
+//
+// ToDo: Don't do any of that.
 func TestExpectBasic(t *testing.T) {
 	// This test requires `cmd/mserivce`!  That's not good.
 

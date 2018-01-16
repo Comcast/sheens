@@ -97,8 +97,8 @@ type Breakpoint func(context.Context, *State) bool
 // Control influences how Walk() operates.
 type Control struct {
 	// Limit is the maximum number of Steps that a Walk() can take.
-	Limit       int
-	Breakpoints map[string]Breakpoint
+	Limit       int                   `json:"limit"`
+	Breakpoints map[string]Breakpoint `json:"-"`
 }
 
 func (c *Control) Copy() *Control {
@@ -429,7 +429,7 @@ func (b *Branch) try(ctx context.Context, bs Bindings, against interface{}, prop
 	}
 
 	target := b.target(bs)
-	
+
 	ts.Add(map[string]interface{}{
 		"bs":     bs,
 		"target": target,

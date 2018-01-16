@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Comcast/sheens/cmd/mservice/storage/bolt"
 	"github.com/Comcast/sheens/crew"
 )
 
@@ -15,13 +14,13 @@ func TestProtocol(t *testing.T) {
 	defer cancel()
 
 	routed := make(chan interface{}, 1024)
-	s, err := makeDemoService(ctx, routed, "", "")
+	s, err := makeDemoService(ctx, routed, "", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer func() {
-		if err := s.Storage.(*bolt.Storage).Close(); err != nil {
+		if err := s.Storage.Close(ctx); err != nil {
 			t.Fatal(err)
 		}
 	}()

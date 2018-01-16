@@ -131,8 +131,6 @@ func (s *Service) Listener(ctx context.Context, in *bufio.Reader, out io.Writer,
 		{
 			sl := strings.TrimSpace(string(line))
 
-			log.Printf("dataplane debug %p %s", in, sl)
-
 			if echo {
 				fmt.Fprintf(out, "%s", sl)
 			}

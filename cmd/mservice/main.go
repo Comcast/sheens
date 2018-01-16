@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -20,6 +21,8 @@ func main() {
 
 	var (
 		httpPort   = flag.String("h", ":8080", "Control plane (HTTP) service port")
+		httpDir    = flag.String("d", "", "optional directory that the HTTP service will serve")
+		storeFile  = flag.String("p", "", "optional filename for persistence")
 		websockets = flag.Bool("w", false, "start Web sockets service (requires HTTP service)")
 		tcpPort    = flag.String("t", ":8081", "Data plane (TCP) service port")
 		repl       = flag.Bool("r", false, "REPL")
@@ -48,7 +51,7 @@ func main() {
 		}
 	}()
 
-	s, err := makeDemoService(ctx, routed, *specDir, *libDir)
+	s, err := makeDemoService(ctx, routed, *specDir, *libDir, *storeFile)
 	if err != nil {
 		panic(err)
 	}
@@ -65,6 +68,10 @@ func main() {
 		}
 
 		go func() {
+			if *httpDir != "" {
+				fs := http.FileServer(http.Dir(*httpDir))
+				http.Handle("/f/", http.StripPrefix("/f", fs))
+			}
 			if err = s.HTTPServer(ctx, *httpPort); err != nil {
 				panic(err)
 			}
