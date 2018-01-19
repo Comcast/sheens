@@ -86,6 +86,7 @@ func NewService(ctx context.Context, specDir, dbFile, libDir string) (*Service, 
 	}
 
 	emitter := func(ctx context.Context, msg interface{}) error {
+		// ToDo: Consider going through a COp.Process.
 		_, err := s.Process(ctx, msg, s.ProcessCtl)
 		return err
 	}
@@ -289,12 +290,6 @@ func (s *Service) AddMachine(ctx context.Context, specName, id, nodeName string,
 		},
 	}
 
-	if m.SpecSource != nil && m.SpecSource.Name == "timers" {
-		// if err := s.ensureTimersMachine(ctx, cid, &m); err != nil {
-		// 	return err
-		// }
-	}
-
 	c.Lock()
 	_, have := c.Machines[id]
 	if !have {
@@ -344,6 +339,12 @@ func (s *Service) Route(ctx context.Context, msg interface{}) ([]string, bool, e
 	switch mid {
 	case "ws":
 		s.wsClientC <- msg
+		return nil, false, nil
+	case "http":
+		if err := s.toHTTP(ctx, msg); err != nil {
+			// Not a "Route" problem.
+			s.err(err)
+		}
 		return nil, false, nil
 	case "timers":
 		if err := s.toTimers(ctx, msg); err != nil {
