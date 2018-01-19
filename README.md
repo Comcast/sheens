@@ -28,14 +28,14 @@ echo '{"double":1}' | msimple -s specs/double.yaml
 A bit fancier:
 
 ```Shell
-mservice -s specs -i . &
-cat cmd/mservice/input.txt | nc localhost 8081
+mcrew -s specs -t :9000 &
+cat cmd/mcrew/input.txt | nc localhost 9000
 kill %%
 ```
 
-See [`cmd/mservice`](cmd/mservice) for more discussion, and see the
-rest of this README and [`doc/by-example.md`](doc/by-example.md) for a
-start at documentation.
+See [`cmd/mcrew`](cmd/mcrew) for more discussion, and see the rest of
+this README and [`doc/by-example.md`](doc/by-example.md) for a start
+at documentation.
 
 Applications will all use the `core` package.  If an application wants
 a little help with containers of machines, then the `crew` package
