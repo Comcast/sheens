@@ -1,0 +1,40 @@
+name: haswitches
+doc: |-
+  When the garden detector is ON, turn on the switch.  When the
+  detector is OFF, turn off the switch.
+
+  This spec is solely for a Home Assistant demo.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type":"event","event":{"data":{"entity_id":"binary_sensor.garden","new_state":{"state":"on"}}}}
+        target: on
+  on:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: {mid: "ws"}, payload: {type:"call_service","domain":"switch","service": "turn_on","service_data":{"entity_id":"binary_sensor.garden"}}});
+        return _.bindings;
+    branching:
+      branches:
+      - target: waitForOff
+  waitForOff:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type":"event","event":{"data":{"entity_id":"binary_sensor.garden","new_state":{"state":"off"}}}}
+        target: off
+  off:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: {mid: "ws"}, payload: {type:"call_service","domain":"switch","service": "turn_off","service_data":{"entity_id":"binary_sensor.garden"}}});
+        return _.bindings;
+    branching:
+      branches:
+      - target: start

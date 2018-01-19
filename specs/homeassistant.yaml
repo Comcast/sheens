@@ -1,0 +1,157 @@
+name: homeassistant
+doc: |
+  A spec that coordinates messages from machines to the Home Assistant
+  WebSockets API.  See
+
+    https://home-assistant.io/developers/websocket_api/
+
+  This spec sends messages to Home Assistant by emitting messages to
+  'ws', which is a special machine id that the process intercepts.
+  Messages send to 'ws' are forwarded to Home Assistant via
+  WebSockets.  (The URL for that service is specified on the mcrew
+  (for example) command line.)
+
+  Start this machine with a '{"ctl":"start"}'. message.
+
+  The first thing this spec does is deal with authentication if
+  required.  See
+
+    https://home-assistant.io/developers/websocket_api/#authentication-phase
+
+  which is easy to do with this gear.  If this machine has a bindings
+  for 'password' and if authentication is required, that password is
+  sent to Home Assistant for consideration.  If not -- or if that
+  authentication fails -- then this machine transitions to the
+  'denied' node, where it'll remain unless the machine is reset
+  somehow.
+
+  After successful authentication, the machine subscribes to all Home
+  Assistant events.  The actual WebSocketClient forwards all messages
+  it receives to ALL machines.
+
+  After subscribing to all events, this machine begins to forwards all
+  'send' messages it receives to "ws" per the WebSockets API protocol:
+
+    https://home-assistant.io/developers/websocket_api/#message-format
+
+  This spec adds an 'id' to each message.
+
+  To turn off this forwarding, send a '{"ctl":"stop"}' message to this
+  machine.  You can restart it with '{"ctl":"start"}'.
+
+patternsyntax: json
+nodes:
+  start:
+    doc: Just wait for a 'start' message.
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"ctl": "start"}
+        target: login
+  login:
+    doc: Wait for the greeting for Home Assistant.
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type": "auth_ok"}
+        doc: No authentication required.
+        target: subscribe
+      - pattern: |
+          {"type": "auth_required"}
+        doc: We need a password.
+        target: maybe_auth
+  maybe_auth:
+    doc: If we have a password, use it. If not, quit.
+    branching:
+      branches:
+      - pattern: |
+          {"password":"?pass"}
+        target: auth
+      - target: denied
+  auth:
+    doc: Send the password to Home Assistant.
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: "ws", type: "auth", "api_password": _.bindings.password});
+        return _.bindings;
+    branching:
+      branches:
+      - target: auth_wait
+  auth_wait:
+    doc: Wait for Home Assistant to tell use if our password was accepted.
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type": "auth_ok"}
+        target: subscribe
+      - pattern: |
+          {"type": "auth_invalid"}
+        target: denied
+  denied:
+    doc: Password required but ours was bad or missing.
+  subscribe:
+    doc: Subscribe to all Home Assistant events.
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: "ws", id: 1, type: "subscribe_events"});
+        return ({sub: 1, id: 2}); 
+    branching:
+      branches:
+      - target: listen
+  listen:
+    doc: Listen for messages to forward to Home Assistant.
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"send": "?send"}
+        target: send
+      - pattern: |
+          {"ctl":"stop"}
+        target: unsubscribe
+  send:
+    doc: Forward a message to Home Assistant after adding an incremented id.
+    action:
+      interpreter: goja
+      source: |-
+        var id = _.bindings.id++;
+        var msg = _.bindings["?send"];
+        delete _.bindings["?send"];
+        msg.to = "ws";
+        msg.id = id;
+        _.out(msg);
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  unsubscribe:
+    doc: Stop the events subscription.
+    action:
+      interpreter: goja
+      source: |-
+        var sub = _.bindings.sub;
+        delete _.bindings.sub;
+        var id = _.binding.id++;
+        _.out({to: "ws", id: id, type: "unsubscribe_events", "subscription": id});
+        return _.bindings;
+    branching:
+      branches:
+      - target: waitForStart
+        doc: |
+          We don't got to start because we've already authenticated
+          (if necessary).
+  waitForStart:
+    doc: |
+      Wait for a 'start' message.  We've already authenticated, so we
+      won't do that again.
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"ctl": "start"}
+        target: subscribe
