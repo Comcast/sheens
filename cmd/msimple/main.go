@@ -1,6 +1,3 @@
-// A simple, single-machine process that reads from stdin and writes
-// to stdout.
-
 package main
 
 import (

@@ -15,13 +15,12 @@ import (
 	"github.com/jsccast/yaml"
 )
 
-func (s *Service) TCPListener(ctx context.Context, port string) error {
-	log.Printf("Starting TCP listener on %s", port)
-
+func (s *Service) TCPService(ctx context.Context, port string) error {
 	l, err := net.Listen("tcp", port)
 	if err != nil {
 		return err
 	}
+
 	ctl := make(chan bool, 1)
 
 	for {
@@ -35,7 +34,7 @@ func (s *Service) TCPListener(ctx context.Context, port string) error {
 
 			if err = s.Listener(ctx, in, conn, ctl); err != nil {
 				if err != io.EOF {
-					log.Printf("TCPListener: %s", err)
+					log.Printf("TCPService: %s", err)
 				}
 			}
 			conn.Close()
@@ -51,9 +50,6 @@ func (s *Service) TCPListener(ctx context.Context, port string) error {
 }
 
 func (s *Service) Listener(ctx context.Context, in *bufio.Reader, out io.Writer, ctl chan bool) error {
-	log.Printf("Service listener %p", in)
-	defer log.Printf("Service listener closed %p", in)
-
 	render := "prettyjson"
 
 	sayMutex := sync.Mutex{}
@@ -88,23 +84,6 @@ func (s *Service) Listener(ctx context.Context, in *bufio.Reader, out io.Writer,
 
 		return true
 	}
-
-	outHook := func(x interface{}) {
-		say(map[string]interface{}{
-			"outbound": x,
-		})
-	}
-
-	inHook := func(x interface{}) {
-		say(map[string]interface{}{
-			"inbound": x,
-		})
-	}
-
-	defer func() {
-		s.InSubs.RemAll(inHook)
-		s.OutSubs.RemAll(outHook)
-	}()
 
 	complain := func(err error) bool {
 		return say(map[string]interface{}{
@@ -160,28 +139,6 @@ func (s *Service) Listener(ctx context.Context, in *bufio.Reader, out io.Writer,
 
 			parts := strings.Split(sl, " ")
 			switch parts[0] {
-			case "insub", "inunsub", "outsub", "outunsub":
-				if len(parts) != 2 {
-					if !complain(fmt.Errorf("*sub CREW_ID")) {
-						return nil
-					}
-					continue
-				}
-				cid := parts[1]
-				switch parts[0] {
-				case "insub":
-					s.InSubs.Add(cid, inHook)
-				case "inunsub":
-					s.InSubs.Rem(cid, inHook)
-				case "outsub":
-					s.OutSubs.Add(cid, outHook)
-				case "outunsub":
-					s.OutSubs.Rem(cid, outHook)
-				}
-				continue
-			case "echo":
-				fmt.Println(strings.Join(parts[1:], " "))
-				continue
 			case "sleep":
 				if len(parts) != 2 {
 					if !complain(fmt.Errorf("sleep DURATION")) {

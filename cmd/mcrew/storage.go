@@ -1,4 +1,4 @@
-package bolt
+package main
 
 import (
 	"context"
@@ -7,17 +7,52 @@ import (
 	"log"
 	"time"
 
-	"github.com/Comcast/sheens/cmd/mservice/storage"
-
+	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/crew"
 	"github.com/boltdb/bolt"
 )
 
-func JS(x interface{}) string {
-	js, err := json.Marshal(&x)
-	if err != nil {
-		panic(err)
+type MachineState struct {
+	// Mid is the id for the machine.
+	Mid string `json:"id,omitempty"`
+
+	SpecSource *crew.SpecSource `json:"spec,omitempty" yaml:"spec,omitempty"`
+	NodeName   string           `json:"node"`
+	Bs         core.Bindings    `json:"bs"`
+
+	// Deleted indicated that this machine has been deleted.
+	//
+	// Yes, this flag is a hack.
+	Deleted bool `json:"-" yaml:"-"`
+}
+
+func AsMachinesStates(changes map[string]*core.State) []*MachineState {
+	acc := make([]*MachineState, 0, len(changes))
+	for mid, s := range changes {
+		ms := &MachineState{
+			Mid:      mid,
+			NodeName: s.NodeName,
+			Bs:       s.Bs,
+		}
+		acc = append(acc, ms)
 	}
-	return string(js)
+	return acc
+}
+
+func AsMachines(mss []*MachineState) map[string]*crew.Machine {
+	acc := make(map[string]*crew.Machine, len(mss))
+	for _, ms := range mss {
+		m := &crew.Machine{
+			Id: ms.Mid,
+			State: &core.State{
+				NodeName: ms.NodeName,
+				Bs:       ms.Bs,
+			},
+			SpecSource: ms.SpecSource,
+		}
+		acc[ms.Mid] = m
+	}
+	return acc
 }
 
 type Storage struct {
@@ -46,33 +81,45 @@ func (s *Storage) Open(ctx context.Context) error {
 }
 
 func (s *Storage) Close(ctx context.Context) error {
+	if s == nil {
+		return nil
+	}
 	return s.db.Close()
 }
 
 func (s *Storage) logf(format string, args ...interface{}) {
+	if s == nil {
+		return
+	}
 	if s.Debug {
-		log.Printf("BoltDB Storage."+format, args...)
+		log.Printf("BoltDB "+format, args...)
 	}
 }
 
-func (s *Storage) MakeCrew(ctx context.Context, pid string) error {
-	s.logf("MakeCrew %s", pid)
+func (s *Storage) EnsureCrew(ctx context.Context, pid string) error {
+	if s == nil {
+		return nil
+	}
 	return s.db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte(pid))
+		_, err := tx.CreateBucketIfNotExists([]byte(pid))
 		return err
 	})
 }
 
 func (s *Storage) RemCrew(ctx context.Context, pid string) error {
-	s.logf("RemCrew %s", pid)
+	if s == nil {
+		return nil
+	}
 	return s.db.Update(func(tx *bolt.Tx) error {
 		return tx.DeleteBucket([]byte(pid))
 	})
 }
 
-func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*storage.MachineState, error) {
-	s.logf("GetCrew %s", pid)
-	mss := make([]*storage.MachineState, 0, 32)
+func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*MachineState, error) {
+	if s == nil {
+		return []*MachineState{}, nil
+	}
+	mss := make([]*MachineState, 0, 32)
 	err := s.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(pid))
 		if b == nil {
@@ -80,7 +127,7 @@ func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*storage.MachineSt
 		}
 		c := b.Cursor()
 		for id, bs := c.First(); id != nil; id, bs = c.Next() {
-			var ms storage.MachineState
+			var ms MachineState
 			if err := json.Unmarshal(bs, &ms); err != nil {
 				return err
 			}
@@ -105,8 +152,10 @@ func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*storage.MachineSt
 
 var NotImplemented = errors.New("not implemented")
 
-func (s *Storage) WriteState(ctx context.Context, pid string, mss []*storage.MachineState) error {
-	s.logf("WriteState %s %s", pid, JS(mss))
+func (s *Storage) WriteState(ctx context.Context, pid string, mss []*MachineState) error {
+	if s == nil {
+		return nil
+	}
 
 	if 0 == len(mss) {
 		return nil
@@ -120,7 +169,7 @@ func (s *Storage) WriteState(ctx context.Context, pid string, mss []*storage.Mac
 			vals[id] = nil
 		} else {
 			// To save some space, remove id.
-			ms = &storage.MachineState{
+			ms = &MachineState{
 				SpecSource: ms.SpecSource,
 				NodeName:   ms.NodeName,
 				Bs:         ms.Bs,

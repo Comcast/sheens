@@ -11,18 +11,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// WebSockets adds Websockets support to the existing HTTP server.
-//
-// Warning: This is demo code, and it does not scale.  In particular,
-// this code turns on a firehose of operations for the entire service.
-// This firehose reports all ops (in and out) as well as all routed
-// messages to ALL websocket clients.
-func (s *Service) WebSockets(ctx context.Context, port string) error {
-	s.firehose = make(chan interface{}, 1024)
+func (s *Service) WebSocketService(ctx context.Context) error {
+
+	s.ops = make(chan interface{}, 1024)
 
 	var upgrader = websocket.Upgrader{} // use default options
 
-	// We aren't proud.
 	conns := sync.Map{}
 
 	go func() {
@@ -30,13 +24,14 @@ func (s *Service) WebSockets(ctx context.Context, port string) error {
 			select {
 			case <-ctx.Done():
 				return
-			case x := <-s.firehose:
+			case x := <-s.ops:
 				conns.Range(func(k, v interface{}) bool {
+					log.Printf("debug fowarding op %s", JS(x))
 					c := v.(chan interface{})
 					select {
 					case c <- x:
 					default:
-						log.Printf("%v firehose blocked", k)
+						log.Printf("%v ops blocked", k)
 					}
 					return true
 				})
@@ -46,6 +41,8 @@ func (s *Service) WebSockets(ctx context.Context, port string) error {
 	}()
 
 	api := func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Service.WebSocketService connection")
+
 		c, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Println("upgrade error", err)
@@ -56,11 +53,11 @@ func (s *Service) WebSockets(ctx context.Context, port string) error {
 		ctl := make(chan bool)
 		defer close(ctl)
 
-		firehose := make(chan interface{}, 32)
-		defer close(firehose)
+		in := make(chan interface{}, 32)
+		defer close(in)
 
 		id := c.LocalAddr().String()
-		conns.Store(id, firehose)
+		conns.Store(id, in)
 		defer conns.Delete(id)
 
 		go func() {
@@ -73,7 +70,7 @@ func (s *Service) WebSockets(ctx context.Context, port string) error {
 					break LOOP
 				case <-ctx.Done():
 					break LOOP
-				case x := <-firehose:
+				case x := <-in:
 					if x == nil {
 						break LOOP
 					}
@@ -113,11 +110,6 @@ func (s *Service) WebSockets(ctx context.Context, port string) error {
 	}
 
 	http.HandleFunc("/ws/api", api)
-
-	// fs := http.FileServer(http.Dir("http-static"))
-	// http.Handle("/ui/", http.StripPrefix("/ui", fs))
-
-	log.Printf("Service.HTTPServer (%s) has Websockets", port)
 
 	return nil
 }

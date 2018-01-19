@@ -1,0 +1,22 @@
+doc: |
+  An mexpect-driven test of 'double2.spec'.
+
+  See cmd/mexpect.
+ios:
+- doc: Create a machine.
+  inputs:
+  - '{"cop":{"cid":"simpsons","add":{"m":{"id":"doubler","spec":{"name":"double2"}}}}}'
+- doc: Send a message and verify the result.
+  waitBetween: 100ms
+  inputs:
+  - '{"cop":{"cid":"simpsons","process":{"message":{"to":"doubler","double":1}}}}'
+  outputSet:
+  - pattern: '{"doubled":2}'
+- doc: Send another message, with a bad number, and verify the result.
+  waitBetween: 100ms
+  inputs:
+  - '{"cop":{"cid":"simpsons","process":{"message":{"to":"doubler","double":"chips"}}}}'
+  outputSet:
+  - pattern: '{"bad":"chips"}'
+parsePatterns: true
+defaultTimeout: 1s

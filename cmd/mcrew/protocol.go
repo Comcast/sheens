@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
@@ -13,14 +14,8 @@ import (
 
 // SOp is a Service Operation.
 //
-// Only one of Make, Rem, or COp should have value.
+// Only one of GetSpec, GetCrewOp, or COp should have value.
 type SOp struct {
-	// Make gives the id of a Crew to be created.
-	Make string `json:"make,omitempty"`
-
-	// Rem gives the id of the Crew to be removed.
-	Rem string `json:"rem,omitempty"`
-
 	// GetSpec is a utility that invokes the service's SpecProvider.
 	GetSpec *GetSpecOp `json:"getSpec,omitempty" yaml:",omitempty"`
 
@@ -52,20 +47,14 @@ func erred(err error) (error, string) {
 	return err, err.Error()
 }
 
-func (o *SOp) wrapForFirehose(tag string) map[string]*SOp {
-	return map[string]*SOp{
-		tag: o,
-	}
-}
-
 func (o *SOp) Do(ctx context.Context, s *Service) error {
 
+	s.op(ctx, map[string]interface{}{
+		"do": o,
+	})
+
 	var err error
-	if o.Make != "" {
-		err = s.MakeCrew(ctx, o.Make)
-	} else if o.Rem != "" {
-		err = s.RemCrew(ctx, o.Rem)
-	} else if o.GetSpec != nil {
+	if o.GetSpec != nil {
 		err = o.GetSpec.Do(ctx, s)
 	} else if o.GetCrewOp != nil {
 		err = o.GetCrewOp.Do(ctx, s)
@@ -79,13 +68,9 @@ func (o *SOp) Do(ctx context.Context, s *Service) error {
 		o.Error, o.Err = erred(err)
 	}
 
-	if s.firehose != nil {
-		select {
-		case s.firehose <- o.wrapForFirehose("op"):
-		default:
-			log.Printf("s.firehose blocked")
-		}
-	}
+	s.op(ctx, map[string]interface{}{
+		"did": o,
+	})
 
 	return o.Error
 }
@@ -97,7 +82,7 @@ type GetSpecOp struct {
 
 func (o *GetSpecOp) Do(ctx context.Context, s *Service) error {
 	var spec core.Specter
-	spec, err := s.SpecProvider(ctx, o.Source)
+	spec, err := s.GetSpec(ctx, o.Source)
 	if err == nil {
 		o.Spec = spec.Spec()
 	}
@@ -105,16 +90,11 @@ func (o *GetSpecOp) Do(ctx context.Context, s *Service) error {
 }
 
 type GetCrewOp struct {
-	Cid  string     `json:"cid,omitempty", yaml:",omitempty"`
 	Crew *crew.Crew `json:"crew,omitempty" yaml:",omitempty"`
 }
 
 func (o *GetCrewOp) Do(ctx context.Context, s *Service) error {
-	c, err := s.findCrew(ctx, o.Cid)
-	if err != nil {
-		return err
-	}
-	o.Crew = c.Copy()
+	o.Crew = s.crew.Copy()
 	return nil
 }
 
@@ -122,9 +102,6 @@ func (o *GetCrewOp) Do(ctx context.Context, s *Service) error {
 //
 // In normal use, only one field should be given.
 type COp struct {
-	// Cid gives the id of the target Crew.
-	Cid string `json:"cid"`
-
 	// Add a machine to the Crew.
 	Add *OpAdd `json:"add,omitempty" yaml:",omitempty"`
 
@@ -139,16 +116,16 @@ type COp struct {
 
 func (o *COp) Do(ctx context.Context, s *Service) error {
 	if o.Add != nil {
-		return o.Add.Do(ctx, s, o.Cid)
+		return o.Add.Do(ctx, s)
 	}
 	if o.Rem != nil {
-		return o.Rem.Do(ctx, s, o.Cid)
+		return o.Rem.Do(ctx, s)
 	}
 	if o.Process != nil {
-		return o.Process.Do(ctx, s, o.Cid)
+		return o.Process.Do(ctx, s)
 	}
 	if o.Exercise != nil {
-		return o.Exercise.Do(ctx, o.Cid)
+		return o.Exercise.Do(ctx)
 	}
 	panic("not implemented")
 }
@@ -169,7 +146,7 @@ type OpAdd struct {
 	Err string `json:"err,omitempty" yaml:",omitempty"`
 }
 
-func (o *OpAdd) Do(ctx context.Context, s *Service, cid string) error {
+func (o *OpAdd) Do(ctx context.Context, s *Service) error {
 	if o.Machine == nil {
 		return fmt.Errorf("no machine given")
 	}
@@ -181,7 +158,7 @@ func (o *OpAdd) Do(ctx context.Context, s *Service, cid string) error {
 	}
 	// get spec and set default values if they are not provided by
 	// initial bindings
-	specter, err := s.SpecProvider(ctx, o.Machine.SpecSource)
+	specter, err := s.GetSpec(ctx, o.Machine.SpecSource)
 	if err != nil {
 		return err
 	}
@@ -196,7 +173,6 @@ func (o *OpAdd) Do(ctx context.Context, s *Service, cid string) error {
 	}
 	//
 	o.Error, o.Err = erred(s.AddMachine(ctx,
-		cid,
 		o.Machine.SpecSource.Name,
 		o.Machine.Id,
 		o.Machine.State.NodeName,
@@ -221,8 +197,8 @@ type OpRem struct {
 	Err string `json:"err,omitempty" yaml:",omitempty"`
 }
 
-func (o *OpRem) Do(ctx context.Context, s *Service, cid string) error {
-	o.Error, o.Err = erred(s.RemMachine(ctx, cid, o.Id))
+func (o *OpRem) Do(ctx context.Context, s *Service) error {
+	o.Error, o.Err = erred(s.RemMachine(ctx, o.Id))
 	return nil
 }
 
@@ -249,16 +225,16 @@ type OpProcess struct {
 	Err string `json:"err,omitempty" yaml:",omitempty"`
 }
 
-func (o *OpProcess) Do(ctx context.Context, s *Service, cid string) error {
+func (o *OpProcess) Do(ctx context.Context, s *Service) error {
 	var err error
 	if o.Ctl == nil {
 		o.Ctl = core.DefaultControl
 	}
-	o.Walked, err = s.Process(ctx, cid, o.Message, o.Ctl)
+	o.Walked, err = s.Process(ctx, o.Message, o.Ctl)
 	o.Error, o.Err = erred(err)
 
 	if o.Render && o.Walked != nil {
-		Render("op", o.Walked)
+		Render(os.Stderr, "op", o.Walked)
 	}
 	return err
 }
@@ -271,7 +247,7 @@ type OpExercise struct {
 	Background bool   `json:"background,omitempty" yaml:",omitempty"`
 }
 
-func (o *OpExercise) Do(ctx context.Context, cid string) error {
+func (o *OpExercise) Do(ctx context.Context) error {
 	addr := o.Port
 	port, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
@@ -290,7 +266,7 @@ func (o *OpExercise) Do(ctx context.Context, cid string) error {
 		out := bufio.NewWriter(c)
 
 		for i := 0; i < n; i++ {
-			msg := fmt.Sprintf(`{"cop":{"cid":"%s","process":{"message":{"to":{"mid":"doubler"},"double":%d}}}}`+"\n", cid, i)
+			msg := fmt.Sprintf(`{"cop":{"process":{"message":{"to":"doubler","double":%d}}}}`+"\n", i)
 			if _, err := out.Write([]byte(msg)); err != nil {
 				log.Printf("OpExercise Writer error %v", err)
 				break
@@ -311,7 +287,7 @@ func (o *OpExercise) Do(ctx context.Context, cid string) error {
 	}
 
 	if o.Background {
-		log.Printf("OpExercise %s %d background", cid, o.Count)
+		log.Printf("OpExercise %d background", o.Count)
 		go f(o.Count)
 	} else {
 		f(o.Count)

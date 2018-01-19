@@ -1,9 +1,6 @@
 ios:
 - inputs:
-  - '{"make":"simpsons"}'
-  - '{"cop":{"cid":"simpsons","add":{"m":{"id":"smarty","spec":{"name":"anomalytoy"}}}}}'
-  outputSet:
-  - pattern: '{"make":"simpsons"}'
+  - '{"cop":{"add":{"m":{"id":"smarty","spec":{"name":"anomalytoy"}}}}}'
 - inputs:
   - '{"cop":{"cid":"simpsons","process":{"message":{"door":"opened","hour":1}}}}'
   - '{"cop":{"cid":"simpsons","process":{"message":{"door":"opened","hour":1}}}}'

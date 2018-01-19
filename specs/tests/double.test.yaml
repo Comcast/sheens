@@ -1,19 +1,17 @@
-doc: A test session
+doc: |
+  An mexpect-driven test of 'double.spec'.
+
+  See cmd/mexpect.
 ios:
-- doc: Create a crew and wait to hear that that worked
-  waitBefore: 100ms
-  inputs:
-  - '{"make":"simpsons"}'
-  outputSet:
-  - pattern: '{"make":"simpsons"}'
 - doc: Create a machine, send it a message, and verify the result
   waitBetween: 100ms
   inputs:
   - '{"cop":{"cid":"simpsons","add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}'
-  - '{"cop":{"cid":"simpsons","process":{"message":{"to":{"mid":"doubler"},"double":1}}}}'
+  - '{"cop":{"cid":"simpsons","process":{"message":{"to":"doubler","double":1}}}}'
   outputSet:
   - pattern: '{"doubled":2}'
-  - doc: Just an example of using a guard.
+  - doc: |
+      Just an example of using a guard.  This check is redundant.
     pattern: '{"doubled":"?n"}'
     guardSource:
       interpreter: goja

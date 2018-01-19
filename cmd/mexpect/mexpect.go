@@ -20,9 +20,9 @@ func main() {
 		dir           = flag.String("d", ".", "working directory")
 		showStderr    = flag.Bool("e", true, "show subprocess stderr")
 		timeout       = flag.Duration("t", 10*time.Second, "main timeout")
-		
-		specDir  = flag.String("s", "specs", "specs directory")
-		libDir   = flag.String("i", ".", "directory containing 'interpreters'")
+
+		specDir = flag.String("s", "specs", "specs directory")
+		libDir  = flag.String("i", ".", "directory containing 'interpreters'")
 	)
 
 	flag.Parse()
@@ -45,7 +45,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 	defer cancel()
 
-	if err = s.Run(ctx, *dir, "mservice", "-r", "-s", *specDir, "-i", *libDir); err != nil {
+	if err = s.Run(ctx, *dir, "mcrew", "-s", *specDir, "-l", *libDir, "-d", "", "-I", "-O", "-h", ""); err != nil {
 		panic(err)
 	}
 }

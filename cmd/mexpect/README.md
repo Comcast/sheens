@@ -3,6 +3,6 @@
 Usage:
 
 ```Shell
-cd $GOPATH/src/github.com/Comcast/sheens
-mexpect -f specs/tests/double.test.yaml
+(cd cmd/mcrew && go install) # If you haven't already)
+mexpect -f specs/tests/double.test.yaml -s specs
 ```

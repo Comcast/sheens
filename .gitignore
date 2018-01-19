@@ -1,4 +1,4 @@
-*~
-storage.db
 TAGS
-*.test.yaml
+*~
+*.db
+tmp/

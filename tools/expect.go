@@ -133,6 +133,7 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 
 	newline := []byte{'\n'}
 
+	// Log subprocess's stderr.
 	go func() {
 		out := bufio.NewReader(stderr)
 		for {
@@ -141,7 +142,7 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 				break
 			}
 			if err != nil {
-				log.Printf("err %s", line)
+				log.Printf("stderr error %s", err)
 				break
 			}
 			if s.ShowStderr {
