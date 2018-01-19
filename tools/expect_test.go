@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"io/ioutil"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -22,7 +23,11 @@ import (
 //
 // ToDo: Don't do any of that.
 func TestExpectBasic(t *testing.T) {
-	// This test requires `cmd/mserivce`!  That's not good.
+
+	// This test requires `cmd/mcrew` in the PATH!  That's not good.
+	if _, err := exec.LookPath("mcrew"); err != nil {
+		t.Skip(err)
+	}
 
 	s := &Session{
 		Interpreters: map[string]core.Interpreter{
@@ -32,23 +37,11 @@ func TestExpectBasic(t *testing.T) {
 		ParsePatterns: true,
 		IOs: []IO{
 			{
-				Doc:        "Create a crew and wait to hear that that worked",
-				WaitBefore: 100 * time.Millisecond,
-				Inputs: []interface{}{
-					`{"make":"simpsons"}`,
-				},
-				OutputSet: []Output{
-					{
-						Pattern: `{"make":"simpsons"}`,
-					},
-				},
-			},
-			{
 				Doc:         "Create a machine, send it a message, and verify the result",
 				WaitBetween: 100 * time.Millisecond,
 				Inputs: []interface{}{
-					`{"cop":{"cid":"simpsons","add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}`,
-					`{"cop":{"cid":"simpsons","process":{"message":{"to":{"mid":"doubler"},"double":1}}}}`,
+					`{"cop":{"add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}`,
+					`{"cop":{"process":{"message":{"to":{"mid":"doubler"},"double":1}}}}`,
 				},
 				OutputSet: []Output{
 					{
@@ -81,7 +74,8 @@ func TestExpectBasic(t *testing.T) {
 	defer cancel()
 
 	s.ShowStderr = true
-	if err := s.Run(ctx, "..", "mservice", "-r", "-s", "specs", "-i", "."); err != nil {
-		t.Fatal(err)
+
+	if err := s.Run(ctx, "..", "mcrew", "-s", "specs", "-l", ".", "-d", "", "-I", "-O", "-h", ""); err != nil {
+		panic(err)
 	}
 }
