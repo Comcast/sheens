@@ -13,9 +13,9 @@ which is a rule engine.
 
 This repo is licensed under [Apache License 2.0](LICENSE).
 
-## Usage
+## Demo usage
 
-First install [Go](https://golang.org/doc/install).
+To build, first install [Go](https://golang.org/doc/install).
 
 Then:
 
@@ -42,7 +42,8 @@ a little help with containers of machines, then the `crew` package
 might be a good start.  An application should provide its own message
 transport (both in and out), and an application should provide its own
 persistence.  For simple example, see [`cmd/msimple`](cmd/msimple),
-which is a very simple single-machine process.
+which is a very simple single-machine process.  The example
+[`cmd/mcrew`](cmd/mcrew) demonstrates some additional functionality.
 
 
 ## Primary goals
@@ -54,13 +55,13 @@ This project attempts to provide automation gear that is
 3. Debuggable, testable
 4. Efficient
 
-IoT is the motivating application area.
+IoT is a motivating application area.
 
 > "Transmit the message to the receiver; hope for an answer some day." 
 >
 > -[Talking Heads](https://play.google.com/music/preview/Tx4yvxloe6nc6ifnu77hd6n3ipe)
 
-## Some design objectives
+## Other objectives
 
 1. Pluggable action interpreters.  Actions can be written in a
    language that's executed by pluggable components.
@@ -68,8 +69,9 @@ IoT is the motivating application area.
    services (e.g., HTTP, MQTT, CoAP).
 3. Pluggable persistence.
 4. Amenable to formal specification(s).
-5. Feasible alternative implementations in other languages.
-6. Modest resource requirements to support resource-constrained hosts.
+5. Feasible [alternative implementations](https://github.com/Comcast/littlesheens) in other
+   languages.
+6. Modest resource requirements.
 
 
 ## Design
@@ -353,4 +355,4 @@ how to contribute to our project.
 1. Erlang's [`gen_statem`](http://erlang.org/doc/design_principles/statem.html)	
 1. [Leslie Lamport](https://en.wikipedia.org/wiki/Leslie_Lamport) on [state machines](http://lamport.azurewebsites.net/pubs/state-machine.pdf)
 1. The [Rulio](https://github.com/Comcast/rulio) rules engine
-
+1. [Little Sheens](https://github.com/Comcast/littlesheens)
