@@ -1,0 +1,51 @@
+name: ha-switches
+doc: |-
+  A demo to link to switches.  When the (parameter) triggerSwitch is
+  turned on, the (parameter) targetSwitch is turned on.  When the
+  trigger is turned off, the target is turned off.
+
+  This spec assumes "home" machine with the "homeassistant" spec is
+  running.  See cmd/mcrew/README.md.
+paramspecs:
+  triggerSwitch:
+    doc: The Home Assistant entity_id for the triggering switch.
+    primitiveType: string
+  targetSwitch:
+    doc: The Home Assistant entity_id for the switch to change.
+    primitiveType: string
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type":"event","event":{"data":{"service":"turn_on", "service_data":{"entity_id":"?triggerSwitch"}}}}
+        target: on
+  on:
+    action:
+      interpreter: goja
+      source: |-
+        var target = _.bindings["?targetSwitch"];
+        _.out({to: {mid: "home"}, send: {type:"call_service", "domain":"switch","service": "turn_on","service_data":{"entity_id":target}}});
+        return _.bindings;
+    branching:
+      branches:
+      - target: waitForOff
+  waitForOff:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type":"event","event":{"data":{"service":"turn_off", "service_data":{"entity_id":"?triggerSwitch"}}}}
+        target: off
+  off:
+    action:
+      interpreter: goja
+      source: |-
+        var target = _.bindings["?targetSwitch"];
+        _.out({to: {mid: "home"}, send: {type:"call_service","domain":"switch","service": "turn_off","service_data":{"entity_id":target}}});
+        return _.bindings;
+    branching:
+      branches:
+      - target: start

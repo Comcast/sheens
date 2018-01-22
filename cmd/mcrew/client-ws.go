@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
+	"regexp"
 
 	"github.com/gorilla/websocket"
 )
@@ -42,7 +44,7 @@ func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 			log.Printf("wsclient listening")
 			_, message, err := c.ReadMessage()
 			if err != nil {
-				s.Errors <- err
+				s.err(err)
 				continue
 			}
 			log.Printf("wsclient heard %s", message)
@@ -50,7 +52,7 @@ func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 			var x interface{}
 			if err = json.Unmarshal(message, &x); err != nil {
 				err = fmt.Errorf("Service WebSocket client in-bound Unmarshal error %s on %s", err, message)
-				s.Errors <- err
+				s.err(err)
 				continue
 			}
 
@@ -91,6 +93,9 @@ func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 				s.Errors <- err
 				continue
 			}
+
+			js = withSheenEnvVars(js)
+
 			log.Printf("WebSocketClient writer writing %s", js)
 
 			if err = c.WriteMessage(websocket.TextMessage, js); err != nil {
@@ -102,3 +107,19 @@ func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 
 	return nil
 }
+
+// withSheenEnvVars replaces all substrings matching sheenEnvVars with
+// their corresponding values of environment variables.
+func withSheenEnvVars(msg []byte) []byte {
+	// ToDo: Make more efficient!
+	return sheenEnvVars.ReplaceAllFunc(msg, func(bs []byte) []byte {
+		if val := os.Getenv(string(bs[1:])); val != "" {
+			return []byte(val)
+		}
+		return bs
+	})
+}
+
+// sheenEnvVars matches strings that get expanded based on the
+// environment.  See withSheenEnvVars.
+var sheenEnvVars = regexp.MustCompile(`\$SHEEN_\w+`)
