@@ -9,6 +9,10 @@ which is a rule engine.
 
 <img src="doc/by-example-1.png" width="400">
 
+> "Transmit the message to the receiver; hope for an answer some day." 
+>
+> -[Talking Heads](https://play.google.com/music/preview/Tx4yvxloe6nc6ifnu77hd6n3ipe)
+
 ## License
 
 This repo is licensed under [Apache License 2.0](LICENSE).
@@ -37,16 +41,18 @@ See [`cmd/mcrew`](cmd/mcrew) for more discussion, and see the rest of
 this README and [`doc/by-example.md`](doc/by-example.md) for a start
 at documentation.
 
-Applications will all use the `core` package.  If an application wants
-a little help with containers of machines, then the `crew` package
-might be a good start.  An application should provide its own message
-transport (both in and out), and an application should provide its own
-persistence.  For simple example, see [`cmd/msimple`](cmd/msimple),
-which is a very simple single-machine process.  The example
-[`cmd/mcrew`](cmd/mcrew) demonstrates some additional functionality.
+Applications will all use the [`core`](core) package (which has decent
+[godoc](https://godoc.org/github.com/Comcast/sheens/core)).  If an
+application wants a little help with containers of machines, then the
+`crew` package might be a good start.  An application should provide
+its own message transport (both in and out), and an application should
+provide its own persistence.  For simple example, see
+[`cmd/msimple`](cmd/msimple), which is a very simple single-machine
+process.  The example [`cmd/mcrew`](cmd/mcrew) demonstrates some
+additional functionality.
 
 
-## Primary goals
+## Goals
 
 This project attempts to provide automation gear that is
 
@@ -57,11 +63,7 @@ This project attempts to provide automation gear that is
 
 IoT is a motivating application area.
 
-> "Transmit the message to the receiver; hope for an answer some day." 
->
-> -[Talking Heads](https://play.google.com/music/preview/Tx4yvxloe6nc6ifnu77hd6n3ipe)
-
-## Other objectives
+Other objectives
 
 1. Pluggable action interpreters.  Actions can be written in a
    language that's executed by pluggable components.
@@ -98,12 +100,6 @@ A machine processes and emits messages.
 9. Action languages are pluggable.  Most examples here are based on
    [goja](https://github.com/dop251/goja), which is an ECMAScript
    implementation.
-
-> To try to be happy is to try to build a machine with no other
-> specification than that it shall run noiselessly.
->
-> -[Robert Oppenheimer](https://en.wikiquote.org/wiki/Robert_Oppenheimer)
-
 
 ## Definitions
 
@@ -143,6 +139,12 @@ specification.  A machine's initial parameters become the machine's
 first bindings.
 
 A _crew_ is a group of machines associated with some agent.
+
+
+> To try to be happy is to try to build a machine with no other
+> specification than that it shall run noiselessly.
+>
+> -[Robert Oppenheimer](https://en.wikiquote.org/wiki/Robert_Oppenheimer)
 
 
 ## Pattern matching
@@ -263,77 +265,83 @@ creation of a new machine!  Alternately: Try each set of bindings in
 works.  That's what the current implementations do, I think.
 
 
-## Comments
+## Discussion
 
-1.  Retry-like functionality is specified just as any other control
-    flow is specified.  There are almost no exceptions.  (The only
-    exception is when an internal error occurs, and, even in that
-    case, a setting controls what happens next.
-	
-	For example, the processor inject the error in bindings to allow
-    for standard, branching-based transitions based on the error.
-    Alternative, the machine could automatically transition to an
-    error node.  (That behavior would be the only possibility if the
-    error occured at a location that prevented branching-based error
-    handling.)
+### No exceptions?
 
+Retry-like functionality is specified just as any other control flow
+is specified.  There are almost no exceptions.  (The only exception is
+when an internal error occurs, and, even in that case, a setting
+controls what happens next.
 	
-1.  A machine's state is independent from other machines' states.
-    Machines can run concurrently without any locking or
-    synchronization.
+For example, the processor inject the error in bindings to allow for
+standard, branching-based transitions based on the error.
+Alternative, the machine could automatically transition to an error
+node.  (That behavior would be the only possibility if the error
+occured at a location that prevented branching-based error handling.)
 
-1.  A machine operates sequentially.  Therefore, there are no
-    concurrent state mutations (within a single process).
-	
-1.  A virtuous machine action does not block on IO.  Therefore machine
-    performance and resource consumption is can be relatively
-    predictable.
-	
-	Virtuous actions have no side effects, and their processing is
-    atomic.  Such an action can generate multiple outbound messages,
-    but the processor would only send that batch on if the action
-    terminated without error.
-	
-	(Since action interpreters are pluggable, a system can of course
-    provide dangerous action interpreters, which can allow actions to
-    do IO and other unholy things.  Yes, you could have a Bash-based
-    action interpreter.)
-	
-1.  If you want to update a machine specification (in a way that's
-    backward-compatible), you don't have to touch any user data.
-    Therefore, you can give many machines a new specification with a
-    single atomic swap (within a process).
-	
-1.  When a message is presented to a set of machines (which could
-    contain hundreds of machines), we'll want efficient dispatch to
-    the subset of machines that are waiting on `message` branching
-    that will (likely) match the message.  Efficient dispatch will
-    likely require an index; `util/index.go` heads that direction.
-    Other approaches are of course possible.
-	
-1.  To have a message scheduled for future processing, an node action
-    can send a request to a cron-like service that can send a message
-    at a specified time.
-	
-	A system could have multiple timer services for different
-    qualities of timers.  For example, a _nanocron_ could implement
-    timers with goroutines (with various suitable limits). An external
-    timer service could provide durable timers.  Etc.
-	
-1.  Machines are amenable to debugging using machine-oriented
-	debugging tools that provide the usual operations: reset state,
-	step through transitions, back up, set breakpoints, etc.
-	
-1.  Machines encourage their authors to think about all possibilities
-    at every processing step.  ("What happens if this machine gets a
-    "disable" message right now?  What should this machine clean up?
-    Should I request a message for a timeout, and, if I get such a
-    message, what do I need to do?")  There are (almost) no errors or
-    exceptions &mdash; only messages and bindings.
+### Simple state model	
 
-1.  The basic structures and algorithms are pretty simple.  Should be
-    feasible to have multiple implementations for different settings
-    as appropriate.
+A machine's state is independent from other machines' states.
+Machines can run concurrently without any locking or synchronization.
+
+A machine operates sequentially.  Therefore, there are no concurrent
+state mutations (within a single process).
+
+Virtuous actions have no side effects, and their processing is atomic.
+Such an action can generate multiple outbound messages, but the
+processor would only send that batch on if the action terminated
+without error.  Using this behavior, an application can process a
+message using multiple machines and that entire processing can be
+atomic.
+	
+(Since action interpreters are pluggable, a system can of course
+provide dangerous action interpreters, which can allow actions to do
+IO and other unholy things.  Yes, you could have a Bash-based action
+interpreter.)
+	
+### No internal blocking
+
+A virtuous machine action does not block on IO.  Therefore machine
+performance and resource consumption is can be relatively predictable.
+	
+(Again, since action interpreters are pluggable, a system can of course
+provide dangerous action interpreters, which can allow actions to do
+IO and other unholy things.)
+
+### Future: Dispatch index
+
+When a message is presented to a set of machines (which could contain
+hundreds of machines), we'll want efficient dispatch to the subset of
+machines that are waiting on `message` branching that will (likely)
+match the message.  Efficient dispatch will likely require an index;
+`util/index.go` heads that direction.  Other approaches are of course
+possible.
+
+### Tool-able
+	
+Machines are amenable to debugging using machine-oriented
+debugging tools that provide the usual operations: reset state,
+step through transitions, back up, set breakpoints, etc.
+
+Since messages are message processors with exposed state, test tools
+(see [`cmd/mexpect`](cmd/mexpect) for an example) are relatively easy
+to write.  The `core` can be programmed functionality.  (There is no
+"state" in `core`!)
+	
+### Atomic spec updating
+
+If you want to update a machine specification (in a way that's
+backward-compatible), you don't have to touch any user data.
+Therefore, you can give many machines a new specification with a
+single atomic swap (within a process).  See `core.Specter`.
+	
+### Timers and QoS
+	
+A system could have multiple timer services for different qualities of
+timers.  For example, a _nanocron_ could implement timers with
+goroutines (with various suitable limits). An external timer service
+could provide durable timers.  Etc.
 	
 	
 ## Code of Conduct
