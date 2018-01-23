@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"sync"
 
+	. "github.com/Comcast/sheens/util/testutil"
+
 	"github.com/gorilla/websocket"
 )
 

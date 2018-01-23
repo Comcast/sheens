@@ -1,44 +1,32 @@
-# Code Notes
+# Development Notes
 
-## Thin core
+Audience: Those who want to contribute to this repo.
+
+## Directory/package organization
+
+In each case, see the actual directory for more documentation.
+
+1. [`core`](../core): The only directory that an application really
+   needs.
+1. [`cmd`](../cmd): Demos and utilities programs.
+1. [`crew`](../crew): Basic container for a set of related machines.
+1. [`interpreters`](../interpreters): Some example action/guard interpreters.
+1. [`specs`](../specs): Example machine specifications.
+1. [`tools`](../tools): Miscellaneous tools.
+1. [`util`](../util): Generally useful utilties (hopefully frugal in their dependencies)
+1. [`util/testutil`](../util/testutil): Utilities for demo and test code
+1. [`doc`](../doc): Document (this directory)
+
+## Small core
 
 We're trying to keep `core/` light:
 
 ```Shell
 go get github.com/KyleBanks/depth/cmd/depth
-(cd core && depth . )
+(cd core && depth -internal . )
 ```
 
-```
-github.com/Comcast/sheens/core
-  ├ context
-  ├ encoding/json
-  ├ errors
-  ├ fmt
-  ├ log
-  ├ math/rand
-  ├ strings
-  ├ sync/atomic
-  ├ time
-  └ unsafe
-10 dependencies (10 internal, 0 external, 0 testing).
-```
-
-The top-level `fmt` depedency is due to `go:generate stringer`, which
-we of course don't really need.  ToDo: remove this `fmt` dependency.
-
-The `encoding/json` dependency probably isn't critical, and it pulls
-in a lot of code.  (See `depth -interal .`.)  ToDo: Remove that
-dependency.
-
-Oh, but `context` includes `fmt`, which drags in a ton of stuff.  (See
-`depth -interal context`.)  Looks like `context` should maybe be freed
-from its `fmt` dependency.  Alternately -- and much easier -- we can
-just define our own `Ctx`, which has the exact same signature as
-`context.Context`.  Then users of `core` can use a real
-`context.Context` if they want, and `core` will be
-`context.Context`-free.  ToDo: `Ctx` instead of `context.Context`.
-
+See [Issue 13](https://github.com/Comcast/sheens/issues/13).
 
 ## YAML deserialization
 

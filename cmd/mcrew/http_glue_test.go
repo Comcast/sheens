@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 func TestHTTPGlue(t *testing.T) {

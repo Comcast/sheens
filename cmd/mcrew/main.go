@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"os"
 	"runtime/pprof"
+
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 func main() {

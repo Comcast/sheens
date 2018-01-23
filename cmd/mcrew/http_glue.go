@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	. "github.com/Comcast/sheens/util/testutil"
+
 	"github.com/Comcast/sheens/core"
 )
 

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 // toTimers is a tedious method that attempts to interpret msg as

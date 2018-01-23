@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/Comcast/sheens/core"
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 func Copy(x interface{}) interface{} { // Sorry
@@ -19,33 +19,6 @@ func Copy(x interface{}) interface{} { // Sorry
 		panic(err)
 	}
 	return y
-}
-
-func JS(x interface{}) string {
-	if x == nil {
-		return "null"
-	}
-	js, err := json.Marshal(&x)
-	if err != nil {
-		log.Printf("json.Marshal error on %#v", x)
-		return "null"
-	}
-	return string(js)
-}
-
-func Dwimjs(x interface{}) interface{} {
-	switch vv := x.(type) {
-	case []byte:
-		var y interface{}
-		if err := json.Unmarshal(vv, &y); err != nil {
-			panic(err)
-		}
-		return y
-	case string:
-		return Dwimjs([]byte(vv))
-	default:
-		return x
-	}
 }
 
 func Render(w io.Writer, tag string, m map[string]*core.Walked) {

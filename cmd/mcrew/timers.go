@@ -10,6 +10,8 @@ import (
 	"log"
 	"sync"
 	"time"
+
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 type Emitter func(ctx context.Context, message interface{}) error

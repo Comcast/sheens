@@ -9,6 +9,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 func TestService(t *testing.T) {

@@ -101,7 +101,3 @@ func Unquestion(p string) string {
 	}
 	return p
 }
-
-// Context is a shim for legacy Match() code.
-type Context struct {
-}

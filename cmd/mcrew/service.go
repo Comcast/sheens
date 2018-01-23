@@ -12,6 +12,7 @@ import (
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
 	"github.com/Comcast/sheens/interpreters/goja"
+	. "github.com/Comcast/sheens/util/testutil"
 
 	"github.com/jsccast/yaml"
 )

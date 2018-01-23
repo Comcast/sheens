@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 func TestTimersGlue(t *testing.T) {

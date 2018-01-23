@@ -3,11 +3,14 @@ package testutil
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 )
 
+// JS renders its argument as JSON or as a string indicating an error.
 func JS(x interface{}) string {
 	bs, err := json.Marshal(&x)
 	if err != nil {
+		log.Printf("warning: testutil.JS error %s for %#v", err, x)
 		return fmt.Sprintf("%#v", x)
 	}
 	return string(bs)
