@@ -11,7 +11,7 @@ narratives.  See the [README](../README.md) a more formal description.
 In particular, [this section](../README.md#Definitions) semi-formally
 specifies what a machine is, the
 [this section](../README.md#Processing) describes machine behavior.
-You can use the demo program [`mservice`](../cmd/mservice) to
+You can use the demo program [`mcrew`](../cmd/mcrew) to
 experiment.
 
 ## Example 1: Simple reponse to an incoming messaging
@@ -479,82 +479,52 @@ So how to make -- say -- an HTTP request and get back a response?
 The short answer: The process that hosts the machine needs to see to
 it that certain messages that rerepresent HTTP requests result in HTTP
 requests, with the responses return as messages submitted to the
-machine.
+machine.  
 
-The example process `cmd/mservice` adds two native machines to each
-collection of machines.  (A collection of machines is called a
-"crew".)  A native machine is one with actions implemented in Go
-instead of via one of the pluggable interpreters.  One of these native
-machines processes messages that represent HTTP requests, and the
-other machine processes messages that request timers.
-
-Alternatively, a process might delegate this functionality to external
-services such as a pool of HTTP requester or Elasticron.  Other
-possibilities, too, of course -- with interesting trade-offs and
-possible combinations.  For example, perhaps there is an efficient but
-slightly less robust internal HTTP and timer services, which are used
-when requests are marked with a `qualityOfService: "internal"`
-property.  Much more to say on this topic.
-
-For now, the `mservice` process has `http` arnd `timer`
-specifications, and each crew comes with its own machines that have
-those specifications.
+For exampe, the demo process `cmd/mcrew` includes internal services to
+support timers and HTTP requests.  Alternatively, a process might
+delegate this functionality to external services such as a pool of
+HTTP requester or Elasticron.  Other possibilities, too, of course --
+with interesting trade-offs and possible combinations.  For example,
+perhaps there is an efficient but slightly less robust internal HTTP
+and timer services, which are used when requests are marked with a
+`qualityOfService: "internal"` property.  Much more to say on this
+topic.
 
 ### Timers
 
-The native `timers` machine that `cmd/mservice` provides responds to
+The `cmd/mcrew` process has an internal service that responds to
 messages like
 
 ```Javascript
 {"makeTimer":{"in": "2s", "id": "chips", "message": {"likes":"queso"}}}
 ```
 
-When triggered, that timer will send the message `{"likes":"queso"}`
+When triggered, that process will send the message `{"likes":"queso"}`
 all the machines in the crew.  (Fancier routing is possible; see
 [Routing](#routing) below.)
 
-Here's an example use using the `mservice` TCP API:
+Here's an example use using the `mcrew` TCP API:
 
 ```
 cat<<EOF | nc localhost 8081
-# If it exists, remove the "simpsons" crew.
-{"rem":"simpsons"}
-# Make the "simpsons" crew.
-{"make":"simpsons"}
 # Make a machine with the "double" specification.
-{"cop":{"cid":"simpsons","add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}
+{"cop":{"add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}
 # Send a message that will run the "double" machine.
-{"cop":{"cid":"simpsons","process":{"message":{"to":{"mid":"doubler"},"double":1}}}}
+{"cop":{"process":{"message":{"to":{"mid":"doubler"},"double":1}}}}
 EOF
 ```
 
-Each line is input to `mservice`.  These lines are _not_ messages to a
-machine or crew.  Instead, they are messages to a container of
-crews (and, in the case of the `sleep` line, to an input processor
-in front of that container).
-
-For example, that first real line
-
-```Javascript
-{"make":"simpsons"}
-```
-
-tells the container to make a crew with that id.
-
-The built-in (for `mservice`) `timers` machine in each crew listens
-for messages with that structure.  This machine is a real machine.
-You can inspect its state, etc.  As mentioned above, this machine has
-native actions. In particular, this demo timers machine implements
-timers simply by starting a goroutine that sleeps for the specified
-duration.  Of course, a production system might elect to implement
-timers -- or whatever services -- in a totally different way.
-
+Each line is input to `mcrew`.  These lines are _not_ messages to a
+machine or crew.  Instead, they are messages to the container of a
+crew (and, in the case of the `sleep` line, to an input processor in
+front of that container).
 
 ### HTTP requests
 
-The native `http` machine that `cmd/mservice` provides is in each
-crew handles HTTP request messages.  Here's an excerpt of
-specification that shows a real use of an `http` machine:
+The `cmd/mcrew` program has an internal service that processes
+messages that are HTTP requests.  For an example use, here's an
+excerpt of specification that shows a real use of that HTTP service:
 
 ```YAML
   requestSession:
@@ -570,7 +540,7 @@ specification that shows a real use of an `http` machine:
         r.headers["X-login"] = [_.bindings.login];
         r.headers["X-password"] = [_.bindings.password];
         r.headers["X-AppKey"] = [_.bindings.appkey];
-        _.out({"httpRequest":r});
+        _.out({"to":"http","request":r});
         return _.bindings;
     branching:
       branches:
@@ -579,7 +549,7 @@ specification that shows a real use of an `http` machine:
     branching:
       type: message
       branches:
-      - pattern: {"httpResponse":{"headers":{"Set-Cookie":"?cookie"}}}
+      - pattern: {"from":"http","headers":{"Set-Cookie":"?cookie"}}
         target: getCookie
       - target: failed
 ```
@@ -591,15 +561,13 @@ response messages.
 
 ## Example 5: Message routing
 
-_Documentation in progress ..._
-
-A crew container (like `mservice`) can provide arbitrary message
-routing.  For example, when `mservice` receives a message that
-contains `"to":{"mid":"turnstile"}`, then the container will send that
-message _only_ to a machine with id `"turnstile"` (if such a machine
-exists in the crew). Using this behavior, a sender can send a
-message to a specified machine.  By default, a message submitted to a
-crew is forwarded to all machines in the crew.
+A crew container can provide arbitrary message routing.  For example,
+when `mcrew` receives a message that contains `"to":"turnstile"`, then
+the container will send that message _only_ to a machine with id
+`"turnstile"` (if such a machine exists in the crew). Using this
+behavior, a sender can send a message to a specified machine.  By
+default, a message submitted to a crew is forwarded to all machines in
+the crew.
 
 Fancier routing can be very interesting.  A container could route
 certain messages to external services based on properties of those
@@ -607,3 +575,7 @@ messages.  For example, a timer request with a certain quality of
 service designator might get routed to an external, robust timer
 service.  Other timer requests could be routed to a local, native
 timer machine.
+
+_ToDo: Say more._
+
+

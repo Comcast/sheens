@@ -44,6 +44,8 @@ func (s *Service) toHTTP(ctx context.Context, msg interface{}) error {
 	}
 
 	err = r.Do(ctx, func(ctx context.Context, resp *HTTPResponse) error {
+		resp.From = "http" // me
+
 		// Again: sorry.
 		js, err := json.Marshal(&resp)
 		if err != nil {

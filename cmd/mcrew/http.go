@@ -54,6 +54,11 @@ type HTTPRequest struct {
 }
 
 type HTTPResponse struct {
+	// From is the name of the service that made the request.
+	//
+	// Convenient to have this property here.
+	From string `json:"from,omitempty"`
+
 	StatusCode  int          `json:"statusCode"`
 	Status      string       `json:"status"`
 	Error       error        `json:"error,omitempty"`

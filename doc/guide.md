@@ -4,7 +4,7 @@ Audience: Those who want to write code that uses machines.
 
 The only package your really need is [`core`](../core) ...
 
-_work in progress ... _
+_ToDo: Say more!_
 
 ## References
 
