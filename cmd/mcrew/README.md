@@ -76,3 +76,39 @@ message given to the WebSocket client has strings of the form
 (`SHEEN_*`).  This crude mechanism is used in the demo Home Assistant
 machine to pass a password from the process's environment to Home
 Assistant.
+
+### Timers service
+
+Messages like
+
+```JSON
+{"to":"timers","makeTimer":{"in":"1s","id":"1","message":{"to":"doubler","double":100}}}}}}
+```
+
+will create a timer.  The duration (`"in":`) is expressed in Go
+[`time.Duration` syntax](https://golang.org/pkg/time/#ParseDuration).
+
+At the appointed time, the process will send the given message to the
+crew.
+
+The given `id` can be used to try to cancel the timer (assuming it
+hasn't fired):
+
+```JSON
+{"to":"timers","deleteTimer":"1"}
+```
+
+### HTTP service
+
+Messages like
+
+```JSON
+{"to":"http","request":{"url":"%s", ...},"replyTo":"machine42"}
+```
+
+will result in an asychronous HTTP request.  For now, see
+`HTTPRequest` in [`http.go`](http.go) for the supported request
+structure.  The response is submitted as a message to the crew or to
+the `replyTo` machine given in the request.  For now, see
+`HTTPResponse` in [`http.go`](http.go) for the supported response
+structure.
