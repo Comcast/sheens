@@ -6,8 +6,8 @@ ios:
 - doc: Create a machine, send it a message, and verify the result
   waitBetween: 100ms
   inputs:
-  - '{"cop":{"cid":"simpsons","add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}'
-  - '{"cop":{"cid":"simpsons","process":{"message":{"to":"doubler","double":1}}}}'
+  - '{"cop":{"add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}'
+  - '{"cop":{"process":{"message":{"to":"doubler","double":1}}}}'
   outputSet:
   - pattern: '{"doubled":2}'
   - doc: |
