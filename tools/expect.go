@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
+	. "github.com/Comcast/sheens/util/testutil"
 )
 
 // Output is a specification for a message that's expected.
@@ -33,7 +35,10 @@ type Output struct {
 
 	// Bindings, which is the result of a match (and optional
 	// guard) is written during processing.  Just for diagnostics.
-	Bindingss []core.Bindings `json:"-" yaml:"-"`
+	Bindingss []core.Bindings `json:"bs,omitempty" yaml:"bs,omitempty"`
+
+	// Inverted means that matching output isn't desired!
+	Inverted bool `json:"inverted,omitempty" yaml:"inverted,omitempty"`
 }
 
 // IO is a package of input messages and required output message
@@ -158,11 +163,12 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 		}
 
 		var (
-			timer    *time.Timer
+			timer *time.Timer
+			errs  = make(chan error, 3) // At least three
+
 			happy    = errors.New("happy")
 			timeout  = errors.New("timeout")
 			canceled = errors.New("canceled")
-			errs     = make(chan error, 3) // At least three
 		)
 
 		if 0 < iop.Timeout {
@@ -174,7 +180,13 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 		// Process stdout.
 		go func() {
 			f := func() error {
-				need := len(iop.OutputSet)
+
+				need := 0
+				for _, o := range iop.OutputSet {
+					if !o.Inverted {
+						need++
+					}
+				}
 
 				for {
 					line, err := out.ReadBytes('\n')
@@ -200,7 +212,7 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 							if s.ParsePatterns {
 								js = []byte(pattern.(string))
 								if err = json.Unmarshal(js, &pattern); err != nil {
-									return err
+									return fmt.Errorf("Unmarshal error %v for %s", err, js)
 								}
 							} else {
 								if js, err = json.Marshal(&pattern); err != nil {
@@ -232,8 +244,11 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 								}
 							}
 							if bss != nil {
-								need--
 								output.Bindingss = bss
+								if output.Inverted {
+									return fmt.Errorf("undesired output %s", JS(output))
+								}
+								need--
 							}
 						}
 						if need == 0 {
