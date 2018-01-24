@@ -1,0 +1,35 @@
+doc: |
+  An mexpect-driven test of 'ha-switches.spec'.
+
+  See cmd/mexpect.
+ios:
+- doc: Create the machine, turn on the trigger switch, and verify the result.
+  inputs:
+  - '{"cop":{"add":{"m":{"id":"switches","spec":{"name":"ha-switches"},"state":{"bs":{"?targetSwitch":"TARGET_SWITCH","?triggerSwitch":"TRIGGER_SWITCH"}}}}}}'
+  - '{"cop":{"process":{"message":{"type":"event","event":{"data":{"service":"turn_on", "service_data":{"entity_id":"TRIGGER_SWITCH"}}}}}}}'
+  outputSet:
+  - pattern: '{"to":{"mid":"home"},"send":{"type":"call_service","domain":"switch","service":"turn_on","service_data":{"entity_id":"TARGET_SWITCH"}}}'
+- doc: Turn off the trigger switch, and verify the result.
+  inputs:
+  - '{"cop":{"process":{"message":{"type":"event","event":{"data":{"service":"turn_off", "service_data":{"entity_id":"TRIGGER_SWITCH"}}}}}}}'
+  outputSet:
+  - pattern: '{"to":{"mid":"home"},"send":{"type":"call_service","domain":"switch","service":"turn_off","service_data":{"entity_id":"TARGET_SWITCH"}}}'
+- doc: Turn off the trigger switch (again), and verify that nothing happened.
+  inputs:
+  - '{"cop":{"process":{"message":{"type":"event","event":{"data":{"service":"turn_off", "service_data":{"entity_id":"TRIGGER_SWITCH"}}}}}}}'
+  outputSet:
+  - pattern: '{"to":{"mid":"home"},"send":{"type":"call_service","domain":"switch","service":"?whatever","service_data":{"entity_id":"TARGET_SWITCH"}}}'
+    inverted: true
+- doc: Turn on the trigger switch, and verify the result.
+  inputs:
+  - '{"cop":{"process":{"message":{"type":"event","event":{"data":{"service":"turn_on", "service_data":{"entity_id":"TRIGGER_SWITCH"}}}}}}}'
+  outputSet:
+  - pattern: '{"to":{"mid":"home"},"send":{"type":"call_service","domain":"switch","service":"turn_on","service_data":{"entity_id":"TARGET_SWITCH"}}}'
+- doc: Turn on the trigger switch (again), and verify that nothing happened.
+  inputs:
+  - '{"cop":{"process":{"message":{"type":"event","event":{"data":{"service":"turn_on", "service_data":{"entity_id":"TRIGGER_SWITCH"}}}}}}}'
+  outputSet:
+  - pattern: '{"to":{"mid":"home"},"send":{"type":"call_service","domain":"switch","service":"?whatever","service_data":{"entity_id":"TARGET_SWITCH"}}}'
+    inverted: true
+parsePatterns: true
+defaultTimeout: 1s
