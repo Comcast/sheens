@@ -16,6 +16,8 @@ import (
 )
 
 func (s *Service) TCPService(ctx context.Context, port string) error {
+	log.Printf("TCPService on %s", port)
+
 	l, err := net.Listen("tcp", port)
 	if err != nil {
 		return err

@@ -75,7 +75,7 @@ func TestExpectBasic(t *testing.T) {
 
 	s.ShowStderr = true
 
-	if err := s.Run(ctx, "..", "mcrew", "-s", "specs", "-l", ".", "-d", "", "-I", "-O", "-h", ""); err != nil {
+	if err := s.Run(ctx, "..", "mcrew", "-v", "-s", "specs", "-l", ".", "-d", "", "-I", "-O", "-h", ""); err != nil {
 		panic(err)
 	}
 }

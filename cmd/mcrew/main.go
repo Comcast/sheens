@@ -36,6 +36,8 @@ func main() {
 		emitToStdout  = flag.Bool("O", false, "emit messages to stdout")
 	)
 
+	flag.BoolVar(&Verbose, "v", false, "log lots of wonderful things")
+
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -51,8 +53,10 @@ func main() {
 	s.Processing = make(chan interface{}, 8)
 	s.Errors = make(chan interface{}, 8)
 
-	monitor(ctx, s.Processing, "processing", false)
-	monitor(ctx, s.Emitted, "emitted", *emitToStdout)
+	if Verbose {
+		monitor(ctx, s.Processing, "processing", false)
+		monitor(ctx, s.Emitted, "emitted", *emitToStdout)
+	}
 	monitor(ctx, s.Errors, "errors", false)
 
 	// We need to boot before starting the WebSocketClient, which
@@ -76,7 +80,7 @@ func main() {
 			if err = s.Listener(ctx, bufio.NewReader(os.Stdin), os.Stdout, nil); err != nil {
 				log.Printf("Service.Listener os.Stdin os.Stdout error %s", err)
 			}
-			log.Printf("stdin listener done")
+			Logf("stdin listener done")
 			cancel()
 		}()
 	}

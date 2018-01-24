@@ -38,18 +38,18 @@ func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 		for {
 			select {
 			case <-ctx.Done():
-				log.Printf("WebSocketClient reader closing per ctx")
+				Logf("WebSocketClient reader closing per ctx")
 				return
 			default:
 			}
 
-			log.Printf("wsclient listening")
+			Logf("wsclient listening")
 			_, message, err := c.ReadMessage()
 			if err != nil {
 				s.err(err)
 				continue
 			}
-			log.Printf("wsclient heard %s", message)
+			Logf("wsclient heard %s", message)
 
 			var x interface{}
 			if err = json.Unmarshal(message, &x); err != nil {
@@ -76,10 +76,10 @@ func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Printf("WebSocketClient writer closing per ctx")
+			Logf("WebSocketClient writer closing per ctx")
 			break
 		case x := <-s.wsClientC:
-			log.Printf("WebSocketClient writer heard %s", JS(x))
+			Logf("WebSocketClient writer heard %s", JS(x))
 			m, is := x.(map[string]interface{})
 			if !is {
 				err := fmt.Errorf(`%s (%T) isn't a %T`, JS(x), x, m)
@@ -98,7 +98,7 @@ func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 
 			js = withSheenEnvVars(js)
 
-			log.Printf("WebSocketClient writer writing %s", js)
+			Logf("WebSocketClient writer writing %s", js)
 
 			if err = c.WriteMessage(websocket.TextMessage, js); err != nil {
 				s.Errors <- err

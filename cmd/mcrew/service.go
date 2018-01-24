@@ -40,7 +40,7 @@ func (s *Service) trf(format string, args ...interface{}) {
 	if !s.Tracing {
 		return
 	}
-	log.Printf("trace "+format, args...)
+	Logf("trace "+format, args...)
 }
 
 func NewService(ctx context.Context, specDir, dbFile, libDir string) (*Service, error) {
@@ -248,7 +248,9 @@ func (s *Service) Process(ctx context.Context, msg interface{}, ctl *core.Contro
 		}
 	}
 
-	Render(os.Stderr, "processed", processed)
+	if Verbose {
+		Render(os.Stderr, "processed", processed)
+	}
 
 	// Recursively (and asynchronously) process the emitted
 	// msgs.

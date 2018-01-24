@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/Comcast/sheens/core"
 	. "github.com/Comcast/sheens/util/testutil"
 )
+
+var Verbose = true
 
 func Copy(x interface{}) interface{} { // Sorry
 	js, err := json.Marshal(&x)
@@ -62,4 +65,18 @@ func NewWrappedError(outer, inner error) error {
 		Outer: outer,
 		Inner: inner,
 	}
+}
+
+func Logf(format string, args ...interface{}) {
+	if !Verbose {
+		return
+	}
+	log.Printf(format, args...)
+}
+
+func Logln(args ...interface{}) {
+	if !Verbose {
+		return
+	}
+	log.Println(args...)
 }

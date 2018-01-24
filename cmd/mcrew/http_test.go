@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +19,7 @@ func TestHTTPBasic(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if debug {
 			for i, cookie := range r.Cookies() {
-				log.Printf("server handler cookie %d: %#v", i, cookie)
+				Logf("server handler cookie %d: %#v", i, cookie)
 			}
 		}
 		http.SetCookie(w, &http.Cookie{

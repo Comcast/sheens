@@ -76,13 +76,13 @@ func TestService(t *testing.T) {
 			case <-ctx.Done():
 				return
 			case m := <-s.Processing:
-				log.Printf("processing %s", JS(m))
+				Logf("processing %s", JS(m))
 			}
 		}
 	}()
 
 	m := <-s.Emitted
-	log.Printf("emitted %s", JS(m))
+	Logf("emitted %s", JS(m))
 
 	defer s.store.Close(ctx) // ToDo: Check error.
 }

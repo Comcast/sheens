@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"sync"
 
-	. "github.com/Comcast/sheens/util/testutil"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -28,7 +26,6 @@ func (s *Service) WebSocketService(ctx context.Context) error {
 				return
 			case x := <-s.ops:
 				conns.Range(func(k, v interface{}) bool {
-					log.Printf("debug fowarding op %s", JS(x))
 					c := v.(chan interface{})
 					select {
 					case c <- x:
@@ -43,7 +40,7 @@ func (s *Service) WebSocketService(ctx context.Context) error {
 	}()
 
 	api := func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Service.WebSocketService connection")
+		Logf("Service.WebSocketService connection")
 
 		c, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -82,7 +79,7 @@ func (s *Service) WebSocketService(ctx context.Context) error {
 						continue
 					}
 					if err = c.WriteMessage(mt, js); err != nil {
-						log.Println("s.firehose write:", err)
+						log.Println("s.firehose write error:", err)
 					}
 				}
 			}

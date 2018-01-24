@@ -102,7 +102,7 @@ func (ts *Timers) Add(ctx context.Context, id string, message interface{}, in ti
 
 			// Not exactly what we want ...
 		case <-timer.C:
-			log.Printf("Timers firing %s", JS(ts))
+			Logf("Timers firing %s", JS(ts))
 			if err := ts.emit(ctx, te.Message); err != nil {
 				ts.err(fmt.Errorf("Timers emit error %v id=%s", err, id))
 			}
