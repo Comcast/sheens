@@ -60,3 +60,31 @@ func TestTimersBasic(t *testing.T) {
 	}
 
 }
+
+func TestTimersIdReuse(t *testing.T) {
+	c := make(chan interface{})
+
+	emitter := func(ctx context.Context, m interface{}) error {
+		c <- m
+		return nil
+	}
+
+	ts := NewTimers(emitter)
+
+	d := 10 * time.Millisecond
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := ts.Add(ctx, "1", 1, d); err != nil {
+		t.Fatal(err)
+	}
+
+	<-c
+
+	if err := ts.Add(ctx, "1", 1, d); err != nil {
+		t.Fatal(err)
+	}
+
+	<-c
+}

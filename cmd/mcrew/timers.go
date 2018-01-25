@@ -106,6 +106,11 @@ func (ts *Timers) Add(ctx context.Context, id string, message interface{}, in ti
 			if err := ts.emit(ctx, te.Message); err != nil {
 				ts.err(fmt.Errorf("Timers emit error %v id=%s", err, id))
 			}
+
+			// See https://github.com/Comcast/sheens/issues/19
+			ts.Lock()
+			delete(ts.timers, id)
+			ts.Unlock()
 		}
 	}()
 
