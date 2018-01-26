@@ -21,7 +21,7 @@ cat input.txt | (cd ../.. && mcrew -I -O)
 From this directory:
 
 ```Shell
-(cd ../.. && | -t :9000) &
+(cd ../.. && mcrew -v -t :9000) &
 cat input.txt | nc localhost 9000
 ```
 
