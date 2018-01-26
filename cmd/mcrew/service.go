@@ -128,7 +128,7 @@ func (s *Service) GetSpec(ctx context.Context, src *crew.SpecSource) (core.Spect
 	}
 
 	if err = spec.Compile(ctx, s.interpreters, true); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return &spec, nil
