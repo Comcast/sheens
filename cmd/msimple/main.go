@@ -40,11 +40,10 @@ func main() {
 
 	// Our specs all use the Goja-based interpreter (and only that
 	// one).
-	gi := goja.NewInterpreter()
-	gi.LibraryProvider = goja.MakeFileLibraryProvider(*libDir)
-	interpreters := map[string]core.Interpreter{
-		"goja": gi,
-	}
+	interpreters := core.NewInterpretersMap()
+	i := goja.NewInterpreter()
+	i.LibraryProvider = goja.MakeFileLibraryProvider(*libDir)
+	interpreters["goja"] = i
 
 	// Parse the given initial bindings (as JSON).
 	var bs core.Bindings

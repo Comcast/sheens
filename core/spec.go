@@ -169,7 +169,7 @@ func (spec *Spec) Copy(version string) *Spec {
 // do some other things.
 //
 // Action-like sources include Actions, Boot, Toob, and Guards.
-func (spec *Spec) Compile(ctx context.Context, interpreters map[string]Interpreter, force bool) error {
+func (spec *Spec) Compile(ctx context.Context, interpreters Interpreters, force bool) error {
 
 	if spec.PatternParser == nil {
 		spec.PatternParser = DefaultPatternParser

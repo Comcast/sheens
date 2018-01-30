@@ -81,7 +81,7 @@ type Session struct {
 
 	// Interpreters are used (if necessary) to compile any
 	// GuardSources.
-	Interpreters map[string]core.Interpreter `json:"-" yaml:"-"`
+	Interpreters core.InterpretersMap `json:"-" yaml:"-"`
 
 	// DefaultTimeout is the default timeout for each IO.
 	DefaultTimeout time.Duration `json:"defaultTimeout,omitempty" yaml:"defaultTimeout,omitempty"`
@@ -99,16 +99,27 @@ type Session struct {
 
 // Run processes all the IOs in the Sesson.
 //
-// The current directory is changed to 'dir'.
+// The current directory is changed to 'dir' (and then hopefully
+// restored).
 //
 // The subprocess is given by the args. The first arg is the
 // executable.
 func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 
 	if dir != "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
 		if err := os.Chdir(dir); err != nil {
 			return err
 		}
+		// Far from perfect ...
+		defer func() {
+			if err := os.Chdir(cwd); err != nil {
+				log.Printf("error restoring cwd %s", cwd)
+			}
+		}()
 	}
 
 	cmd := exec.Command(args[0], args[1:]...)

@@ -26,7 +26,7 @@ type Service struct {
 
 	ops chan interface{}
 
-	interpreters map[string]core.Interpreter
+	interpreters core.InterpretersMap
 	crewName     string
 	crew         crew.Crew
 	specDir      string

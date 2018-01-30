@@ -14,7 +14,7 @@ var (
 
 	// DefaultInterpreters will be used in ActionSource.Compile if
 	// the given nil interpreters.
-	DefaultInterpreters = make(map[string]Interpreter)
+	DefaultInterpreters = InterpretersMap{}
 
 	// Exp_PermanentBindings is a switch to enable an experiment
 	// that makes a binding key ending in "!" a permament binding
@@ -60,6 +60,29 @@ type Interpreter interface {
 	// Exec executes the code.  The result of previous Compile()
 	// might be provided.
 	Exec(ctx context.Context, bs Bindings, props StepProps, code interface{}, compiled interface{}) (*Execution, error)
+}
+
+// Interpreters resolves an interpreter name (like "goja") to an
+// Interpreter.
+//
+// See InterpretersMap for a simple implementation.
+type Interpreters interface {
+	Find(interpreterName string) Interpreter
+}
+
+// InterpretersMap is a simple implementation of Interpreters.
+type InterpretersMap map[string]Interpreter
+
+func NewInterpretersMap() InterpretersMap {
+	return InterpretersMap(map[string]Interpreter{})
+}
+
+func (m InterpretersMap) Find(name string) Interpreter {
+	i, have := m[name]
+	if !have {
+		return nil
+	}
+	return i
 }
 
 // Action returns Bindings based on the given (current) Bindings.
@@ -180,13 +203,13 @@ func (a *ActionSource) Copy() *ActionSource {
 
 // Compile attempts to compile the ActionSource into an Action using
 // the given interpreters, which defaults to DefaultInterpreters.
-func (a *ActionSource) Compile(ctx context.Context, interpreters map[string]Interpreter) (Action, error) {
+func (a *ActionSource) Compile(ctx context.Context, interpreters Interpreters) (Action, error) {
 	if interpreters == nil {
 		interpreters = DefaultInterpreters
 	}
 
-	interpreter, have := interpreters[a.Interpreter]
-	if !have {
+	interpreter := interpreters.Find(a.Interpreter)
+	if interpreter == nil {
 		return nil, InterpreterNotFound
 	}
 

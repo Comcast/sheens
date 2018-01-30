@@ -12,8 +12,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime/pprof"
 
+	"github.com/Comcast/sheens/tools"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 
@@ -108,6 +110,21 @@ func main() {
 				fs := http.FileServer(http.Dir(*httpDir))
 				http.Handle("/static/", http.StripPrefix("/static", fs))
 			}
+
+			p := regexp.MustCompile("/specs/([-a-zA-Z0-9_]+)\\.html")
+
+			http.HandleFunc("/specs/", func(w http.ResponseWriter, r *http.Request) {
+				ss := p.FindStringSubmatch(r.RequestURI)
+				if ss == nil {
+					fmt.Fprintf(w, "No spec name in %s", r.RequestURI)
+					fmt.Fprintf(w, "try /specs/double.html")
+					return
+				}
+				err := tools.ReadAndRenderSpecPage("specs/"+ss[1]+".yaml", nil, w, true)
+				if err != nil {
+					fmt.Fprintf(w, "ReadAndRenderSpecPage error: %s", err)
+				}
+			})
 
 			log.Printf("HTTP service on %s", *httpPort)
 			if err = s.HTTPServer(ctx, *httpPort); err != nil {
