@@ -26,7 +26,7 @@ var (
 	// target to be a reference to a binding.  If a branch target
 	// is of the form "@VAR", then the current binding for VAR (if
 	// any) is used as the branch target.  If anything goes wrong,
-	// the branch target is returned as the literate value of the
+	// the branch target is returned as the literal value of the
 	// branch's Target.
 	//
 	// This feature should be used sparingly if at all.  The
