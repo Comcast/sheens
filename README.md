@@ -11,10 +11,6 @@ Sheens are state machines that consume and produce messages.  This
 work is a successor to [Rulio](https://github.com/Comcast/rulio),
 which is a rule engine.
 
-> "Transmit the message to the receiver; hope for an answer some day." 
->
-> -[Talking Heads](https://play.google.com/music/preview/Tx4yvxloe6nc6ifnu77hd6n3ipe)
-
 ## License
 
 This repo is licensed under [Apache License 2.0](LICENSE).
@@ -102,6 +98,10 @@ A machine processes and emits messages.
 9. Action languages are pluggable.  Most examples here are based on
    [goja](https://github.com/dop251/goja), which is an ECMAScript
    implementation.
+
+> "Transmit the message to the receiver; hope for an answer some day." 
+>
+> -[Talking Heads](https://play.google.com/music/preview/Tx4yvxloe6nc6ifnu77hd6n3ipe)
 
 ## Definitions
 
