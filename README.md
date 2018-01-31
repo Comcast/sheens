@@ -7,9 +7,27 @@
 
 <a href="specs/door.yaml"><img src="doc/door-graph.png" width="200"></a>
 
-Sheens are state machines that consume and produce messages.  This
-work is a successor to [Rulio](https://github.com/Comcast/rulio),
-which is a rule engine.
+Sheens is an automation engine that hosts message-processing state
+machines (also called "sheens").  These machines process and emit
+messages efficiently and atomically.  The initial motivation was to
+implement IoT-oriented home automations; however, Sheens has been
+useful in other settings.
+
+Sheens is easy to integrate via HTTP, WebSockets, MQTT, plain TCP, Go
+or C applications, or via other glue.  For example, we have integrated
+Sheens with several internal services, [AWS
+IoT](https://aws.amazon.com/iot/), [Home
+Assistant](https://home-assistant.io/), and other frameworks.
+
+The structure and behavior of sheens are amenable to
+[standardization](doc/rfc.md), and multiple
+[implementations](https://github.com/Comcast/littlesheens) are
+feasible and practical.  The Sheens engine is highly programmable.
+Sheen-oriented tools (debuggers, visualizations, monitoring,
+analyzers) are often easy to implement.
+
+
+<img src="doc/sheens.png" width="500">
 
 ## License
 
