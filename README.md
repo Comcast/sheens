@@ -11,8 +11,6 @@ Sheens are state machines that consume and produce messages.  This
 work is a successor to [Rulio](https://github.com/Comcast/rulio),
 which is a rule engine.
 
-<img src="doc/by-example-1.png" width="400">
-
 > "Transmit the message to the receiver; hope for an answer some day." 
 >
 > -[Talking Heads](https://play.google.com/music/preview/Tx4yvxloe6nc6ifnu77hd6n3ipe)
@@ -106,6 +104,8 @@ A machine processes and emits messages.
    implementation.
 
 ## Definitions
+
+<img src="doc/by-example-1.png" width="400">
 
 This section provides definitions for machines.  For an example-based
 exposition, see this work-in-progress
