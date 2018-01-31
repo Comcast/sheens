@@ -5,7 +5,7 @@
 
 # Messaging machines
 
-<img src="doc/door-graph.png" width="200">
+<a href="specs/door.yaml"><img src="doc/door-graph.png" width="200"></a>
 
 Sheens are state machines that consume and produce messages.  This
 work is a successor to [Rulio](https://github.com/Comcast/rulio),
