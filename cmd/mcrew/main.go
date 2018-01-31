@@ -14,6 +14,7 @@ import (
 	"os"
 	"regexp"
 	"runtime/pprof"
+	"strings"
 
 	"github.com/Comcast/sheens/tools"
 	. "github.com/Comcast/sheens/util/testutil"
@@ -111,20 +112,48 @@ func main() {
 				http.Handle("/static/", http.StripPrefix("/static", fs))
 			}
 
-			p := regexp.MustCompile("/specs/([-a-zA-Z0-9_]+)\\.html")
+			{
+				// Generate HTML for a  spec.
 
-			http.HandleFunc("/specs/", func(w http.ResponseWriter, r *http.Request) {
-				ss := p.FindStringSubmatch(r.RequestURI)
-				if ss == nil {
-					fmt.Fprintf(w, "No spec name in %s", r.RequestURI)
-					fmt.Fprintf(w, "try /specs/double.html")
-					return
-				}
-				err := tools.ReadAndRenderSpecPage("specs/"+ss[1]+".yaml", nil, w, true)
-				if err != nil {
-					fmt.Fprintf(w, "ReadAndRenderSpecPage error: %s", err)
-				}
-			})
+				p := regexp.MustCompile("/specs/([-a-zA-Z0-9_]+)\\.html")
+
+				http.HandleFunc("/specs/", func(w http.ResponseWriter, r *http.Request) {
+					ss := p.FindStringSubmatch(r.RequestURI)
+					if ss == nil {
+						fmt.Fprintf(w, "No spec name in %s", r.RequestURI)
+						fmt.Fprintf(w, "try /specs/double.html")
+						return
+					}
+					err := tools.ReadAndRenderSpecPage("specs/"+ss[1]+".yaml", nil, w, true)
+					if err != nil {
+						fmt.Fprintf(w, "ReadAndRenderSpecPage error: %s", err)
+					}
+				})
+			}
+
+			{
+				// Just return a list of available specs.
+				http.HandleFunc("/specs", func(w http.ResponseWriter, r *http.Request) {
+					files, err := ioutil.ReadDir(*specsDir)
+					if err != nil {
+						fmt.Fprintf(w, "error reading \"%s\": %s", *specsDir, err)
+						return
+					}
+					fmt.Fprintf(w, "[")
+					first := true
+					for _, file := range files {
+						if name := file.Name(); strings.HasSuffix(name, ".yaml") {
+							if !first {
+								fmt.Fprintf(w, ",")
+							}
+							fmt.Fprintf(w, `"%s"`, name)
+							first = false
+						}
+					}
+					fmt.Fprintf(w, "]")
+				})
+
+			}
 
 			log.Printf("HTTP service on %s", *httpPort)
 			if err = s.HTTPServer(ctx, *httpPort); err != nil {
