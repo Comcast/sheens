@@ -365,7 +365,47 @@ timers.  For example, a _nanocron_ could implement timers with
 goroutines (with various suitable limits). An external timer service
 could provide durable timers.  Etc.
 	
-	
+### Sheens in Shakespeare
+
+|||
+|-|-|
+|KING LEAR|How now! what art thou?|
+|SHEEN|A machine, sir.|
+|KING LEAR|What dost thou profess? what wouldst thou with us?|
+|||
+|SHEEN|I do profess to be no less than I seem; to serve|
+||that is honest; to converse with him that is wise,|
+||and says little; to fear judgment; to fight when I|
+||cannot choose; and to eat no fish.|
+|||
+|KING LEAR|What art thou?|
+|SHEEN|A very honest-hearted machine, and as poor as the king.|
+|||
+|KING LEAR|If thou be as poor for a subject as he is for a|
+||king, thou art poor enough. What wouldst thou?|
+|||
+|SHEEN|Service.|
+|||
+|KING LEAR|Who wouldst thou serve?|
+|||
+|SHEEN|You.|
+|||
+|KING LEAR|Dost thou know me, fellow?|
+|||
+|SHEEN|No, sir; but you have that in your countenance|
+||which I would fain call master.|
+|||
+|KING LEAR|What's that?|
+|||
+|SHEEN|Authority.|
+|||
+|KING LEAR|What services canst thou do?|
+|||
+|SHEEN|I can keep honest counsel, ride, run, mar a curious|
+||tale in telling it, and deliver a plain message|
+||bluntly: that which ordinary men are fit for, I am|
+||qualified in; and the best of me is diligence.|
+
 ## Code of Conduct
 
 We take our [code of conduct](CODE_OF_CONDUCT.md) seriously. Please
