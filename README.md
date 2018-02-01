@@ -375,7 +375,7 @@ could provide durable timers.  Etc.
 |||
 |KING LEAR|What dost thou profess? what wouldst thou with us?|
 |||
-|SHEEN|I do profess to be no less than I seem; to serve<br>that is honest; to converse with him that is wise,<br>and says little; to fear judgment; to fight when I<br>cannot choose; and to eat no fish.|
+|SHEEN|I do profess to be no less than I seem; to serve<br>him truly that will put me in trust: to love him<br>that is honest; to converse with him that is wise,<br>and says little; to fear judgment; to fight when I<br>cannot choose; and to eat no fish.|
 |||
 |KING LEAR|What art thou?|
 |||
