@@ -9,8 +9,8 @@
 
 Sheens is an automation engine that hosts message-processing state
 machines (also called "sheens").  These machines process and emit
-messages efficiently and atomically.  The initial motivation was to
-implement IoT-oriented home automations; however, Sheens has been
+messages efficiently and atomically.  The initial motivation was
+implementing IoT-oriented home automations; however, Sheens has been
 useful in other settings.
 
 Sheens is easy to integrate via HTTP, WebSockets, MQTT, plain TCP, Go
