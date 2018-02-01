@@ -373,16 +373,12 @@ could provide durable timers.  Etc.
 |SHEEN|A machine, sir.|
 |KING LEAR|What dost thou profess? what wouldst thou with us?|
 |||
-|SHEEN|I do profess to be no less than I seem; to serve|
-||that is honest; to converse with him that is wise,|
-||and says little; to fear judgment; to fight when I|
-||cannot choose; and to eat no fish.|
+|SHEEN|I do profess to be no less than I seem; to serve<br>that is honest; to converse with him that is wise,<br>and says little; to fear judgment; to fight when I<br>cannot choose; and to eat no fish.|
 |||
 |KING LEAR|What art thou?|
 |SHEEN|A very honest-hearted machine, and as poor as the king.|
 |||
-|KING LEAR|If thou be as poor for a subject as he is for a|
-||king, thou art poor enough. What wouldst thou?|
+|KING LEAR|If thou be as poor for a subject as he is for a<br>king, thou art poor enough. What wouldst thou?|
 |||
 |SHEEN|Service.|
 |||
@@ -392,8 +388,7 @@ could provide durable timers.  Etc.
 |||
 |KING LEAR|Dost thou know me, fellow?|
 |||
-|SHEEN|No, sir; but you have that in your countenance|
-||which I would fain call master.|
+|SHEEN|No, sir; but you have that in your countenance<br>which I would fain call master.|
 |||
 |KING LEAR|What's that?|
 |||
@@ -401,10 +396,7 @@ could provide durable timers.  Etc.
 |||
 |KING LEAR|What services canst thou do?|
 |||
-|SHEEN|I can keep honest counsel, ride, run, mar a curious|
-||tale in telling it, and deliver a plain message|
-||bluntly: that which ordinary men are fit for, I am|
-||qualified in; and the best of me is diligence.|
+|SHEEN|I can keep honest counsel, ride, run, mar a curious<br>tale in telling it, and deliver a plain message<br>bluntly: that which ordinary men are fit for, I am<br>qualified in; and the best of me is diligence.|
 
 ## Code of Conduct
 
