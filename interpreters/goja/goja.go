@@ -155,7 +155,17 @@ func wrapSrc(src string) string {
 	return fmt.Sprintf("(function() {\n%s\n}());\n", src)
 }
 
-func parse(vv map[string]interface{}) (code string, libs []string, err error) {
+// parseSource looks into the given map to try to find "requires" and
+// "code" properties.
+//
+// Background: The YAML parser https://github.com/go-yaml/yaml will
+// return map[interface{}]interface{}, which is correct but
+// inconvenient.  So this repo uses a fork at
+// https://github.com/jsccast/yaml, which will return
+// map[string]interface{}.  However, this parseSource function
+// supports map[interface{}]interface{} so that others don't need to
+// use that fork.
+func parseSource(vv map[string]interface{}) (code string, libs []string, err error) {
 	x, have := vv["code"]
 	if !have {
 		code = ""
@@ -204,9 +214,9 @@ func AsSource(src interface{}) (code string, libs []string, err error) {
 			}
 			m[str] = v
 		}
-		return parse(m)
+		return parseSource(m)
 	case map[string]interface{}:
-		return parse(vv)
+		return parseSource(vv)
 	default:
 		err = errors.New(fmt.Sprintf("bad Goja source (%T)", src))
 		return
