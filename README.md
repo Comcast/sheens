@@ -370,12 +370,15 @@ could provide durable timers.  Etc.
 |||
 |-|-|
 |KING LEAR|How now! what art thou?|
+|||
 |SHEEN|A machine, sir.|
+|||
 |KING LEAR|What dost thou profess? what wouldst thou with us?|
 |||
 |SHEEN|I do profess to be no less than I seem; to serve<br>that is honest; to converse with him that is wise,<br>and says little; to fear judgment; to fight when I<br>cannot choose; and to eat no fish.|
 |||
 |KING LEAR|What art thou?|
+|||
 |SHEEN|A very honest-hearted machine, and as poor as the king.|
 |||
 |KING LEAR|If thou be as poor for a subject as he is for a<br>king, thou art poor enough. What wouldst thou?|
