@@ -211,9 +211,18 @@ func (i *Interpreter) Compile(ctx context.Context, src interface{}) (interface{}
 
 	code = wrapSrc(code)
 
-	if code, err = InlineRequires(ctx, code, i.ProvideLibrary); err != nil {
-		return nil, err
-	}
+	// We no longer do InlineRequires.  Instead, we use an
+	// explicit "requires".
+	//
+	// Background: Since we now want an explicit `return` of
+	// bindings, we're in a block context, and in-lining code in a
+	// block context would -- I guess -- require that the inlined
+	// code (the libraries) also be blocks, which they might not
+	// be.  Maybe document, enforce, and support later.
+	//
+	// if code, err = InlineRequires(ctx, code, i.ProvideLibrary); err != nil {
+	//     return nil, err
+	// }
 
 	var libsSrc string
 	for _, lib := range libs {

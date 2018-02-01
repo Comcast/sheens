@@ -540,3 +540,55 @@ function foo() { return "queso"; }
 		t.Fatalf("wanted something wrong: '%s'", s)
 	}
 }
+
+func TestInlineRequires(t *testing.T) {
+
+	// We no longer do inline require()s because we interpret
+	// source as a block, and that context means that libraries
+	// would themselves have to be blocks.  That'd be okay but a
+	// little surprising to library authors.
+	//
+	// The offical way to pull in libraries is with
+	// `"requires":[...]`.
+
+	t.SkipNow()
+
+	src := `require("tacos");
+return {order: taco()};
+`
+	libProvider := MakeMapLibraryProvider(map[string]string{
+		"tacos": `
+function taco() {
+  return "taco";
+}
+`,
+	})
+
+	i := NewInterpreter()
+
+	provider := func(ctx context.Context, libName string) (string, error) {
+		return libProvider(ctx, i, libName)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	inlined, err := InlineRequires(ctx, src, provider)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	exe, err := i.Exec(ctx, nil, nil, inlined, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	x, have := exe.Bs["order"]
+	if !have {
+		t.Fatal("didn't order anything")
+	}
+	if s, is := x.(string); !is {
+		t.Fatal("didn't order <string>")
+	} else if s != "tacos" {
+		t.Fatal(s)
+	}
+}

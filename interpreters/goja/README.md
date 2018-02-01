@@ -7,7 +7,25 @@ This `core.Interpreter` is based on
 An action should always `return` updated bindings, and guard should
 always `return` either updated bindings or `null`.
 
-Feel free to make your own `core.Interpreter` that does what you want.
+
+Feel free to make your own `core.Interpreter` that does what you want,
+of course
+
+## Libraries
+
+If the "source" is given as map with keys `requires` and `code`, as in
+
+```YAML
+interpreter: goja
+source:
+  requires:
+  - 'file://interpreters/goja/libs/time.js'
+  code: |-
+    return isCurrent(_.bindings.during) ? _.bindings : null;
+```
+
+then the given libraries will be inlined in the order given.
+
 
 ## Environment
 
