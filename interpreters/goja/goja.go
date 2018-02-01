@@ -155,44 +155,58 @@ func wrapSrc(src string) string {
 	return fmt.Sprintf("(function() {\n%s\n}());\n", src)
 }
 
+func parse(vv map[string]interface{}) (code string, libs []string, err error) {
+	x, have := vv["code"]
+	if !have {
+		code = ""
+	}
+	if s, is := x.(string); is {
+		code = s
+	} else {
+		err = errors.New("bad Goja action code")
+		return
+	}
+
+	x, have = vv["requires"]
+	switch vv := x.(type) {
+	case string:
+		libs = []string{vv}
+	case []string:
+		libs = vv
+	case []interface{}:
+		libs = make([]string, 0, len(vv))
+		for _, x := range vv {
+			switch vv := x.(type) {
+			case string:
+				libs = append(libs, vv)
+			default:
+				err = errors.New("bad library")
+				return
+			}
+		}
+	}
+
+	return
+}
+
 func AsSource(src interface{}) (code string, libs []string, err error) {
 	switch vv := src.(type) {
 	case string:
 		code = vv
 		return
-	case map[string]interface{}:
-
-		x, have := vv["code"]
-		if !have {
-			code = ""
-		}
-		if s, is := x.(string); is {
-			code = s
-		} else {
-			err = errors.New("bad Goja action code")
-			return
-		}
-
-		x, have = vv["requires"]
-		switch vv := x.(type) {
-		case string:
-			libs = []string{vv}
-		case []string:
-			libs = vv
-		case []interface{}:
-			libs = make([]string, 0, len(vv))
-			for _, x := range vv {
-				switch vv := x.(type) {
-				case string:
-					libs = append(libs, vv)
-				default:
-					err = errors.New("bad library")
-					return
-				}
+	case map[interface{}]interface{}:
+		m := make(map[string]interface{})
+		for k, v := range vv {
+			str, ok := k.(string)
+			if !ok {
+				err = errors.New(fmt.Sprintf("bad src key (%T)", k))
+				return
 			}
+			m[str] = v
 		}
-
-		return
+		return parse(m)
+	case map[string]interface{}:
+		return parse(vv)
 	default:
 		err = errors.New(fmt.Sprintf("bad Goja source (%T)", src))
 		return
@@ -270,7 +284,6 @@ func protest(o *goja.Runtime, x interface{}) {
 //
 // The Testing flag must be set to see sleep().
 func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.StepProps, src interface{}, compiled interface{}) (*core.Execution, error) {
-
 	exe := core.NewExecution(nil)
 
 	var p *goja.Program
