@@ -607,7 +607,16 @@ func (s *Spec) Walk(ctx context.Context, st *State, pendings []interface{}, c *C
 				walked.Remaining = nil
 				return walked, nil
 			}
-			// Leave st unchanged.
+			// If we are at a terminal node, we're done.
+			// If we didn't consume anything, we must have
+			// been at a terminal node.
+			if stride.Consumed == nil {
+				walked.StoppedBecause = Done
+				walked.Remaining = nil
+				return walked, nil
+			}
+			// Otherwise get the next pending message
+			// while leaving the state unchanged.
 		} else {
 			st = stride.To.Copy()
 		}

@@ -485,3 +485,49 @@ func TestNoMatchGuardLeak(t *testing.T) {
 		log.Fatal(x)
 	}
 }
+
+func TestTerminalBindingsNode(t *testing.T) {
+	spec := &Spec{
+		Name:          "test",
+		PatternSyntax: "json",
+		Nodes: map[string]*Node{
+			"start": {
+				Branches: &Branches{
+					Branches: []*Branch{
+						{
+							Target: "there",
+						},
+					},
+				},
+			},
+			"there": {},
+		},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := spec.Compile(ctx, nil, true); err != nil {
+		t.Fatal(err)
+	}
+
+	st := &State{
+		NodeName: "start",
+		Bs:       make(Bindings),
+	}
+
+	c := &Control{
+		Limit: 10,
+	}
+
+	pending := []interface{}{Dwimjs(`{"trigger":"fire"}`)}
+
+	walked, err := spec.Walk(ctx, st, pending, c, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if walked.StoppedBecause != Done {
+		t.Fatalf("stopped because %s", walked.StoppedBecause)
+	}
+}
