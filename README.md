@@ -183,7 +183,10 @@ some strings that start with a `?`.  Example:
  "at": {"type": "residence", "address": "?address"}}
 ```
 
-A string that starts with a `?` is a _pattern variable_.
+A string that starts with a `?` is a _pattern variable_.  (The string
+`?` (without anything else) is an anonymous pattern variable that
+matches anything and is not based on input bindings or included in
+output bindings.)
 
 A message matched against a pattern results in zero or more sets of
 variable bindings.
