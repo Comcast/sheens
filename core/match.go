@@ -116,6 +116,12 @@ func IsVariable(s string) bool {
 	return strings.HasPrefix(s, "?")
 }
 
+// IsAnonymousVariable detects a variable of the form '?'.  An binding
+// for an anonymous variable shouldn't ever make it into bindins.
+func IsAnonymousVariable(s string) bool {
+	return s == "?"
+}
+
 // IsConstant reports if the string represents a constant (and not a
 // pattern variable).
 func IsConstant(s string) bool {
@@ -384,6 +390,9 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 				return nil, nil
 			}
 		} else { // IsVariable
+			if IsAnonymousVariable(vv) {
+				return []Bindings{bs}, nil
+			}
 			binding, found := bs[vv]
 			if found {
 				// check whether new binding is the same as existing

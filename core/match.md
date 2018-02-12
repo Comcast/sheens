@@ -237,3 +237,88 @@ should return
 ```JSON
 []
 ```
+
+## 13. Anonymous variable used twice
+
+The pattern
+```JSON
+{"count":"?","wants":"?"}
+```
+
+matched against
+```JSON
+{"count":48,"wants":"tacos"}
+```
+
+should return
+```JSON
+[{}]
+```
+
+## 14. Anonymous variable with normal variable
+
+The pattern
+```JSON
+{"count":"?","wants":"?","when":"?when"}
+```
+
+matched against
+```JSON
+{"count":48,"wants":"tacos","when":"today"}
+```
+
+should return
+```JSON
+[{"?when":"today"}]
+```
+
+## 15. Anonymous variable as a property variable
+
+The pattern
+```JSON
+{"?":"tacos"}
+```
+
+matched against
+```JSON
+{"likes":"tacos","needs":"chips"}
+```
+
+should return
+```JSON
+[{}]
+```
+
+## 16. Anonymous variable as a property variable and another variable
+
+The pattern
+```JSON
+{"?":{"likes":"?likes"}}
+```
+
+matched against
+```JSON
+{"homer":{"likes":"tacos"}}
+```
+
+should return
+```JSON
+[{"?likes":"tacos"}]
+```
+
+## 17. Anonymous variable as a property variable without a match
+
+The pattern
+```JSON
+{"?":"tacos"}
+```
+
+matched against
+```JSON
+{"needs":"chips"}
+```
+
+should return
+```JSON
+[]
+```

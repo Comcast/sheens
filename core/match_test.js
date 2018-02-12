@@ -88,6 +88,36 @@
 	"w": []
     },
     {
+	"title": "Anonymous variable used twice",
+	"p": {"wants":"?","count":"?"},
+	"m": {"wants":"tacos","count":48},
+	"w": [{}]
+    },
+    {
+	"title": "Anonymous variable with normal variable",
+	"p": {"wants":"?","count":"?","when":"?when"},
+	"m": {"wants":"tacos","count":48,"when":"today"},
+	"w": [{"?when":"today"}]
+    },
+    {
+	"title": "Anonymous variable as a property variable",
+	"p": {"?":"tacos"},
+	"m": {"likes":"tacos","needs":"chips"},
+	"w": [{}]
+    },
+    {
+	"title": "Anonymous variable as a property variable and another variable",
+	"p": {"?":{"likes":"?likes"}},
+	"m": {"homer":{"likes":"tacos"}},
+	"w": [{"?likes":"tacos"}]
+    },
+    {
+	"title": "Anonymous variable as a property variable without a match",
+	"p": {"?":"tacos"},
+	"m": {"needs":"chips"},
+	"w": []
+    },
+    {
 	"title": "Benchmark: array 1",
 	"p": {"a":["?x"]},
 	"m": {"a":[1]},
