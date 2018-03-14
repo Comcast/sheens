@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"testing"
 
@@ -12,12 +13,18 @@ import (
 	. "github.com/Comcast/sheens/util/testutil"
 )
 
-func TestService(t *testing.T) {
-
-	dbFile := "test.db"
+func TestServiceBasic(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	s := testServiceBasic(ctx, t)
+	s.store.Close(ctx) // ToDo: Check error.
+}
+
+func testServiceBasic(ctx context.Context, t *testing.T) *Service {
+
+	dbFile := "test.db"
 
 	removeDBFile := func() {
 		if _, err := os.Stat(dbFile); err == nil {
@@ -84,5 +91,44 @@ func TestService(t *testing.T) {
 	m := <-s.Emitted
 	Logf("emitted %s", JS(m))
 
-	defer s.store.Close(ctx) // ToDo: Check error.
+	// s.store.Close(ctx) // ToDo: Check error.
+
+	return s
+}
+
+func TestServiceRemMachine(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	s := testServiceBasic(ctx, t)
+
+	op := COp{
+		Rem: &OpRem{
+			Id: "double",
+		},
+	}
+
+	if err := op.Do(ctx, s); err != nil {
+		t.Fatal(err)
+	}
+
+	op = COp{
+		Process: &OpProcess{
+			// Render:  true,
+			Message: Dwimjs(`{"double":2}`),
+		},
+	}
+
+	if err := op.Do(ctx, s); err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case <-time.NewTimer(time.Second).C:
+	case x := <-s.Emitted:
+		t.Fatal("didn't want %#v", x)
+	}
+
+	s.store.Close(ctx) // ToDo: Check error.
 }

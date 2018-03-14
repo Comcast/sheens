@@ -322,6 +322,10 @@ func (s *Service) RemMachine(ctx context.Context, mid string) error {
 
 	// ToDo: Remove timers?
 
+	s.crew.Lock()
+	delete(s.crew.Machines, mid)
+	s.crew.Unlock()
+
 	return s.store.WriteState(ctx, s.crewName, []*MachineState{&ms})
 }
 
