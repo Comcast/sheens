@@ -643,6 +643,22 @@ func inequal(ctx *Context, fact interface{}, bs Bindings, v string) (bool, []Bin
 		if a < b {
 			satisfied = true
 		}
+	case "<=":
+		if a <= b {
+			satisfied = true
+		}
+	case ">":
+		if a > b {
+			satisfied = true
+		}
+	case ">=":
+		if a >= b {
+			satisfied = true
+		}
+	case "!=":
+		if a != b {
+			satisfied = true
+		}
 	}
 	if !satisfied {
 		return false, nil, nil
