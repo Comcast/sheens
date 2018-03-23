@@ -322,3 +322,122 @@ should return
 ```JSON
 []
 ```
+
+## 25. Inequality: success
+
+The pattern
+```JSON
+{"n":"?\u003cn"}
+```
+
+matched against
+```JSON
+{"n":3}
+```
+
+should return
+```JSON
+[{"?\u003cn":10,"?n":3}]
+```
+
+## 26. Inequality: failure
+
+The pattern
+```JSON
+{"n":"?\u003cn"}
+```
+
+matched against
+```JSON
+{"n":3}
+```
+
+should return
+```JSON
+[]
+```
+
+## 27. Inequality: non-numeric
+
+The pattern
+```JSON
+{"n":"?\u003cn"}
+```
+
+matched against
+```JSON
+{"n":"queso"}
+```
+
+should return
+```JSON
+[]
+```
+
+## 28. Inequality: given same
+
+The pattern
+```JSON
+{"n":"?\u003cn"}
+```
+
+matched against
+```JSON
+{"n":3}
+```
+
+should return
+```JSON
+[{"?\u003cn":10,"?n":3}]
+```
+
+## 29. Inequality: given different
+
+The pattern
+```JSON
+{"n":"?\u003cn"}
+```
+
+matched against
+```JSON
+{"n":3}
+```
+
+should return
+```JSON
+[]
+```
+
+## 30. Inequality: used later
+
+The pattern
+```JSON
+{"needs":"?n","wants":{"n":"?\u003cn"}}
+```
+
+matched against
+```JSON
+{"needs":3,"wants":{"n":3}}
+```
+
+should return
+```JSON
+[{"?\u003cn":10,"?n":3}]
+```
+
+## 31. Inequality: used later with conflict
+
+The pattern
+```JSON
+{"needs":"?n","wants":{"n":"?\u003cn"}}
+```
+
+matched against
+```JSON
+{"needs":4,"wants":{"n":3}}
+```
+
+should return
+```JSON
+[]
+```

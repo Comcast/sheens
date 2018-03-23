@@ -15,6 +15,7 @@ import (
 type MatchTest struct {
 	Pattern       interface{}              `json:"p"`
 	Message       interface{}              `json:"m"`
+	Bindings      map[string]interface{}   `json:"b,omitempty"`
 	Expected      []map[string]interface{} `json:"w,omitempty"`
 	Error         bool                     `json:"err,omitempty"`
 	Title         string                   `json:"title,omitempty"`
@@ -77,7 +78,11 @@ func compareMatchResult(bss []Bindings, expected []map[string]interface{}) bool 
 }
 
 func (mt *MatchTest) Run(t *testing.T, check bool) {
-	bss, err := Matches(nil, mt.Pattern, mt.Message)
+	bs := mt.Bindings
+	if bs == nil {
+		bs = make(Bindings)
+	}
+	bss, err := Match(nil, mt.Pattern, mt.Message, bs)
 	if !check {
 		return
 	}

@@ -158,5 +158,54 @@
 	"p": {"b":[{"a":"?x","d":"?y"}],"c":"?x"},
 	"m": {"b":[1,{"a": 2},{"a":3,"d":5},{"c":4},{"a":3}],"c":3},
 	"benchmarkOnly": true
+    },
+    {
+	"title": "Inequality: success",
+	"p": {"n":"?<n"},
+	"m": {"n":3},
+	"b": {"?<n":10},
+	"w": [{"?n":3,"?<n":10}]
+    },
+    {
+	"title": "Inequality: failure",
+	"p": {"n":"?<n"},
+	"m": {"n":3},
+	"b": {"?<n":2},
+	"w": []
+    },
+    {
+	"title": "Inequality: non-numeric",
+	"p": {"n":"?<n"},
+	"m": {"n":"queso"},
+	"b": {"?<n":2},
+	"w": []
+    },
+    {
+	"title": "Inequality: given same",
+	"p": {"n":"?<n"},
+	"m": {"n":3},
+	"b": {"?<n":10,"?n":3},
+	"w": [{"?n":3,"?<n":10}]
+    },
+    {
+	"title": "Inequality: given different",
+	"p": {"n":"?<n"},
+	"m": {"n":3},
+	"b": {"?<n":10,"?n":4},
+	"w": []
+    },
+    {
+	"title": "Inequality: used later",
+	"p": {"wants":{"n":"?<n"},"needs":"?n"},
+	"m": {"wants":{"n":3},"needs":3},
+	"b": {"?<n":10},
+	"w": [{"?n":3,"?<n":10}]
+    },
+    {
+	"title": "Inequality: used later with conflict",
+	"p": {"wants":{"n":"?<n"},"needs":"?n"},
+	"m": {"wants":{"n":3},"needs":4},
+	"b": {"?<n":10},
+	"w": []
     }
 ]

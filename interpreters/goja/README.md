@@ -43,6 +43,10 @@ The runtime environment includes a binding for the variable `_`:
 
 1. `_.genstr()`: Generates a random 32-char string
 
+1. `_.now()`: Returns the current time formatted in time.RFC3339Nano (UTC).
+
+1. `_.nowms()`: Returns the current time in UNIX epoch milliseconds (UTC).
+
 1. `_.esc(STRING)`: Calls [url.QueryEscape](https://golang.org/pkg/net/url/#QueryEscape).
 
 1. `_.out(X)`: "Emits" the given message.

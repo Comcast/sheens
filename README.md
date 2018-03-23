@@ -251,6 +251,30 @@ patmatch -p '{"a":[{"b":"?x"}]}' -m '{"a":[{"b":1},{"b":2},{"c":3}]}'
 [{"?x":1},{"?x":2}]
 ```
 
+### Experimental matching inequalities
+
+As an experimental feature, pattern matching supports numeric
+inequalities.
+
+The input bindings should include a binding for a variable with a name
+that contains either `<`, `>`, `<=`, `>=`, or `!=` immediately after
+the leading `?`.  The input pattern can then use that variable.  When
+matching, a value _X_ will match that variable only if the binding _Y_
+for that variable satisfies the inequality with _X_ and _Y_ (in that
+order). In this case, the output bindings will include a new binding
+for a variable with the same name as the inequality variable but
+without the actual inequality.
+
+(Yes, such a feature makes us stare down a slippery slope.)
+
+For example, given input bindings `{"?<n":10}`, pattern
+`{"n":"?<n"}`, and message `{"n":3}`, the match will succeed
+with bindings `{"?<n":10,"?n":3}`.
+
+See the [matching examples](core/match.md) for several
+examples. (Search for "inequality".)
+
+
 
 ## Processing
 

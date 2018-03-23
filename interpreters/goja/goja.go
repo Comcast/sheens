@@ -339,6 +339,21 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 		return core.Gensym(32)
 	}
 
+	// nowms returns the current system time in UNIX epoch
+	// milliseconds.
+	env["nowms"] = func() interface{} {
+		return float64(time.Now().UTC().UnixNano() / 1000 / 1000)
+	}
+
+	// now returns the current time formatted in time.RFC3339Nano
+	// (UTC).
+	env["now"] = func() interface{} {
+		return time.Now().UTC().Format(time.RFC3339Nano)
+	}
+
+	// cronNext parses the given string as a crontab expression
+	// using github.com/gorhill/cronexpr.  Returns the next time
+	// as a string formatted in time.RFC3339Nano (UTC).
 	env["cronNext"] = func(x interface{}) interface{} {
 		switch vv := x.(type) {
 		case goja.Value:

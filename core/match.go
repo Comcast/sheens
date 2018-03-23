@@ -22,6 +22,59 @@ var (
 	// turn on this switch.  Performance will suffer, but any bad property
 	// variable will at least be caught.
 	CheckForBadPropertyVariables = true
+
+	// Inequalities is a switch to turn on experimental binding
+	// inequality support.
+	//
+	// With this feature, pattern matching supports numeric
+	// inequalities in addition to the standard equality
+	// predicate.  The input bindings should include a binding for
+	// a variable with a name that contains either "<", ">", "<=",
+	// ">=", or "!=" immediately after the leading "?".  The input
+	// pattern can then use that variable.  When matching, a value
+	// X will match that variable only if the binding Y for that
+	// variable satisfies the inequality with X and Y (in that
+	// order). In this case, the output bindings will include a
+	// new binding for a variable with the same name as the
+	// inequality variable but without the actual inequality.
+	//
+	// For example, given input bindings {"?<n":10}, pattern
+	// {"n":"?<n"}, and message {"n":3}, the match will succeed
+	// with bindings {"?<n":10,"?n":3}.
+	//
+	// See match_test.js for several examples. (Search for
+	// "inequality".)
+	//
+	// For now at least, the inequalities only work for numeric
+	// values.  We might support strings later.
+	//
+	// Yes, such a feature makes us stare down a slippery slope.
+	// However, we are brave, and we do not shy away from even
+	// grave danger.
+	//
+	//   "[In Sheens] we live exactly as we please, and yet are
+	//   just as ready to encounter every legitimate danger."
+	//
+	//   --Pericles
+	//
+	// The immediate motivation for this feature was to support
+	// timer fallbacks.  For example, using the Goja interpreter,
+	// an action could establish a binding with a value that's a
+	// number representing a future time in UNIX milliseconds.
+	// Then a branch pattern can check for a message containing
+	// the current time which is greater than that number.  When a
+	// machine is loaded, a system could send the machine a
+	// "current time" message, which could advance the machine
+	// according to such a branch.  Using this technique, a
+	// machine that creates a timer that somehow gets lots could
+	// regain at least some sense of what's going on.  Similarly,
+	// a system that doesn't have asynchronous, timer-driven
+	// messaging support could simply send messages every second
+	// (or at whatever internal) to provide timer-like
+	// functionality (albeit with inefficiencies and without the
+	// message-oriented timer protocol that's been offered
+	// elsewhere).
+	Inequalities = true
 )
 
 func checkForBadPropertyVariables(pattern map[string]interface{}) error {
@@ -393,6 +446,11 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 			if IsAnonymousVariable(vv) {
 				return []Bindings{bs}, nil
 			}
+			if using, bss, err := inequal(ctx, fact, bindings, vv); err != nil {
+				return nil, err
+			} else if using {
+				return bss, err
+			}
 			binding, found := bs[vv]
 			if found {
 				// check whether new binding is the same as existing
@@ -539,3 +597,70 @@ func (e *UnknownPatternType) Error() string {
 
 // mmap is now a mystery to me.
 type mmap map[string]interface{}
+
+func inequal(ctx *Context, fact interface{}, bs Bindings, v string) (bool, []Bindings, error) {
+	if !Inequalities {
+		return false, nil, nil
+	}
+
+	if v[0] != '?' {
+		return false, nil, nil
+	}
+
+	x, have := bs[v]
+	if !have {
+		return false, nil, nil
+	}
+	x = fudge(x)
+	b, is := x.(float64)
+	if !is {
+		return false, nil, nil
+	}
+
+	x = fudge(fact)
+	a, is := x.(float64)
+	if !is {
+		return false, nil, nil
+	}
+
+	var ineq, vv string
+	switch len(v) {
+	case 1, 2:
+		return false, nil, nil
+	default:
+		ineqv := v[1:]
+		for _, ie := range []string{"<=", ">=", "!=", ">", "<"} {
+			if strings.HasPrefix(ineqv, ie) {
+				ineq = ie
+				vv = "?" + ineqv[len(ie):]
+			}
+		}
+	}
+
+	satisfied := false
+	switch ineq {
+	case "<":
+		if a < b {
+			satisfied = true
+		}
+	}
+	if !satisfied {
+		return false, nil, nil
+	}
+
+	x, given := bs[vv]
+	if given {
+		c, is := fudge(x).(float64)
+		if !is {
+			return false, nil, nil
+		}
+		if c != a {
+			return false, nil, nil
+		}
+		// Don't need to update the bindings.
+		return true, []Bindings{bs}, nil
+	}
+
+	bs[vv] = a
+	return true, []Bindings{bs}, nil
+}
