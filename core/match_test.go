@@ -20,6 +20,7 @@ type MatchTest struct {
 	Error         bool                     `json:"err,omitempty"`
 	Title         string                   `json:"title,omitempty"`
 	Doc           string                   `json:"doc,omitempty"`
+	NoDoc         bool                     `json:"noDoc,omitempty"`
 	Verbose       bool                     `json:"verbose,omitempty"`
 	BenchmarkOnly bool                     `json:"benchmarkOnly,omitempty"`
 }
@@ -33,6 +34,7 @@ func (t MatchTest) Name(i int) string {
 }
 
 func (t MatchTest) Fprintf(w io.Writer, i int) {
+	i++
 	title := t.Title
 	if title == "" {
 		title = "Anonymous example"
@@ -97,8 +99,8 @@ func (mt *MatchTest) Run(t *testing.T, check bool) {
 	}
 
 	if !compareMatchResult(bss, mt.Expected) {
-		t.Fatalf("match test failed: pattern: %s message: %s got: %s expected: %s\n",
-			JS(mt.Pattern), JS(mt.Message), JS(bss), JS(mt.Expected))
+		t.Fatalf("match test failed: bindings: %s pattern: %s message: %s got: %s expected: %s\n",
+			JS(mt.Bindings), JS(mt.Pattern), JS(mt.Message), JS(bss), JS(mt.Expected))
 	}
 }
 
@@ -135,7 +137,9 @@ Generated from test cases.
 		if test.BenchmarkOnly {
 			continue
 		}
-		test.Fprintf(md, i)
+		if !test.NoDoc {
+			test.Fprintf(md, i)
+		}
 		t.Run(test.Name(i), func(t *testing.T) {
 			test.Run(t, true)
 		})

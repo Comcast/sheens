@@ -172,7 +172,79 @@
 	"m": {"n":3},
 	"b": {"?<n":2},
 	"w": []
+	
     },
+    
+    {
+	"title": "Inequality: success (<=)",
+	"noDoc": true,
+	"p": {"n":"?<=n"},
+	"m": {"n":3},
+	"b": {"?<=n":3},
+	"w": [{"?n":3,"?<=n":3}]
+    },
+    {
+	"title": "Inequality: failure (<=)",
+	"noDoc": true,
+	"p": {"n":"?<=n"},
+	"m": {"n":4},
+	"b": {"?<=n":3},
+	"w": []
+    },
+    
+
+    {
+	"title": "Inequality: success (>)",
+	"noDoc": true,
+	"p": {"n":"?>n"},
+	"m": {"n":11},
+	"b": {"?>n":10},
+	"w": [{"?n":11,"?>n":10}]
+    },
+    {
+	"title": "Inequality: failure (>)",
+	"noDoc": true,
+	"p": {"n":"?>n"},
+	"m": {"n":11},
+	"b": {"?>n":12},
+	"w": []
+    },
+    
+    {
+	"title": "Inequality: success (>=)",
+	"p": {"n":"?>=n"},
+	"m": {"n":11},
+	"b": {"?>=n":11},
+	"w": [{"?n":11,"?>=n":11}]
+    },
+    {
+	"title": "Inequality: failure (>=)",
+	"p": {"n":"?>=n"},
+	"m": {"n":11},
+	"b": {"?>=n":12},
+	"w": []
+    },
+    
+
+    {
+	"title": "Inequality: success (!=)",
+	"noDoc": true,
+	"p": {"n":"?!=n"},
+	"m": {"n":11},
+	"b": {"?!=n":13},
+	"w": [{"?n":11,"?!=n":13}]
+    },
+    {
+	"title": "Inequality: failure (!=)",
+	"noDoc": true,
+	"p": {"n":"?!=n"},
+	"m": {"n":21},
+	"b": {"?!=n":21},
+	"w": []
+    },
+    
+
+
     {
 	"title": "Inequality: non-numeric",
 	"p": {"n":"?<n"},

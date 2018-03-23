@@ -633,8 +633,12 @@ func inequal(ctx *Context, fact interface{}, bs Bindings, v string) (bool, []Bin
 			if strings.HasPrefix(ineqv, ie) {
 				ineq = ie
 				vv = "?" + ineqv[len(ie):]
+				break
 			}
 		}
+	}
+	if vv == "" {
+		return false, nil, nil
 	}
 
 	satisfied := false
@@ -660,8 +664,9 @@ func inequal(ctx *Context, fact interface{}, bs Bindings, v string) (bool, []Bin
 			satisfied = true
 		}
 	}
+
 	if !satisfied {
-		return false, nil, nil
+		return true, nil, nil
 	}
 
 	x, given := bs[vv]
@@ -671,7 +676,7 @@ func inequal(ctx *Context, fact interface{}, bs Bindings, v string) (bool, []Bin
 			return false, nil, nil
 		}
 		if c != a {
-			return false, nil, nil
+			return true, nil, nil
 		}
 		// Don't need to update the bindings.
 		return true, []Bindings{bs}, nil
