@@ -279,5 +279,40 @@
 	"m": {"wants":{"n":3},"needs":4},
 	"b": {"?<n":10},
 	"w": []
+    },
+    {
+	"title": "Optional pattern variable (absent)",
+	"p": {"wants":"?wanted","opt":"??maybe"},
+	"m": {"wants":"tacos"},
+	"b": {},
+	"w": [{"?wanted":"tacos"}]
+    },
+    {
+	"title": "Optional pattern variable (present)",
+	"p": {"wants":"?wanted","a":"??maybe"},
+	"m": {"wants":"tacos","a":"queso"},
+	"b": {},
+	"w": [{"?wanted":"tacos","??maybe":"queso"}]
+    },
+    {
+	"title": "Optional pattern variable (array, absent)",
+	"p": ["??opt"],
+	"m": [],
+	"b": {},
+	"w": [{}]
+    },
+    {
+	"title": "Optional pattern variable (array, present)",
+	"p": ["??opt", "a", "b"],
+	"m": ["a","b"],
+	"b": {},
+	"w": [{}]
+    },
+    {
+	"title": "Optional pattern variable (array, present)",
+	"p": ["??opt", "a", "b"],
+	"m": ["a","b","c"],
+	"b": {},
+	"w": [{"??opt":"c"}]
     }
 ]

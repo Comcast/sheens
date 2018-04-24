@@ -251,6 +251,28 @@ patmatch -p '{"a":[{"b":"?x"}]}' -m '{"a":[{"b":1},{"b":2},{"c":3}]}'
 [{"?x":1},{"?x":2}]
 ```
 
+### Experimental optional pattern variables
+
+If a pattern variable starts with `??`, that variable (or its
+associated property when in a map) is optional.  Examples:
+
+```Shell
+patmatch -p '{"x":"??opt","y":"?y"}' -m '{"y":"Y"}'
+[{"?y":"Y"}]
+
+patmatch -p '{"x":"??opt","y":"?y"}' -m '{"y":"Y","x":"X"}'
+[{"??opt":"X","?y":"Y"}]
+
+patmatch -p '["??maybe","a","b"]' -m '["a","b","c"]'
+[{"??maybe":"c"}]
+
+patmatch -p '["??maybe","a","b"]' -m '["a","b"]'
+[{}]
+
+patmatch -p '["??maybe","a","b"]' -m '["a"]'
+null
+```
+
 ### Experimental matching inequalities
 
 As an experimental feature, pattern matching supports numeric

@@ -169,6 +169,13 @@ func IsVariable(s string) bool {
 	return strings.HasPrefix(s, "?")
 }
 
+func IsOptionalVariable(x interface{}) bool {
+	if s, is := x.(string); is {
+		return strings.HasPrefix(s, "??")
+	}
+	return false
+}
+
 // IsAnonymousVariable detects a variable of the form '?'.  An binding
 // for an anonymous variable shouldn't ever make it into bindins.
 func IsAnonymousVariable(s string) bool {
@@ -184,16 +191,6 @@ func IsConstant(s string) bool {
 // mapcatMatch attempts to extend the given bindingss 'bss' based on
 // pair-wise matching of the pattern to the fact.
 func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, fact map[string]interface{}) ([]Bindings, error) {
-	//keys := make([]string, len(pattern))
-	//i := 0
-	//for k, _ := range pattern {
-	//	keys[i] = k
-	//	i++
-	//}
-	//sort.Strings(keys)
-
-	//for _, k := range keys {
-
 	if err := checkForBadPropertyVariables(pattern); err != nil {
 		return nil, err
 	}
@@ -240,6 +237,10 @@ func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, f
 		} else {
 			fv, found := fact[k]
 			if !found {
+				if IsOptionalVariable(v) {
+					continue
+				}
+
 				return nil, nil
 			}
 
@@ -248,7 +249,6 @@ func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, f
 				return nil, err
 			}
 
-			//no match
 			if 0 == len(acc) {
 				return nil, nil
 			}
@@ -453,7 +453,6 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 			}
 			binding, found := bs[vv]
 			if found {
-				// check whether new binding is the same as existing
 				return match(ctx, binding, fact, bindings)
 			} else {
 				// add new binding
@@ -545,9 +544,13 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 			if "" == v {
 				return combine(bsss), nil
 			} else {
+				previous := bsss
 				bsss, fxas, err = arraycatMatch(ctx, bsss, v, fxas)
 				if nil != err {
 					return nil, err
+				}
+				if len(bsss) == 0 && IsOptionalVariable(v) {
+					bsss = previous
 				}
 				return combine(bsss), nil
 			}

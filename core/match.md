@@ -475,3 +475,88 @@ should return
 ```JSON
 []
 ```
+
+## 41. Optional pattern variable (absent)
+
+The pattern
+```JSON
+{"opt":"??maybe","wants":"?wanted"}
+```
+
+matched against
+```JSON
+{"wants":"tacos"}
+```
+
+should return
+```JSON
+[{"?wanted":"tacos"}]
+```
+
+## 42. Optional pattern variable (present)
+
+The pattern
+```JSON
+{"a":"??maybe","wants":"?wanted"}
+```
+
+matched against
+```JSON
+{"a":"queso","wants":"tacos"}
+```
+
+should return
+```JSON
+[{"??maybe":"queso","?wanted":"tacos"}]
+```
+
+## 43. Optional pattern variable (array, absent)
+
+The pattern
+```JSON
+["??opt"]
+```
+
+matched against
+```JSON
+[]
+```
+
+should return
+```JSON
+[{}]
+```
+
+## 44. Optional pattern variable (array, present)
+
+The pattern
+```JSON
+["??opt","a","b"]
+```
+
+matched against
+```JSON
+["a","b"]
+```
+
+should return
+```JSON
+[{}]
+```
+
+## 45. Optional pattern variable (array, present)
+
+The pattern
+```JSON
+["??opt","a","b"]
+```
+
+matched against
+```JSON
+["a","b","c"]
+```
+
+should return
+```JSON
+[{"??opt":"c"}]
+```
