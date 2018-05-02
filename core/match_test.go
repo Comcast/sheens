@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -33,6 +34,25 @@ func (t MatchTest) Name(i int) string {
 	}
 }
 
+// Hmm.  According to the encoding.json docs:
+//
+// String values encode as JSON strings coerced to valid UTF-8,
+// replacing invalid bytes with the Unicode replacement rune. The
+// angle brackets "<" and ">" are escaped to "\u003c" and "\u003e" to
+// keep some browsers from misinterpreting JSON output as
+// HTML. Ampersand "&" is also escaped to "\u0026" for the same
+// reason.
+
+func JSON(x interface{}) string {
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(x); err != nil {
+		panic(err)
+	}
+	return buf.String()
+}
+
 func (t MatchTest) Fprintf(w io.Writer, i int) {
 	i++
 	title := t.Title
@@ -43,12 +63,12 @@ func (t MatchTest) Fprintf(w io.Writer, i int) {
 	if t.Doc != "" {
 		fmt.Fprintf(w, "\n%s\n", t.Doc)
 	}
-	fmt.Fprintf(w, "The pattern\n```JSON\n%s\n```\n\n", JS(t.Pattern))
-	fmt.Fprintf(w, "matched against\n```JSON\n%s\n```\n\n", JS(t.Message))
+	fmt.Fprintf(w, "The pattern\n```JSON\n%s\n```\n\n", JSON(t.Pattern))
+	fmt.Fprintf(w, "matched against\n```JSON\n%s\n```\n\n", JSON(t.Message))
 	if t.Error {
 		fmt.Fprintf(w, "should return an error.\n")
 	} else {
-		fmt.Fprintf(w, "should return\n```JSON\n%s\n```\n", JS(t.Expected))
+		fmt.Fprintf(w, "should return\n```JSON\n%s\n```\n", JSON(t.Expected))
 	}
 }
 
