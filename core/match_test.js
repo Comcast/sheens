@@ -348,6 +348,14 @@
 	"w": [{"?wanted":"tacos","??maybe":"queso"}]
     },
     {
+	"title": "Optional pattern variable (present, different order)",
+	"p": {"wants":"?wanted","a":"??maybe"},
+	"m": {"a":"queso","wants":"tacos"},
+	"b": {},
+	"w": [{"?wanted":"tacos","??maybe":"queso"}],
+	"nodoc": true
+    },
+    {
 	"title": "Optional pattern variable (array, absent)",
 	"p": ["??opt"],
 	"m": [],
@@ -367,5 +375,20 @@
 	"m": ["a","b","c"],
 	"b": {},
 	"w": [{"??opt":"c"}]
+    },
+    {
+	"title": "Optional pattern variable (array, present, multiple bindings)",
+	"p": ["??opt", "a", "b"],
+	"m": ["a","b","c","d"],
+	"b": {},
+	"w": [{"??opt":"c"},{"??opt":"d"}]
+    },
+    {
+	"title": "Optional pattern variable (array, present, multiple bindings, different order)",
+	"p": ["a","??opt", "b"],
+	"m": ["c","a","b","d"],
+	"b": {},
+	"w": [{"??opt":"c"},{"??opt":"d"}],
+	"nodoc": true
     }
 ]

@@ -618,7 +618,7 @@ should return
 [{"??maybe":"queso","?wanted":"tacos"}]
 ```
 
-## 51. Optional pattern variable (array, absent)
+## 52. Optional pattern variable (array, absent)
 
 The pattern
 ```JSON
@@ -635,7 +635,7 @@ should return
 [{}]
 ```
 
-## 52. Optional pattern variable (array, present)
+## 53. Optional pattern variable (array, present)
 
 The pattern
 ```JSON
@@ -652,7 +652,7 @@ should return
 [{}]
 ```
 
-## 53. Optional pattern variable (array, present)
+## 54. Optional pattern variable (array, present)
 
 The pattern
 ```JSON
@@ -667,4 +667,21 @@ matched against
 should return
 ```JSON
 [{"??opt":"c"}]
+```
+
+## 55. Optional pattern variable (array, present, multiple bindings)
+
+The pattern
+```JSON
+["??opt","a","b"]
+```
+
+matched against
+```JSON
+["a","b","c","d"]
+```
+
+should return
+```JSON
+[{"??opt":"c"},{"??opt":"d"}]
 ```
