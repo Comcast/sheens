@@ -22,7 +22,45 @@ should return
 [{"?likes":"tacos"}]
 ```
 
-## 2. Multiple variables
+## 2. Variable with constant
+
+
+A map with a variable and a constant.
+The pattern
+```JSON
+{"likes":"?likes","when":"now"}
+```
+
+matched against
+```JSON
+{"likes":"tacos","when":"now"}
+```
+
+should return
+```JSON
+[{"?likes":"tacos"}]
+```
+
+## 4. Two constants
+
+
+A map with two constants.
+The pattern
+```JSON
+{"likes":"queso","when":"now"}
+```
+
+matched against
+```JSON
+{"likes":"queso","when":"now"}
+```
+
+should return
+```JSON
+[{}]
+```
+
+## 6. Multiple variables
 
 
 This simple example shows bindings for two pattern variables.
@@ -41,7 +79,7 @@ should return
 [{"?likes":"tacos","?wants":"queso"}]
 ```
 
-## 3. Deeper variable
+## 7. Deeper variable
 
 
 Pattern matching is fully structured
@@ -60,7 +98,7 @@ should return
 [{"?n":2}]
 ```
 
-## 4. Same variable twice (good)
+## 8. Same variable twice (good)
 
 
 If you use a pattern variable more than once, then the bindings must agree.  See the next example.
@@ -79,7 +117,7 @@ should return
 [{"?n":2}]
 ```
 
-## 5. Same variable twice (bad)
+## 9. Same variable twice (bad)
 
 
 If you use a pattern variable more than once, then the bindings must agree.  See the previous example.
@@ -98,58 +136,7 @@ should return
 []
 ```
 
-## 6. Bad array vars
-
-
-Two pattern variables inside an array isn't allowed (because the computational complexity means that some input could be very costly to process).
-The pattern
-```JSON
-{"a":["?x","?y"]}
-```
-
-matched against
-```JSON
-{"a":[1]}
-```
-
-should return an error.
-
-## 7. Property variable vars
-
-
-You can have _at most one_ pattern variable as a key in a given map.
-The pattern
-```JSON
-{"?x":1}
-```
-
-matched against
-```JSON
-{"n":1}
-```
-
-should return
-```JSON
-[{"?x":"n"}]
-```
-
-## 8. Multiple property variable vars
-
-
-You can have _at most one_ pattern variable as a key in a given map.
-The pattern
-```JSON
-{"?x":1,"?y":2}
-```
-
-matched against
-```JSON
-{"m":2,"n":1}
-```
-
-should return an error.
-
-## 9. Array as a set
+## 10. Array as a set
 
 
 An array is treated as a set.
@@ -168,7 +155,77 @@ should return
 [{"?a":3}]
 ```
 
-## 10. Array as a set; multiple bss; backtracking
+## 11. Array with a variable and a constant
+
+
+An array is treated as a set; multiple bindings possible.
+The pattern
+```JSON
+["a","?x"]
+```
+
+matched against
+```JSON
+["a","b","c"]
+```
+
+should return
+```JSON
+[{"?x":"b"},{"?x":"c"}]
+```
+
+## 12. Array with a variable and a map constant
+
+The pattern
+```JSON
+[{"likes":"tacos"},"?x"]
+```
+
+matched against
+```JSON
+[{"likes":"tacos"},"b","c"]
+```
+
+should return
+```JSON
+[{"?x":"b"},{"?x":"c"}]
+```
+
+## 13. Array with a variable and a constant; message with map elements
+
+The pattern
+```JSON
+["a","b","?x"]
+```
+
+matched against
+```JSON
+[{"likes":"tacos"},"b","a"]
+```
+
+should return
+```JSON
+[{"?x":{"likes":"tacos"}}]
+```
+
+## 14. Array with a map containing a variable
+
+The pattern
+```JSON
+["a","b",{"likes":"?x"}]
+```
+
+matched against
+```JSON
+[{"likes":"tacos"},{"likes":"chips"},"b","a"]
+```
+
+should return
+```JSON
+[{"?x":"tacos"},{"?x":"chips"}]
+```
+
+## 15. Array as a set; multiple bss; backtracking
 
 
 An array is treated as a set.
@@ -187,7 +244,58 @@ should return
 [{"?a":2},{"?a":3}]
 ```
 
-## 11. A null value
+## 16. Bad array vars
+
+
+Two pattern variables inside an array isn't allowed (because the computational complexity means that some input could be very costly to process).
+The pattern
+```JSON
+{"a":["?x","?y"]}
+```
+
+matched against
+```JSON
+{"a":[1]}
+```
+
+should return an error.
+
+## 17. Property variable vars
+
+
+You can have _at most one_ pattern variable as a key in a given map.
+The pattern
+```JSON
+{"?x":1}
+```
+
+matched against
+```JSON
+{"n":1}
+```
+
+should return
+```JSON
+[{"?x":"n"}]
+```
+
+## 18. Multiple property variable vars
+
+
+You can have _at most one_ pattern variable as a key in a given map.
+The pattern
+```JSON
+{"?x":1,"?y":2}
+```
+
+matched against
+```JSON
+{"m":2,"n":1}
+```
+
+should return an error.
+
+## 19. A null value
 
 The pattern
 ```JSON
@@ -204,7 +312,7 @@ should return
 [{"?wants":"tacos"}]
 ```
 
-## 12. Type conflict: int/string
+## 20. Type conflict: int/string
 
 The pattern
 ```JSON
@@ -221,7 +329,7 @@ should return
 []
 ```
 
-## 13. Type conflict: int/bool
+## 21. Type conflict: int/bool
 
 The pattern
 ```JSON
@@ -238,7 +346,7 @@ should return
 []
 ```
 
-## 14. Anonymous variable used twice
+## 22. Anonymous variable used twice
 
 The pattern
 ```JSON
@@ -255,7 +363,7 @@ should return
 [{}]
 ```
 
-## 15. Anonymous variable with normal variable
+## 23. Anonymous variable with normal variable
 
 The pattern
 ```JSON
@@ -272,7 +380,7 @@ should return
 [{"?when":"today"}]
 ```
 
-## 16. Anonymous variable as a property variable
+## 24. Anonymous variable as a property variable
 
 The pattern
 ```JSON
@@ -289,7 +397,7 @@ should return
 [{}]
 ```
 
-## 17. Anonymous variable as a property variable and another variable
+## 25. Anonymous variable as a property variable and another variable
 
 The pattern
 ```JSON
@@ -306,7 +414,7 @@ should return
 [{"?likes":"tacos"}]
 ```
 
-## 18. Anonymous variable as a property variable without a match
+## 26. Anonymous variable as a property variable without a match
 
 The pattern
 ```JSON
@@ -323,7 +431,7 @@ should return
 []
 ```
 
-## 26. Inequality: success
+## 34. Inequality: success
 
 The pattern
 ```JSON
@@ -340,7 +448,7 @@ should return
 [{"?\u003cn":10,"?n":3}]
 ```
 
-## 27. Inequality: failure
+## 35. Inequality: failure
 
 The pattern
 ```JSON
@@ -357,7 +465,7 @@ should return
 []
 ```
 
-## 32. Inequality: success (>=)
+## 40. Inequality: success (>=)
 
 The pattern
 ```JSON
@@ -374,7 +482,7 @@ should return
 [{"?\u003e=n":11,"?n":11}]
 ```
 
-## 33. Inequality: failure (>=)
+## 41. Inequality: failure (>=)
 
 The pattern
 ```JSON
@@ -391,7 +499,7 @@ should return
 []
 ```
 
-## 36. Inequality: non-numeric
+## 44. Inequality: non-numeric
 
 The pattern
 ```JSON
@@ -408,7 +516,7 @@ should return
 []
 ```
 
-## 37. Inequality: given same
+## 45. Inequality: given same
 
 The pattern
 ```JSON
@@ -425,7 +533,7 @@ should return
 [{"?\u003cn":10,"?n":3}]
 ```
 
-## 38. Inequality: given different
+## 46. Inequality: given different
 
 The pattern
 ```JSON
@@ -442,7 +550,7 @@ should return
 []
 ```
 
-## 39. Inequality: used later
+## 47. Inequality: used later
 
 The pattern
 ```JSON
@@ -459,7 +567,7 @@ should return
 [{"?\u003cn":10,"?n":3}]
 ```
 
-## 40. Inequality: used later with conflict
+## 48. Inequality: used later with conflict
 
 The pattern
 ```JSON
@@ -476,7 +584,7 @@ should return
 []
 ```
 
-## 41. Optional pattern variable (absent)
+## 49. Optional pattern variable (absent)
 
 The pattern
 ```JSON
@@ -493,7 +601,7 @@ should return
 [{"?wanted":"tacos"}]
 ```
 
-## 42. Optional pattern variable (present)
+## 50. Optional pattern variable (present)
 
 The pattern
 ```JSON
@@ -510,7 +618,7 @@ should return
 [{"??maybe":"queso","?wanted":"tacos"}]
 ```
 
-## 43. Optional pattern variable (array, absent)
+## 51. Optional pattern variable (array, absent)
 
 The pattern
 ```JSON
@@ -527,7 +635,7 @@ should return
 [{}]
 ```
 
-## 44. Optional pattern variable (array, present)
+## 52. Optional pattern variable (array, present)
 
 The pattern
 ```JSON
@@ -544,7 +652,7 @@ should return
 [{}]
 ```
 
-## 45. Optional pattern variable (array, present)
+## 53. Optional pattern variable (array, present)
 
 The pattern
 ```JSON

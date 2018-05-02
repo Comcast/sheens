@@ -7,6 +7,34 @@
 	"doc": "A very basic test that shows how a pattern variable (`?likes`) gets bound during matching."
     },
     {
+	"title": "Variable with constant",
+	"p": {"likes":"?likes","when":"now"},
+	"m": {"likes":"tacos","when":"now"},
+	"w": [{"?likes":"tacos"}],
+	"doc": "A map with a variable and a constant."
+    },
+    {
+	"title": "Variable with constant (different order)",
+	"p": {"when":"now","likes":"?likes"},
+	"m": {"likes":"tacos","when":"now"},
+	"w": [{"?likes":"tacos"}],
+	"nodoc": true
+    },
+    {
+	"title": "Two constants",
+	"p": {"likes":"queso","when":"now"},
+	"m": {"likes":"queso","when":"now"},
+	"w": [{}],
+	"doc": "A map with two constants."
+    },
+    {
+	"title": "Two constants (different order)",
+	"p": {"when":"now","likes":"queso"},
+	"m": {"likes":"queso","when":"now"},
+	"w": [{}],
+	"nodoc": true
+    },
+    {
 	"title": "Multiple variables",
 	"p": {"likes":"?likes","wants":"?wants"},
 	"m": {"likes":"tacos","wants":"queso"},
@@ -35,6 +63,45 @@
 	"doc": "If you use a pattern variable more than once, then the bindings must agree.  See the previous example."
     },
     {
+	"title": "Array as a set",
+	"p": {"a":["?a"],"is":"?a"},
+	"m": {"a":[1,2,3,4],"is":3},
+	"w": [{"?a":3}],
+	"doc": "An array is treated as a set."
+    },
+    {
+	"title": "Array with a variable and a constant",
+	"p": ["a","?x"],
+	"m": ["a","b","c"],
+	"w": [{"?x":"b"},{"?x":"c"}],
+	"doc": "An array is treated as a set; multiple bindings possible."
+    },
+    {
+	"title": "Array with a variable and a map constant",
+	"p": [{"likes":"tacos"},"?x"],
+	"m": [{"likes":"tacos"},"b","c"],
+	"w": [{"?x":"b"},{"?x":"c"}]
+    },
+    {
+	"title": "Array with a variable and a constant; message with map elements",
+	"p": ["a", "b", "?x"],
+	"m": [{"likes":"tacos"},"b","a"],
+	"w": [{"?x":{"likes":"tacos"}}]
+    },
+    {
+	"title": "Array with a map containing a variable",
+	"p": ["a", "b", {"likes":"?x"}],
+	"m": [{"likes":"tacos"},{"likes":"chips"},"b","a"],
+	"w": [{"?x":"tacos"},{"?x":"chips"}]
+    },
+    {
+	"title": "Array as a set; multiple bss; backtracking",
+	"p": {"a":["?a"],"is":["?a"]},
+	"m": {"a":[1,2,3,4],"is":[2,3]},
+	"w": [{"?a":2},{"?a":3}],
+	"doc": "An array is treated as a set."
+    },
+    {
 	"title": "Bad array vars",
 	"p": {"a":["?x","?y"]},
 	"m": {"a":[1]},
@@ -54,20 +121,6 @@
 	"m": {"n":1, "m": 2},
 	"err": true,
 	"doc": "You can have _at most one_ pattern variable as a key in a given map."
-    },
-    {
-	"title": "Array as a set",
-	"p": {"a":["?a"],"is":"?a"},
-	"m": {"a":[1,2,3,4],"is":3},
-	"w": [{"?a":3}],
-	"doc": "An array is treated as a set."
-    },
-    {
-	"title": "Array as a set; multiple bss; backtracking",
-	"p": {"a":["?a"],"is":["?a"]},
-	"m": {"a":[1,2,3,4],"is":[2,3]},
-	"w": [{"?a":2},{"?a":3}],
-	"doc": "An array is treated as a set."
     },
     {
 	"title": "A null value",
