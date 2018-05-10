@@ -1,0 +1,15 @@
+set doubler spec doublecount.yaml
+print
+run {"double":3}
+print doubler
+printqueue
+pop
+printqueue
+print doubler
+printqueue
+run {"double":4}
+print doubler
+set doubler bs {"count":0}
+print doubler
+run {"double":5}
+help

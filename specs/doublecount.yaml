@@ -1,0 +1,39 @@
+name: doublecount
+doc: |-
+  A machine that double numbers and protests any other requests.  Also
+  keeps a count of the requests.
+patternsyntax: json
+nodes:
+  start:
+    action:
+      interpreter: goja
+      source: |-
+        _.bindings.count = 0;
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"double":"?n"}
+        target: process
+  process:
+    action:
+      interpreter: goja
+      source: |-
+        var n = _.bindings["?n"];
+        delete _.bindings["?n"];
+        var f = parseFloat(n);
+        if (isNaN(f)) {
+           _.out({"protest": n});
+        } else {
+          _.out({"doubled": f*2});
+        }
+        _.bindings.count++;
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
