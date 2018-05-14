@@ -60,6 +60,8 @@ func (opts *Opts) run() error {
 
 		setSpec = regexp.MustCompile("^set +([-a-zA-Z0-9_]+) +spec +(.*)")
 
+		reloadSpec = regexp.MustCompile("^reload +([-a-zA-Z0-9_]+)")
+
 		rem = regexp.MustCompile("^(rem|del|remove|delete) +([-a-zA-Z0-9_]+)")
 
 		print = regexp.MustCompile("^print( +([-a-zA-Z0-9_]+))?")
@@ -90,6 +92,8 @@ func (opts *Opts) run() error {
 		}
 
 		queue = make([]interface{}, 0, 128)
+
+		setSpecHistory = make(map[string]string)
 	)
 
 	r := bufio.NewReader(in)
@@ -123,9 +127,20 @@ func (opts *Opts) run() error {
 			}
 			continue
 		}
+		if ss = reloadSpec.FindStringSubmatch(line); 0 < len(ss) {
+			mid := ss[1]
+			filename, have := setSpecHistory[mid]
+			if !have {
+				protest("no spec filename history for '%s'", mid)
+			}
+			line = fmt.Sprintf("set %s spec %s", mid, filename)
+			say("reloading spec for '%s' from %s", mid, filename)
+			// Fall through!
+		}
 		if ss = setSpec.FindStringSubmatch(line); 0 < len(ss) {
 			mid := ss[1]
 			specFilename := ss[2]
+			setSpecHistory[mid] = specFilename
 			m, have := h.crew.Machines[mid]
 			if !have {
 				m = &crew.Machine{
@@ -510,6 +525,7 @@ func NewWrappedError(outer, inner error) error {
 func doc() string {
 	return `
   set ID spec FILENAME       Set the spec for the machine with that ID
+  reload ID                  Reload the last spec for the machine with that ID
   set ID node NODENAME       Set the node for the machine with that ID
   set ID bindings BINDINGS   Set the bindings (JSON) for the machine with that ID
   rem ID                     Remove the machine with that ID
