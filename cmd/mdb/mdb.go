@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -53,29 +54,29 @@ func (opts *Opts) run() error {
 	}
 
 	var (
-		setNode = regexp.MustCompile("set +([-a-zA-Z0-9_]+) +node +([-a-zA-Z0-9_]+)")
+		setNode = regexp.MustCompile("^set +([-a-zA-Z0-9_]+) +node +([-a-zA-Z0-9_]+)")
 
-		setBindings = regexp.MustCompile("set +([-a-zA-Z0-9_]+) +(bs|bindings) +(.*)")
+		setBindings = regexp.MustCompile("^set +([-a-zA-Z0-9_]+) +(bs|bindings) +(.*)")
 
-		setSpec = regexp.MustCompile("set +([-a-zA-Z0-9_]+) +spec +(.*)")
+		setSpec = regexp.MustCompile("^set +([-a-zA-Z0-9_]+) +spec +(.*)")
 
-		rem = regexp.MustCompile("(rem|del|remove|delete) +([-a-zA-Z0-9_]+)")
+		rem = regexp.MustCompile("^(rem|del|remove|delete) +([-a-zA-Z0-9_]+)")
 
-		print = regexp.MustCompile("print( +([-a-zA-Z0-9_]+))?")
+		print = regexp.MustCompile("^print( +([-a-zA-Z0-9_]+))?")
 
-		printqueue = regexp.MustCompile("printqueue")
+		printqueue = regexp.MustCompile("^printqueue")
 
-		send = regexp.MustCompile("(run|run +(.*))$")
+		send = regexp.MustCompile("^(run|run +(.*))$")
 
-		pop = regexp.MustCompile("pop")
+		pop = regexp.MustCompile("^pop")
 
-		drop = regexp.MustCompile("drop")
+		drop = regexp.MustCompile("^drop")
 
-		help = regexp.MustCompile("(help|h|\\?)")
+		help = regexp.MustCompile("^(help|h|\\?)")
 
-		save = regexp.MustCompile("save +(.*)")
+		save = regexp.MustCompile("^save +(.*)")
 
-		load = regexp.MustCompile("load +(.*)")
+		load = regexp.MustCompile("^load +(.*)")
 
 		outputPrefix = "# "
 
@@ -211,6 +212,8 @@ func (opts *Opts) run() error {
 			line = fmt.Sprintf("run %s", js)
 			// Fall through!
 		}
+
+		log.Println("debug", line, send.FindStringSubmatch(line))
 
 		if ss = send.FindStringSubmatch(line); 0 < len(ss) {
 			js := ss[2]
