@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/Comcast/sheens.svg?branch=master)](https://travis-ci.org/Comcast/sheens)
 [![Documentation](https://godoc.org/github.com/Comcast/sheens/core?status.svg)](http://godoc.org/github.com/Comcast/sheens/core) 
 
-![Sheens logo](doc/logo-white.gif)
+![Sheens logo](doc/logo.png)
 
 # Messaging machines
 
