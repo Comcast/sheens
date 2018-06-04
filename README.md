@@ -86,7 +86,7 @@ Other objectives
 2. Transport-agnostic.  Input from and output to any sort of messaging
    services (e.g., HTTP, MQTT, CoAP).
 3. Pluggable persistence.
-4. Amenable to formal specification(s).
+4. Amenable to formal specification(s) (see below).
 5. Feasible [alternative implementations](https://github.com/Comcast/littlesheens) in other
    languages.
 6. Modest resource requirements.
@@ -421,8 +421,33 @@ A system could have multiple timer services for different qualities of
 timers.  For example, a _nanocron_ could implement timers with
 goroutines (with various suitable limits). An external timer service
 could provide durable timers.  Etc.
+
+## Formal methods
+
+Though you can happily use sheens without worrying about formalities, you can get formal with sheens if you want to.
+
+### System verification
+
+The operation of a machine is amenable to formal specification (of evolving [precision](doc/rfc.md)) and [alternate implementations](https://github.com/Comcast/littlesheens). An interprising investigator could implement a sheens system and prove properties about it.  We've started an experiment with [Idris](https://www.idris-lang.org/) along these lines.
+
+### Action proofs
+
+In the implementation in this repo, the interpreters for actions and guards are pluggable, so an application is free to provide its own interpreter(s).  For example, a conventional native code sheens system, which ideally has been subject to extensive testing, could offer an action interpreter that enables and/or requires proofs of useful properties, such as [being total](http://docs.idris-lang.org/en/latest/tutorial/theorems.html#totality-checking), not making undesired bindings, or only emitting messages with certain properties.
+
+### Statistical mechanics
+
+<img src="doc/viz.gif">
+
+A sheen is not in general a _finite_ state machine. Techincally speaking, a machine is triple of node id, current bindings, and the machine's specification, and the space of bindings is in general not finite.  Therefore even holding the specification constant doesn't give a finite state.  However, a sheen step does have the [Markov property](https://en.wikipedia.org/wiki/Markov_property), which makes a wide range of analysis feasible.
+
+For example, consider the projection of a sheen's state space to just the set of nodes defined in the sheens's specification.  We now have a finite set of states.  Of course, state transitions still have that Markov property.  So we can (say) build and maintain simple models of state transition counts over time: `count(FROM,TO) → N`. If there are `S` nodes, then that information can be represented as a vector of `S*S` integer components.  Assume we update that data virtually at some interval to reflect a state not changing during that interval.  (Of course, we can performance that computation in one go rather than performing some actual heartbeat-like activity.)  We could then accumulate a distribution of those vectors over time.  Finally, to finish this little example, we could watch for a 2&sigma; (or whatever) excursion, which perhaps indicates a new regime or anomaly of some sort.
+
+### Note on atomicity and errors
+
+As we mentioned above, a virtous action performs no I/O.  Therefore, a single message (or even a batch of messages) can be processed atomically agains a set of machines. Tn general, the result is a structure that contains new states, which can include error states or conditions, and a set of sequences (of sequences) of messages. The caller than then decide what to do next.  If the processing resulted in no system-level error conditions, then all states are updated (hopefully atomically via the application's persistence system). Only then are the output messages actually forwarded to a system that can deliver them (with the required policies/guaranties).  If any system-level error condition occured, the application could retry all processing.  More economically, the application could retry only the specific failure. Either way, the application need not fear side effects from the previous attempt.  Of course, other approaches are possible.
+
 	
-### Sheens in Shakespeare
+## Sheens in Shakespeare
 
 |||
 |-|-|
