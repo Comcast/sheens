@@ -11,6 +11,7 @@ test: prereqs
 	cd crew && go test
 	cd tools && go test
 	cd interpreters/goja && go test
+	cd interpreters/ecmascript && go test
 	cd cmd/patmatch && go test
 	cd cmd/msimple && go test
 	cd cmd/mexpect && go test
