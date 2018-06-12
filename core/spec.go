@@ -17,9 +17,6 @@ var (
 	DefaultPatternParser = func(syntax string, p interface{}) (interface{}, error) {
 		switch syntax {
 		case "none", "":
-			if s, is := p.(string); is {
-				return nil, errors.New("warning: pattern is a string: " + s)
-			}
 			return p, nil
 		case "json":
 			if js, is := p.(string); is {
