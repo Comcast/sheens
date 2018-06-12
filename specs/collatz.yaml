@@ -1,0 +1,26 @@
+name: collatz
+doc: |-
+  https://en.wikipedia.org/wiki/Collatz_conjecture
+
+  echo 2197 | msimple -s specs/collatz.yaml | wc -l 
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: "?n"
+        guard:
+          interpreter: goja
+          source: |
+            return _.bindings["?n"] == 1 ? nil : _.bindings;
+        target: compute
+  compute:
+    action:
+      interpreter: goja
+      source: |-
+        var n = _.bindings["?n"];
+        _.out(n%2 == 0 ? n/2 : 3*n+1);
+        return {};
+    branching:
+      branches:
+      - target: start
