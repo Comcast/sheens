@@ -1,6 +1,6 @@
 name: turnstile
 doc: https://en.wikipedia.org/wiki/Finite-state_machine#Example:_coin-operated_turnstile
-parsepatterns: true
+patternsyntax: json
 nodes:
   start:
     branching:
