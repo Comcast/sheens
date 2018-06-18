@@ -12,7 +12,7 @@ nodes:
         guard:
           interpreter: goja
           source: |
-            return _.bindings["?n"] == 1 ? nil : _.bindings;
+            return _.bindings["?n"] == 1 ? null : _.bindings;
         target: compute
   compute:
     action:
