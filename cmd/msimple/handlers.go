@@ -33,7 +33,7 @@ func handle(ctx context.Context, message interface{}, ingest func(message interf
 
 	var makeRequest MakeTimerRequest
 	if err := json.Unmarshal(js, &makeRequest); err != nil {
-		return err
+		return nil
 	} else if makeRequest.MakeTimer != nil {
 		in, err := time.ParseDuration(makeRequest.MakeTimer.In)
 		if err != nil {
