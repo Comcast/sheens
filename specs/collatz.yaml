@@ -12,7 +12,12 @@ nodes:
         guard:
           interpreter: goja
           source: |
-            return _.bindings["?n"] == 1 ? null : _.bindings;
+            var n = _.bindings["?n"];
+            var i = parseInt(n);
+            if (isNaN(i)) {
+               return null;
+            }
+            return i == 1 ? null : _.bindings;
         target: compute
   compute:
     action:
