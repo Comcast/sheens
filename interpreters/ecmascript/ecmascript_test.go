@@ -396,3 +396,20 @@ func BenchmarkPrecompile(b *testing.B) {
 func BenchmarkNoPrecompile(b *testing.B) {
 	benchmarkCompiling(b, false)
 }
+
+func TestActionsOutNaN(t *testing.T) {
+	code := `_.out(NaN); return {};`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	i := NewInterpreter()
+	compiled, err := i.Compile(ctx, code)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err = i.Exec(ctx, nil, nil, code, compiled); err == nil {
+		t.Fatal("expected an error")
+	}
+}

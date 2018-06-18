@@ -309,7 +309,7 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 		o.Interrupt(InterruptedMessage)
 	}()
 
-	v, err := o.RunProgram(p)
+	v, err := RunProgram(o, p)
 	cancel()
 
 	if err != nil {
@@ -349,4 +349,13 @@ func canonicalize(x interface{}) (interface{}, error) {
 		return nil, err
 	}
 	return y, nil
+}
+
+func RunProgram(o *goja.Runtime, p *goja.Program) (v goja.Value, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%s", r)
+		}
+	}()
+	return o.RunProgram(p)
 }
