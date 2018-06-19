@@ -1,0 +1,15 @@
+doc: |
+  An mexpect-driven test of 'collatz.spec'.
+ios:
+- doc: Create a machine, send it a message, and verify the results.
+  inputs:
+  - '{"cop":{"add":{"m":{"id":"c","spec":{"name":"collatz"}}}}}'
+  - '{"cop":{"process":{"message":{"to":"c","collatz":5}}}}'
+  outputSet:
+  - pattern: '{"collatz":16}'
+  - pattern: '{"collatz":8}'
+  - pattern: '{"collatz":4}'
+  - pattern: '{"collatz":2}'
+  - pattern: '{"collatz":1}'
+parsePatterns: true
+defaultTimeout: 1s
