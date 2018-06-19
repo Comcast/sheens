@@ -17,7 +17,10 @@ nodes:
             if (isNaN(i)) {
                return null;
             }
-            return i == 1 ? null : _.bindings;
+            if (i < 2) {
+               return null;
+            }
+            return _.bindings;
         target: compute
   compute:
     action:
