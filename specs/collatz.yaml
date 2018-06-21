@@ -8,7 +8,7 @@ nodes:
     branching:
       type: message
       branches:
-      - pattern: "?n"
+      - pattern: {"collatz":"?n"}
         guard:
           interpreter: goja
           source: |
@@ -27,7 +27,7 @@ nodes:
       interpreter: goja
       source: |-
         var n = _.bindings["?n"];
-        _.out(n%2 == 0 ? n/2 : 3*n+1);
+        _.out({collatz: n%2 == 0 ? n/2 : 3*n+1});
         return {};
     branching:
       branches:
