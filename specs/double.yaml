@@ -8,10 +8,6 @@ patternsyntax: json
 nodes:
   start:
     branching:
-      branches:
-      - target: listen
-  listen:
-    branching:
       type: message
       branches:
       - pattern: |
@@ -32,4 +28,4 @@ nodes:
         return _.bindings;
     branching:
       branches:
-      - target: listen
+      - target: start
