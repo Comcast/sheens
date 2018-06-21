@@ -73,7 +73,7 @@ nodes:
   auth:
     doc: Send the password to Home Assistant.
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({to: "ws", type: "auth", "api_password": _.bindings.password});
         return _.bindings;
@@ -96,7 +96,7 @@ nodes:
   subscribe:
     doc: Subscribe to all Home Assistant events.
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({to: "ws", id: 1, type: "subscribe_events"});
         return ({sub: 1, id: 2}); 
@@ -117,7 +117,7 @@ nodes:
   send:
     doc: Forward a message to Home Assistant after adding an incremented id.
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var id = _.bindings.id++;
         var msg = _.bindings["?send"];
@@ -132,7 +132,7 @@ nodes:
   unsubscribe:
     doc: Stop the events subscription.
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var sub = _.bindings.sub;
         delete _.bindings.sub;

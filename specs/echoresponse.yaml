@@ -12,7 +12,7 @@ nodes:
         target: echo
   echo:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({echo: {url: _.bindings["?url"], status: _.bindings["?status"], body: _.bindings["?body"]}});
         return {};

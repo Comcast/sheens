@@ -54,7 +54,7 @@ nodes:
         target: query
   assert:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var asses = _.bindings["?assertions"];
         delete _.bindings["?assertions"];
@@ -87,7 +87,7 @@ nodes:
       - target: listen
   query:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var bss = _.match(_.bindings["?query"], _.bindings.assertions, {});
         delete _.bindings["?query"];
@@ -101,7 +101,7 @@ nodes:
       - target: listen
   unassert:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var ids = _.bindings["?ids"];
         delete _.bindings["?ids"];
@@ -122,7 +122,7 @@ nodes:
       - target: listen
   problem:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var err = _.bindings.actionError;
         delete  _.bindings.actionError;

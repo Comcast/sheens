@@ -102,15 +102,15 @@ func protest(o *goja.Runtime, x interface{}) {
 //    props: core.StepProps
 //    out(obj): Add the given object as a message to emit.
 //
-// Extended properties:
+// Extended properties (enabled by interpreter's Extended property):
 //
-//    genstr(): generate a random string.
+//    randstr(): generate a random string.
 //    cronNext(s): Return a string representing (RFC3999Nano) the
 //      next time for the given crontab expression.
 //    esc(s): URL query-escape the given string.
 //    match(pat, obj): Execute the pattern matcher.
 //
-// Testing properties:
+// Testing properties (enabled by the interpreter's Test property):
 //
 //    sleep(ms): sleep for the given number of milliseconds.  For testing.
 //    exit(msg): Terminate the process after printing the given message.
@@ -169,7 +169,7 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 	}
 
 	if i.Extended {
-		env["genstr"] = func() interface{} {
+		env["randstr"] = func() interface{} {
 			return core.Gensym(32)
 		}
 

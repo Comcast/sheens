@@ -148,7 +148,7 @@ func ReadAndRenderSpecPage(filename string, cssFiles []string, out io.Writer, in
 		return err
 	}
 
-	interpreters := noop.NewNoopInterpreters()
+	interpreters := noop.NewInterpreters()
 	interpreters.I.Silent = true
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -24,7 +24,7 @@ nodes:
         target: on
   on:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var target = _.bindings["?targetSwitch"];
         _.out({to: {mid: "home"}, send: {type:"call_service", "domain":"switch","service": "turn_on","service_data":{"entity_id":target}}});
@@ -41,7 +41,7 @@ nodes:
         target: off
   off:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var target = _.bindings["?targetSwitch"];
         _.out({to: {mid: "home"}, send: {type:"call_service","domain":"switch","service": "turn_off","service_data":{"entity_id":target}}});

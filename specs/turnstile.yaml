@@ -18,7 +18,7 @@ nodes:
           target: nope
   nope:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({"go":"away"});
         return _.bindings;
@@ -37,7 +37,7 @@ nodes:
           target: enter
   enter:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({"go":"through"});
         return _.bindings;

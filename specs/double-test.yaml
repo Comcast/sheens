@@ -18,7 +18,7 @@ nodes:
         - target: test-1
   test-1:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         // Request a timeout message.
         var message = {timeout: "double-test-1"};
@@ -44,7 +44,7 @@ nodes:
         target: test-1-failed
   test-1-failed:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var msg = {test: "double-test-1", success: false};
         _.out(msg);
@@ -52,7 +52,7 @@ nodes:
         return _.bindings;
   test-2:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         // Request a timeout message.
         var message = {timeout: "double-test-2"};
@@ -78,7 +78,7 @@ nodes:
         target: test-2-failed
   test-2-failed:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var msg = {test: "double-test-2", success: false};
         _.out(msg);
@@ -89,7 +89,7 @@ nodes:
         - target: success
   success:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var msg = {test: "double-test", success: true};
         _.out(msg);

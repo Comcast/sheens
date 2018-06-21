@@ -16,7 +16,7 @@ nodes:
         target: process
   process:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var n = _.bindings["?n"];
         delete _.bindings["?n"];

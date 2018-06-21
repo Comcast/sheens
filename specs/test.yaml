@@ -43,7 +43,7 @@ nodes:
     doc: |
       Decrement the counter and emit a message.
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |
         var remaining = _.bindings["n"] - 1;
         _.bindings["n"] = remaining;
@@ -60,7 +60,7 @@ nodes:
     doc: |
       Insist on water from now on.
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |
         return {n: 1, has: "water"};
     branching:

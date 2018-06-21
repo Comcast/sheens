@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/Comcast/sheens/core"
-	"github.com/Comcast/sheens/interpreters/ecmascript"
+	"github.com/Comcast/sheens/interpreters"
 )
 
 type Machine struct {
@@ -65,11 +65,7 @@ func main() {
 		panic(err)
 	}
 
-	is := core.NewInterpretersMap()
-	i := ecmascript.NewInterpreter()
-	is["ecmascript"] = i
-	is["ecmascript-5.1"] = i
-	is["goja"] = i
+	is := interpreters.Standard()
 
 	for id, m := range c.Machines {
 		var spec *core.Spec

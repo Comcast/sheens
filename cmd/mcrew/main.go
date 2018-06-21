@@ -57,8 +57,11 @@ func main() {
 	s.Errors = make(chan interface{}, 8)
 
 	if Verbose {
-		monitor(ctx, s.Processing, "processing", false)
+		monitor(ctx, s.Processing, "processing", true)
+		monitor(ctx, s.Processing, "emitted", true)
+	} else if *emitToStdout {
 		monitor(ctx, s.Emitted, "emitted", *emitToStdout)
+
 	}
 	monitor(ctx, s.Errors, "errors", false)
 

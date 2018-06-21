@@ -14,7 +14,7 @@ nodes:
         target: sms
   sms:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({to: "ic", message: {sms: _.bindings["?msg"]}});
         delete _.bindings["?msg"];

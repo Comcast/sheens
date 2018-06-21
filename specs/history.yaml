@@ -38,7 +38,7 @@ nodes:
         target: heard
   heard:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var heard = _.bindings["?heard"];
         delete _.bindings["?heard"];
@@ -63,7 +63,7 @@ nodes:
       - target: listen
   query:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var bss = _.match(_.bindings["?pattern"], _.bindings.hist, {});
         delete _.bindings["?pattern"];

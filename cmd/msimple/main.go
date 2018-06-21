@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
-	"github.com/Comcast/sheens/interpreters/goja"
+	ints "github.com/Comcast/sheens/interpreters"
 
 	"github.com/jsccast/yaml"
 )
@@ -29,8 +29,6 @@ func main() {
 		recycle = flag.Bool("r", true, "ingest emitted messages")
 		diag    = flag.Bool("d", false, "print diagnostics")
 		echo    = flag.Bool("e", false, "echo input messages")
-
-		libDir = flag.String("i", ".", "directory containing 'interpreters'")
 	)
 
 	flag.Parse()
@@ -38,12 +36,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Our specs all use the Goja-based interpreter (and only that
-	// one).
-	interpreters := core.NewInterpretersMap()
-	i := goja.NewInterpreter()
-	i.LibraryProvider = goja.MakeFileLibraryProvider(*libDir)
-	interpreters["goja"] = i
+	interpreters := ints.Standard()
 
 	// Parse the given initial bindings (as JSON).
 	var bs core.Bindings

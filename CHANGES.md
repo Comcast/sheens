@@ -1,5 +1,26 @@
 # Ch-ch-changes
 
+## Goja interpreter is deprecated
+
+In favor of `interpreters/ecmascript`.  This interpreter doesn't
+support libraries, which should instead be provided at a higher level
+and compiled into specs.  That way a spec is a stand-alone entity,
+which is an important characteristic for robustess and determinism.
+You can of course always implement your own interpreter that supports
+libraries (or whatever else).
+
+The `interpreters/ecmascript` has a `randstr()` function (instead of
+the old, misnamed `gensym`), which is available only if the
+interpreter's `Extended` property is set (to `true`).
+
+See [`interpreters`](interpreters) for the function `Standard()` that
+provides a standard set of interpreters.
+
+## `cmd/sheensio`
+
+See the [README](cmd/sheensio/README.md).
+
+
 ## `Params` renamed to `StepProps`
 
 `core.Params` was a confusing name since a `Spec` can have

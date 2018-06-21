@@ -27,7 +27,7 @@ nodes:
   sawMotion:
     action:
       doc: Cancel any pending timer, and make new timer.
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         if (_.bindings.timerId) {
            _.out({"deleteTimer": _.bindings.timerId});

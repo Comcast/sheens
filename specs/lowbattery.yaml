@@ -30,7 +30,7 @@ nodes:
   start:
     action:
       doc: Initialize our timers map.
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.bindings.timers = {};
         return _.bindings;
@@ -56,7 +56,7 @@ nodes:
   low:
     action:
       doc: Request nagging.
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var deviceId = _.bindings["?d"];
         var timerId = _.bindings.timers[deviceId];
@@ -70,7 +70,7 @@ nodes:
       - target: listen
   nag:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       doc: Send a notification and schedule another reminder.
       source: |-
         var deviceId = _.bindings["?d"];
@@ -88,7 +88,7 @@ nodes:
   resolved:
     action:
       doc: Cancel the pending reminder
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var deviceId = _.bindings["?d"];
         var timerId = _.bindings.timers[deviceId];
@@ -104,7 +104,7 @@ nodes:
   reset:
     action:
       doc: Cancel all pending reminders
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         for (var deviceId in _.bindings.timers) {
             var timerId = _.bindings.timers[deviceId];

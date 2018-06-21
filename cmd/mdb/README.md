@@ -115,7 +115,7 @@ help
 
 ## Action intepreters
 
-Just the demo Goja-based interpreter (via `ecmascript-5.1` or `goja`).
+Just the demo Goja-based interpreter (via `ecmascript` or `goja`).
 
 
 ## Routing

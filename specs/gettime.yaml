@@ -12,7 +12,7 @@ nodes:
         target: request
   request:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({to: {mid: "HTTP"}, 
                url:"http://time.jsontest.com/",
@@ -30,7 +30,7 @@ nodes:
         target: report
   report:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var body = JSON.parse(_.bindings["?body"]);
         _.out({time: body.time});

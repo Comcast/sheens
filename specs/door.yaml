@@ -40,7 +40,7 @@ nodes:
       - pattern: |
           {"device":"?door","state":"open"}
         guard:
-          interpreter: goja
+          interpreter: goja-libs
           source:
             requires:
               - 'file://interpreters/goja/libs/time.js'
@@ -53,7 +53,7 @@ nodes:
   startTimer:
     action:
       doc: Make a timer.
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         // Make an id for the timer we're going to create.
         _.bindings.timerId = _.gensym();
@@ -83,7 +83,7 @@ nodes:
   closed:
     action:
       doc: Cancel pending timer then restart.
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         // Send a request to cancel our timer.
         // It's okay if the timer no longer exists.
@@ -98,7 +98,7 @@ nodes:
   disable:
     action:
       doc: Cancel any pending timer then stop.
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         if (_.bindings.timerId) {
            _.out({to: "timers", message: {deleteTimer: _.bindings.timerId}});

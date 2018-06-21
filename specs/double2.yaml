@@ -14,7 +14,7 @@ nodes:
       - pattern: |
           {"double":"?x"}
         guard:
-          interpreter: goja
+          interpreter: ecmascript
           source: |-
             var bs = _.bindings;
             var f = parseFloat(bs["?x"]);
@@ -30,7 +30,7 @@ nodes:
         target: complain
   double:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({doubled: _.bindings["?x"]*2});
         return _.bindings;
@@ -39,7 +39,7 @@ nodes:
         - target: cleanup
   complain:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({bad: _.bindings["?x"]});
         return _.bindings;
@@ -48,7 +48,7 @@ nodes:
         - target: cleanup
   cleanup:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         delete _.bindings["?x"];
         return _.bindings;

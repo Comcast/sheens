@@ -6,8 +6,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/Comcast/sheens/core"
-	"github.com/Comcast/sheens/interpreters/goja"
+	"github.com/Comcast/sheens/interpreters"
 	"github.com/Comcast/sheens/tools"
 
 	"github.com/jsccast/yaml"
@@ -37,9 +36,7 @@ func main() {
 		panic(err)
 	}
 
-	s.Interpreters = map[string]core.Interpreter{
-		"goja": goja.NewInterpreter(),
-	}
+	s.Interpreters = interpreters.Standard()
 	s.ShowStderr = *showStderr
 
 	ctx, cancel := context.WithTimeout(context.Background(), *timeout)

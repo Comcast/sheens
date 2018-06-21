@@ -34,7 +34,7 @@ nodes:
         target: deliver
   deliver:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({send: _.bindings["?wanted"]});
         return _.bindings.Remove("?wanted");
@@ -98,10 +98,10 @@ name and bindings.
 ```
 
 The `deliver` node has an action.  This action will be executed by the
-interpreter named `goja` per the `intepreter: goja` property.
-[Goja](https://github.com/dop251/goja) is an ECMAScript interpreter.
-The Goja runtime is populated with an object at `_`.  This object has
-two important properties:
+interpreter named `ecmascript` per the `intepreter: ecmascript`
+property.  This interpreter is based on
+[Goja](https://github.com/dop251/goja).  The ECMAscript runtime is
+populated with an object at `_`, which has two important properties:
 
 1. `_.out(x)`: A function adds the given argument to the list of
    messages that the action will emit (if action execution does not
@@ -112,36 +112,14 @@ two important properties:
 
 The value of `_` also has some additional properties:
 
-1. `_.gensym()`: A function that generates an random string (not a
+1. `_.randstr()`: A function that generates an random string (not a
    symbol!).
 2. `_.log(x)`: A function to emit a log message.
 3. `_.match(pattern, message, bindings)`: Utility to invoke pattern matching.
 
 
-This example Goja interpreter also support libraries.  Here's an example:
-
-```YAML
-action:
-  interpreter: goja
-  source:
-    requires:
-	  - 'file://interpreters/goja/libs/time.js
-    code: |-
-      var spec = {daysOfWeek:[1,2,3,4,5], startTime:"19:00", stopTime:"22:00"};
-      return isCurrent(spec) ? _.bindings : null;
-      return _.bindings.Remove("?wanted","?n");
- ```
-
-(A previous version supported a special operator `require()`, which
-takes a string as an argument. That string should name a library
-provided elsewhere (another topic) or represent a URL.  When the
-specification is _compiled_, the `require` statements are expanded to
-add the referenced code, which is then compiled (once). Many machines
-can all use the same specification, so this library support is
-relatively efficient.)
-
-Note that no I/O is possible in one of these Goja actions.  More
-generally, a Goja action cannot block.
+Note that no I/O is possible in one of these ECMAscript actions.  More
+generally, a ECMAscript action cannot block.
 
 As a developer, you can write or provide your own interpreter.  For
 example, you could write an interpreter using Lua, Bash, Otto, OCaml,
@@ -151,7 +129,7 @@ executed many times later.
 
 Back to our example specification!
 
-The "deliver" node's Goja action is
+The "deliver" node's ECMAscript action is
 
 ```Javascript
 _.out({send: _.bindings["?wanted"]});
@@ -214,7 +192,7 @@ A few highlights:
 
 1. A node either has message- or bindings-based branching.
 1. A node with an action must have bindings-based branching.
-1. The standard Goja actions cannot perform I/O or otherwise block.
+1. The standard ECMAscript actions cannot perform I/O or otherwise block.
 1. Actions can queue messages.
 1. An actions returns a set of bindings that replace the machine's current bindings.
 1. Branches are evaluated in order.
@@ -251,7 +229,7 @@ nodes:
     branching:
       branches:
       - guard:
-          interpreter: goja
+          interpreter: ecmascript
           source: |-
             var bs = _.bindings;
             if (3 < _.bindings["?n"]) { bs = null; }
@@ -260,7 +238,7 @@ nodes:
       - target: ignore
   deliver:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({send: _.bindings["?wanted"], count: _.bindings["?n"]});
         return _.bindings.Remove("?wanted","?n");
@@ -269,7 +247,7 @@ nodes:
       - target: start
   ignore:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         return _.bindings.Remove("?wanted","?n");
     branching:
@@ -318,7 +296,7 @@ nodes:
     branching:
       branches:
       - guard:
-          interpreter: goja
+          interpreter: ecmascript
           source: |-
             var bs = _.bindings;
             if (3 < _.bindings["?n"]) { bs = null; }
@@ -327,7 +305,7 @@ nodes:
       - target: reset
   deliver:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({send: _.bindings["?wanted"], count: _.bindings["?n"]});
         return _.bindings;
@@ -336,7 +314,7 @@ nodes:
       - target: reset
   reset:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         return _.bindings.Remove("?wanted","?n");
     branching:
@@ -361,7 +339,7 @@ nodes:
         target: consider
   consider:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         if (3 >= _.bindings["?n"]) { 
            _.out({send: _.bindings["?wanted"], count: _.bindings["?n"]});
@@ -390,7 +368,7 @@ nodes:
         target: consider
   consider:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         return _.bindings.Extend("allowed": _.bindings["?n"] < 3);
     branching:
@@ -401,7 +379,7 @@ nodes:
       - target: reset
   deliver:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.out({send: _.bindings["?wanted"], count: _.bindings["?n"]});
         return _.bindings;
@@ -410,7 +388,7 @@ nodes:
       - target: reset
   reset:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         return _.bindings.Remove("?wanted","?n","allowed");
     branching:
@@ -441,7 +419,7 @@ Only one line changes: The conditional in the `consider` node.q
     branching:
       branches:
       - guard:
-          interpreter: goja
+          interpreter: ecmascript
           source: |-
             var bs = _.bindings;
             if (_.bindings.max < _.bindings["?n"]) { bs = null; }
@@ -473,8 +451,9 @@ you can also use YAML comments (stuff after a `#`).
 So how does a machine actually get anything done in the real world?
 
 As it stands, a machine can only consume and emit messages.  When
-using the Goja interpreter, actions are non-blocking and can't do I/O.
-So how to make -- say -- an HTTP request and get back a response?
+using the ECMAScript interpreter, actions are non-blocking and can't
+do I/O.  So how to make -- say -- an HTTP request and get back a
+response?
 
 The short answer: The process that hosts the machine needs to see to
 it that certain messages that rerepresent HTTP requests result in HTTP
@@ -530,7 +509,7 @@ excerpt of specification that shows a real use of that HTTP service:
   requestSession:
     action:
       doc: Get the session cookie via login.
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var r = {};
         r.id = "requestSession";

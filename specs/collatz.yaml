@@ -10,7 +10,7 @@ nodes:
       branches:
       - pattern: {"collatz":"?n"}
         guard:
-          interpreter: goja
+          interpreter: ecmascript
           source: |
             var n = _.bindings["?n"];
             var i = parseInt(n);
@@ -24,7 +24,7 @@ nodes:
         target: compute
   compute:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var n = _.bindings["?n"];
         _.out({collatz: n%2 == 0 ? n/2 : 3*n+1});

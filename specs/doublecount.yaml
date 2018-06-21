@@ -6,7 +6,7 @@ patternsyntax: json
 nodes:
   start:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         _.bindings.count = 0;
         return _.bindings;
@@ -22,7 +22,7 @@ nodes:
         target: process
   process:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
         var n = _.bindings["?n"];
         delete _.bindings["?n"];

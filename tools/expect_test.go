@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
-	"github.com/Comcast/sheens/interpreters/goja"
+	"github.com/Comcast/sheens/interpreters"
 
 	"github.com/jsccast/yaml"
 )
@@ -30,9 +30,7 @@ func TestExpectBasic(t *testing.T) {
 	}
 
 	s := &Session{
-		Interpreters: map[string]core.Interpreter{
-			"goja": goja.NewInterpreter(),
-		},
+		Interpreters:  interpreters.Standard(),
 		Doc:           "A test session",
 		ParsePatterns: true,
 		IOs: []IO{
@@ -74,8 +72,10 @@ func TestExpectBasic(t *testing.T) {
 	defer cancel()
 
 	s.ShowStderr = true
+	s.ShowStdout = true
+	s.ShowStdin = true
 
-	if err := s.Run(ctx, "..", "mcrew", "-v", "-s", "specs", "-l", ".", "-d", "", "-I", "-O", "-h", ""); err != nil {
+	if err := s.Run(ctx, "..", "mcrew", "-s", "specs", "-d", "", "-I", "-O", "-h", ""); err != nil {
 		panic(err)
 	}
 }

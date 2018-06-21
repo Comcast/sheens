@@ -15,7 +15,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
-	"github.com/Comcast/sheens/interpreters/goja"
+	"github.com/Comcast/sheens/interpreters"
 	. "github.com/Comcast/sheens/util/testutil"
 
 	"github.com/jsccast/yaml"
@@ -362,18 +362,13 @@ type Host struct {
 }
 
 func NewHost(specDir, libDir string) (*Host, error) {
-	gi := goja.NewInterpreter()
-	gi.LibraryProvider = goja.MakeFileLibraryProvider(libDir)
 	return &Host{
 		ctl:     core.DefaultControl,
 		specDir: specDir,
 		crew: crew.Crew{
 			Machines: make(map[string]*crew.Machine, 32),
 		},
-		interpreters: map[string]core.Interpreter{
-			"goja":           gi,
-			"ecmascript-5.1": gi,
-		},
+		interpreters: interpreters.Standard(),
 	}, nil
 }
 

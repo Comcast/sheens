@@ -7,37 +7,41 @@ import (
 	"github.com/Comcast/sheens/core"
 )
 
-// NoopInterpreter is an interpreter which just returns the bindings
+// Interpreter is an core.Interpreter which just returns the bindings
 // without modification.
-type NoopInterpreter struct {
+type Interpreter struct {
 	// Silent, if false, will suppress warning log messages.
 	Silent bool
 }
 
-func (i *NoopInterpreter) Compile(ctx context.Context, code interface{}) (interface{}, error) {
+func (i *Interpreter) Compile(ctx context.Context, code interface{}) (interface{}, error) {
 	if !i.Silent {
-		log.Printf("warning: Using NoopInterpreter for compilation")
+		log.Printf("warning: Using Interpreter for compilation")
 	}
 	return nil, nil
 }
 
-func (i *NoopInterpreter) Exec(ctx context.Context, bs core.Bindings, props core.StepProps, code interface{}, compiled interface{}) (*core.Execution, error) {
+func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.StepProps, code interface{}, compiled interface{}) (*core.Execution, error) {
 	if !i.Silent {
-		log.Printf("warning: Using NoopInterpreter for execution")
+		log.Printf("warning: Using Interpreter for execution")
 	}
 	return core.NewExecution(bs), nil
 }
 
-type NoopInterpreters struct {
-	I *NoopInterpreter
+type Interpreters struct {
+	I *Interpreter
 }
 
-func NewNoopInterpreters() *NoopInterpreters {
-	return &NoopInterpreters{
-		I: &NoopInterpreter{},
+func NewInterpreter() *Interpreter {
+	return &Interpreter{}
+}
+
+func NewInterpreters() *Interpreters {
+	return &Interpreters{
+		I: &Interpreter{},
 	}
 }
 
-func (i *NoopInterpreters) Find(name string) core.Interpreter {
+func (i *Interpreters) Find(name string) core.Interpreter {
 	return i.I
 }

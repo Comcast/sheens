@@ -11,7 +11,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
-	"github.com/Comcast/sheens/interpreters/goja"
+	ints "github.com/Comcast/sheens/interpreters"
 	. "github.com/Comcast/sheens/util/testutil"
 
 	"github.com/jsccast/yaml"
@@ -94,11 +94,7 @@ func NewService(ctx context.Context, specDir, dbFile, libDir string) (*Service, 
 	s.timers = NewTimers(emitter)
 	s.timers.Errors = s.Errors
 
-	gi := goja.NewInterpreter()
-	gi.LibraryProvider = goja.MakeFileLibraryProvider(libDir)
-	s.interpreters = map[string]core.Interpreter{
-		"goja": gi,
-	}
+	s.interpreters = ints.Standard()
 
 	return &s, nil
 }
