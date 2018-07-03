@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -80,7 +79,11 @@ func (opts *Opts) run() error {
 
 		load = regexp.MustCompile("^load +(.*)")
 
+		debug = regexp.MustCompile("^debug(ging)? (on|off)")
+
 		outputPrefix = "# "
+
+		debugging = false
 
 		say = func(format string, args ...interface{}) {
 
@@ -228,8 +231,6 @@ func (opts *Opts) run() error {
 			// Fall through!
 		}
 
-		log.Println("debug", line, send.FindStringSubmatch(line))
-
 		if ss = send.FindStringSubmatch(line); 0 < len(ss) {
 			js := ss[2]
 			var msg interface{}
@@ -249,6 +250,11 @@ func (opts *Opts) run() error {
 			}
 
 			Render(w, outputPrefix, "", walkeds)
+
+			if debugging {
+				js, _ := json.MarshalIndent(walkeds, "  ", "  ")
+				fmt.Println(string(js))
+			}
 
 			for _, walked := range walkeds {
 				for _, stride := range walked.Strides {
@@ -273,6 +279,18 @@ func (opts *Opts) run() error {
 					return err // Internal error
 				}
 				say("%d. %s", i, js)
+			}
+			continue
+		}
+
+		if ss = debug.FindStringSubmatch(line); 0 < len(ss) {
+			switch ss[2] {
+			case "on":
+				debugging = true
+				say("debugging")
+			case "off":
+				debugging = true
+				say("not debugging")
 			}
 			continue
 		}
@@ -536,6 +554,7 @@ func doc() string {
   drop                       Drop the first message in the queue
   save FILENAME              Save the crew machines to this file
   load FILENAME              Load the crew machines from this file
+  debug on/off               When debugging, show walking details
   help                       Show this documentation
 `
 }
