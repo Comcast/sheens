@@ -225,7 +225,7 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 
 	haveAction := n.Action != nil
 
-	// If we have an action, branch type must be "message".
+	// If we have an action, branch type must not be "message".
 	//
 	// If we insisted that interpreters could not execute code
 	// that does IO, then we could remove this limitation.  ToDo:
