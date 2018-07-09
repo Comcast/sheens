@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
-	"github.com/Comcast/sheens/interpreters/goja"
+	"github.com/Comcast/sheens/interpreters/ecmascript"
 
 	"github.com/jsccast/yaml"
 )
@@ -28,7 +28,7 @@ import (
 // TestExpectBasic runs a real "expect" test on a real mservice
 // process, so another mservice can't be running at the same time.
 //
-// Requires a current mservice in the path.
+// Requires a current mcrew in the path.
 //
 // If this test hangs, check to see if there's a (unclosed) storage.db
 // file.  If there is, remove it.
@@ -43,7 +43,7 @@ func TestExpectBasic(t *testing.T) {
 
 	s := &Session{
 		Interpreters: map[string]core.Interpreter{
-			"goja": goja.NewInterpreter(),
+			"ecmascript": ecmascript.NewInterpreter(),
 		},
 		Doc:           "A test session",
 		ParsePatterns: true,
@@ -63,8 +63,8 @@ func TestExpectBasic(t *testing.T) {
 						Doc:     "Just an example of using a guard.",
 						Pattern: `{"doubled":"?n"}`,
 						GuardSource: &core.ActionSource{
-							Interpreter: "goja",
-							Source:      "var bs = _.bindings; if (bs.n != 2) { bs = null; } bs;",
+							Interpreter: "ecmascript",
+							Source:      "var bs = _.bindings; if (bs.n != 2) { bs = null; } return bs;",
 						},
 					},
 				},
@@ -87,7 +87,7 @@ func TestExpectBasic(t *testing.T) {
 
 	s.ShowStderr = true
 
-	if err := s.Run(ctx, "..", "mcrew", "-v", "-s", "specs", "-l", ".", "-d", "", "-I", "-O", "-h", ""); err != nil {
+	if err := s.Run(ctx, "..", "mcrew", "-v", "-s", "specs", "-d", "", "-I", "-O", "-h", ""); err != nil {
 		panic(err)
 	}
 }
