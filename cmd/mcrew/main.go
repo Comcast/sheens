@@ -71,6 +71,8 @@ func main() {
 	if Verbose {
 		monitor(ctx, s.Processing, "processing", false)
 		monitor(ctx, s.Emitted, "emitted", *emitToStdout)
+	} else if *emitToStdout {
+		monitor(ctx, s.Emitted, "emitted", true)
 	}
 	monitor(ctx, s.Errors, "errors", false)
 
