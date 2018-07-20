@@ -78,11 +78,29 @@ and outputs
 
 ## Pattern matching
 
+ToDo.
+
 `match` is a function from `Cross<Pattern,Message,Bindings>` to
 `Set<Bindings>`.
 
-Constraints ToDo.
+ToDo.
 
+Say we have a function `bind` from `Cross<Pattern,Bindings>` to
+`Pattern`, and this function replaces variables with their bindings.
+If a `Pattern p`'s variables are all bound by some `Bindings bs`, then
+we say that "`p` is bound by `bs`" (`bound(p,bs)↦true`).
+
+The function `match` has the following property (among others):
+
+```
+foreach p:Pattern
+  foreach m:Message
+    foreach bs in match(p,m,[]):
+	  let bp = bind(p,b):
+        bound(bp) and match(bp,m,nil) != []
+```
+
+ToDo.
 
 ## Machine specifications
 
