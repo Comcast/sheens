@@ -4,7 +4,7 @@
 register("demo3", function(x, path, root) {
     var node = {
 	action: {
-	    interpreter: "goja",
+	    interpreter: "ecmascript",
 	    source: "_.out(" + JSON.stringify(x.message) + ");"
 	},
 	branching: {

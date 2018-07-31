@@ -10,7 +10,7 @@ register("turnOn", function(x, path, root) {
 
     var node = {
 	action: {
-	    interpreter: "goja",
+	    interpreter: "ecmascript",
 	    source: "_.out(" + JSON.stringify(msg) + ");"
 	},
 	branching: {
