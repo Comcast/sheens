@@ -227,9 +227,6 @@ func TestActionsMachinePrimitive(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if walked.To == nil {
-		t.Fatal("nil To")
-	}
 	if walked.To().NodeName != "happy" {
 		t.Fatal(walked.To().NodeName)
 	}
@@ -292,9 +289,6 @@ func TestActionsMachineFancy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if walked.To == nil {
-		t.Fatal("nil To")
-	}
 	if walked.To().NodeName != "happy" {
 		t.Fatal(walked.To().NodeName)
 	}

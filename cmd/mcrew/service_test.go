@@ -139,7 +139,7 @@ func TestServiceRemMachine(t *testing.T) {
 	select {
 	case <-time.NewTimer(time.Second).C:
 	case x := <-s.Emitted:
-		t.Fatal("didn't want %#v", x)
+		t.Fatalf("didn't want %#v", x)
 	}
 
 	s.store.Close(ctx) // ToDo: Check error.

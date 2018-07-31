@@ -25,7 +25,7 @@ import (
 func (s *Service) toHTTP(ctx context.Context, msg interface{}) error {
 	m, is := msg.(map[string]interface{})
 	if !is {
-		return fmt.Errorf("HTTP error %ts (%T) isn't a %T", JS(msg), msg, m)
+		return fmt.Errorf("HTTP error %s (%T) isn't a %T", JS(msg), msg, m)
 	}
 
 	msg, have := m["request"]
