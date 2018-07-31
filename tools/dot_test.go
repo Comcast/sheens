@@ -17,7 +17,7 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/core"
 )
 
 func TestDot(t *testing.T) {
@@ -34,7 +34,7 @@ func TestDot(t *testing.T) {
 		}
 	}()
 
-	spec, err := TurnstileSpec(context.Background())
+	spec, err := core.TurnstileSpec(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
