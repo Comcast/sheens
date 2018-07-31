@@ -10,7 +10,7 @@
  * limitations under the License.
  */
 
-package core
+package match
 
 import (
 	"bytes"
@@ -116,7 +116,7 @@ func (mt *MatchTest) Run(t *testing.T, check bool) {
 	if bs == nil {
 		bs = make(Bindings)
 	}
-	bss, err := Match(nil, mt.Pattern, mt.Message, bs)
+	bss, err := DefaultMatcher.Match(mt.Pattern, mt.Message, bs)
 	if !check {
 		return
 	}

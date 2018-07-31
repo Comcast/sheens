@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/match"
 
 	"github.com/dop251/goja"
 	"github.com/gorhill/cronexpr"
@@ -128,7 +129,7 @@ func protest(o *goja.Runtime, x interface{}) {
 //    exit(msg): Terminate the process after printing the given message.
 //      For testing.
 //
-func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.StepProps, src interface{}, compiled interface{}) (*core.Execution, error) {
+func (i *Interpreter) Exec(ctx context.Context, bs match.Bindings, props core.StepProps, src interface{}, compiled interface{}) (*core.Execution, error) {
 	exe := core.NewExecution(nil)
 
 	var p *goja.Program
@@ -207,10 +208,10 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 
 		// match is a utility that invokes the pattern matcher.
 		env["match"] = func(pat, mess, bs goja.Value) interface{} {
-			var bindings core.Bindings
+			var bindings match.Bindings
 
 			if bs == nil {
-				bindings = core.NewBindings()
+				bindings = match.NewBindings()
 			} else {
 
 				// Having some trouble here.  Please don't
@@ -224,7 +225,7 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 				if !is {
 					panic("bad bindings")
 				}
-				bindings = core.Bindings(m)
+				bindings = match.Bindings(m)
 			}
 
 			var (
@@ -241,7 +242,7 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 				panic(err)
 			}
 
-			bss, err := core.Match(nil, p, m, bindings)
+			bss, err := match.Match(p, m, bindings)
 			if err != nil {
 				panic(err)
 			}
@@ -333,13 +334,13 @@ func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.Ste
 
 	x := v.Export()
 
-	var result core.Bindings
+	var result match.Bindings
 	switch vv := x.(type) {
 	case *goja.InterruptedError:
 		return nil, vv
 	case map[string]interface{}:
-		result = core.Bindings(vv)
-	case core.Bindings:
+		result = match.Bindings(vv)
+	case match.Bindings:
 		result = vv
 	case nil:
 	default:

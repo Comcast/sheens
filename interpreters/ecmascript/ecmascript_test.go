@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 
@@ -217,7 +218,7 @@ func TestActionsMachinePrimitive(t *testing.T) {
 
 	st := &core.State{
 		NodeName: "start",
-		Bs:       make(core.Bindings),
+		Bs:       make(match.Bindings),
 	}
 	ctl := &core.Control{
 		Limit: 10,
@@ -279,7 +280,7 @@ func TestActionsMachineFancy(t *testing.T) {
 
 	st := &core.State{
 		NodeName: "start",
-		Bs:       core.NewBindings(),
+		Bs:       match.NewBindings(),
 	}
 	ctl := &core.Control{
 		Limit: 10,

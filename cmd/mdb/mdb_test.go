@@ -20,6 +20,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 
@@ -39,7 +40,7 @@ func TestMain(t *testing.T) {
 	}
 
 	nodeName := "start"
-	bs := core.NewBindings()
+	bs := match.NewBindings()
 	mid := "doubler"
 
 	m := crew.Machine{

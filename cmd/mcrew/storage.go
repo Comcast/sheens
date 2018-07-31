@@ -21,6 +21,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 
 	"github.com/boltdb/bolt"
@@ -32,7 +33,7 @@ type MachineState struct {
 
 	SpecSource *crew.SpecSource `json:"spec,omitempty" yaml:"spec,omitempty"`
 	NodeName   string           `json:"node"`
-	Bs         core.Bindings    `json:"bs"`
+	Bs         match.Bindings   `json:"bs"`
 
 	// Deleted indicated that this machine has been deleted.
 	//

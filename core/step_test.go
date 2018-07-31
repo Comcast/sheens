@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 

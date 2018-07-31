@@ -17,9 +17,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
-
-	"github.com/Comcast/sheens/core"
 )
 
 func (s *Service) toHTTP(ctx context.Context, msg interface{}) error {
@@ -35,7 +34,7 @@ func (s *Service) toHTTP(ctx context.Context, msg interface{}) error {
 
 	var replyTo interface{}
 
-	bss, err := core.Match(nil, Dwimjs(`{"replyTo":"?mid"}`), msg, core.NewBindings())
+	bss, err := match.Match(Dwimjs(`{"replyTo":"?mid"}`), msg, match.NewBindings())
 	if err == nil {
 		if 0 < len(bss) {
 			replyTo, _ = bss[0]["?mid"]

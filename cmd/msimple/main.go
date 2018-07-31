@@ -26,6 +26,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	ints "github.com/Comcast/sheens/interpreters"
+	"github.com/Comcast/sheens/match"
 	"github.com/Comcast/sheens/tools"
 
 	"github.com/jsccast/yaml"
@@ -51,7 +52,7 @@ func main() {
 	interpreters := ints.Standard()
 
 	// Parse the given initial bindings (as JSON).
-	var bs core.Bindings
+	var bs match.Bindings
 	if err := json.Unmarshal([]byte(*startingBindings), &bs); err != nil {
 		panic(err)
 	}

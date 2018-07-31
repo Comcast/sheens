@@ -27,6 +27,7 @@ import (
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
 	"github.com/Comcast/sheens/interpreters"
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 
 	"github.com/jsccast/yaml"
@@ -163,7 +164,7 @@ func (opts *Opts) run() error {
 				}
 				m.State = &core.State{
 					NodeName: "start",
-					Bs:       core.NewBindings(),
+					Bs:       match.NewBindings(),
 				}
 			}
 			m.SpecSource = &crew.SpecSource{
@@ -205,7 +206,7 @@ func (opts *Opts) run() error {
 		if ss = setBindings.FindStringSubmatch(line); 0 < len(ss) {
 			mid := ss[1]
 			js := ss[3]
-			var bs core.Bindings
+			var bs match.Bindings
 			if err = json.Unmarshal([]byte(js), &bs); err != nil {
 				protest("couldn't parse bindings %s", js)
 				continue

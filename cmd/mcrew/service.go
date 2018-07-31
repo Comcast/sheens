@@ -23,6 +23,7 @@ import (
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
 	ints "github.com/Comcast/sheens/interpreters"
+	"github.com/Comcast/sheens/match"
 	"github.com/Comcast/sheens/tools"
 	. "github.com/Comcast/sheens/util/testutil"
 
@@ -280,12 +281,12 @@ func (s *Service) Process(ctx context.Context, msg interface{}, ctl *core.Contro
 	return processed, err
 }
 
-func (s *Service) AddMachine(ctx context.Context, specName, id, nodeName string, bs core.Bindings) error {
+func (s *Service) AddMachine(ctx context.Context, specName, id, nodeName string, bs match.Bindings) error {
 	if nodeName == "" {
 		nodeName = "start"
 	}
 	if bs == nil {
-		bs = core.NewBindings()
+		bs = match.NewBindings()
 	}
 
 	c := &s.crew

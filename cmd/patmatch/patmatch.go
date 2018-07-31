@@ -25,7 +25,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/match"
 )
 
 func main() {
@@ -41,9 +41,9 @@ func main() {
 
 		message  interface{}
 		pattern  interface{}
-		want     []core.Bindings
+		want     []match.Bindings
 		wanted   bool
-		bindings core.Bindings
+		bindings match.Bindings
 	)
 
 	flag.Parse()
@@ -79,7 +79,7 @@ func main() {
 		allocs := stats.TotalAlloc
 		then := time.Now()
 		for i := 0; i < *bench; i++ {
-			if _, err := core.Match(nil, pattern, message, bindings); err != nil {
+			if _, err := match.Match(pattern, message, bindings); err != nil {
 				panic(err)
 			}
 		}
@@ -92,7 +92,7 @@ func main() {
 		log.Printf("%d iterations, %d mean ns/Match, %d mean bytes allocated per Match", *bench, meanNanos, allocated)
 	}
 
-	bss, err := core.Match(nil, pattern, message, bindings)
+	bss, err := match.Match(pattern, message, bindings)
 	if err != nil {
 		panic(err)
 	}
@@ -133,7 +133,7 @@ func main() {
 // Subset tries to check that Bindings x is a subset of Bindings y.
 //
 // Uses reflect.DeepEqual to do the hard work.
-func Subset(x, y core.Bindings, verbose bool) (bool, error) {
+func Subset(x, y match.Bindings, verbose bool) (bool, error) {
 	for p, bx := range x {
 		by, have := y[p]
 		if !have {

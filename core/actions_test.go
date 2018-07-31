@@ -15,6 +15,8 @@ package core
 import (
 	"context"
 	"testing"
+
+	. "github.com/Comcast/sheens/match"
 )
 
 func TestPermanentBindings(t *testing.T) {

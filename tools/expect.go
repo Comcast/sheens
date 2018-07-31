@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 
@@ -47,7 +48,7 @@ type Output struct {
 
 	// Bindings, which is the result of a match (and optional
 	// guard) is written during processing.  Just for diagnostics.
-	Bindingss []core.Bindings `json:"bs,omitempty" yaml:"bs,omitempty"`
+	Bindingss []match.Bindings `json:"bs,omitempty" yaml:"bs,omitempty"`
 
 	// Inverted means that matching output isn't desired!
 	Inverted bool `json:"inverted,omitempty" yaml:"inverted,omitempty"`
@@ -243,7 +244,7 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 								}
 							}
 
-							bss, err := core.Match(nil, pattern, message, core.NewBindings())
+							bss, err := match.Match(pattern, message, match.NewBindings())
 							if err != nil {
 								return err
 							}
@@ -263,7 +264,7 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 									if err != nil {
 										return err
 									}
-									bss = []core.Bindings{exe.Bs}
+									bss = []match.Bindings{exe.Bs}
 								}
 							}
 							if bss != nil {
