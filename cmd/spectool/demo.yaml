@@ -10,8 +10,9 @@ nodes:
         target: lunch_start
   timedout:
     action:
-      interpreter: goja
+      interpreter: ecmascript
       source: |-
+        %inline("demo-lib.js")
         var bs = _.bindings.Remove('timer');
         bs.cleanupMessages = [];
         bs;

@@ -77,7 +77,7 @@ func AddMessageBranches(s *core.Spec, pattern interface{}, target string) error 
 
 	s.Doc = s.Doc + fmt.Sprintf(`
 
-This spec has processed by AddMessageBranches with target "%s".
+This spec was processed by AddMessageBranches with target "%s".
 `, target)
 
 	return nil
@@ -126,7 +126,7 @@ func (c *AddMessageBranchesMod) F(s *core.Spec) error {
 var CancelNodeYAML = `
 action:
   doc: Emit any clean-up messages.
-  interpreter: goja
+  interpreter: ecmascript
   source: |-
     for (var i = 0; i < _.bindings.cleanupMessages.length; i++) {
        _.out(_.bindings.cleanupMessages[i]);
@@ -293,7 +293,7 @@ func (m *AddOrderedOutMessagesMod) F(s *core.Spec) error {
 
 			node := &core.Node{
 				ActionSource: &core.ActionSource{
-					Interpreter: "goja",
+					Interpreter: "ecmascript",
 					Source:      src,
 				},
 				Branches: &core.Branches{
@@ -379,7 +379,7 @@ func (m *AddOrderedOutMessagesMod) F(s *core.Spec) error {
 
 			node := &core.Node{
 				ActionSource: &core.ActionSource{
-					Interpreter: "goja",
+					Interpreter: "ecmascript",
 					Source:      src,
 				},
 				Branches: &core.Branches{
@@ -404,17 +404,17 @@ func (m *AddOrderedOutMessagesMod) Doc() string {
 }
 
 func (m *AddOrderedOutMessagesMod) Flags() *flag.FlagSet {
-	flags := flag.NewFlagSet("addOrderedOutMessages", flag.PanicOnError)
+	fs := flag.NewFlagSet("addOrderedOutMessages", flag.PanicOnError)
 
-	flags.StringVar(&m.Prefix, "p", "oi_", "prefix for node names")
-	flags.BoolVar(&m.ParseJSON, "P", true, "parse the messages as JSON")
-	flags.StringVar(&m.StartNodeName, "s", "start", "name suffix for starting node")
-	flags.DurationVar(&m.Timeout, "d", 0, "timeout duration (if any)")
-	flags.StringVar(&m.TimeoutNodeName, "t", "timedout", "node name for node for timeouts")
-	flags.StringVar(&m.OutAndInsJS, "m", "[]", "name for starting node")
-	flags.StringVar(&m.EndNodeName, "e", "", "name for following node")
+	fs.StringVar(&m.Prefix, "p", "oi_", "prefix for node names")
+	fs.BoolVar(&m.ParseJSON, "P", true, "parse the messages as JSON")
+	fs.StringVar(&m.StartNodeName, "s", "start", "name suffix for starting node")
+	fs.DurationVar(&m.Timeout, "d", 0, "timeout duration (if any)")
+	fs.StringVar(&m.TimeoutNodeName, "t", "timedout", "node name for node for timeouts")
+	fs.StringVar(&m.OutAndInsJS, "m", "[]", "name for starting node")
+	fs.StringVar(&m.EndNodeName, "e", "", "name for following node")
 
-	return flags
+	return fs
 }
 
 type Analyzer struct {
@@ -461,7 +461,7 @@ func (m *Grapher) Doc() string {
 
 func (m *Grapher) Flags() *flag.FlagSet {
 	fs := flag.NewFlagSet("graph", flag.PanicOnError)
-	flag.StringVar(&m.OutputFilename, "o", "spec.dot", "output filename")
+	fs.StringVar(&m.OutputFilename, "o", "spec.dot", "output filename")
 	return fs
 }
 
@@ -484,6 +484,6 @@ func (m *Mermaid) Doc() string {
 
 func (m *Mermaid) Flags() *flag.FlagSet {
 	fs := flag.NewFlagSet("mermaid", flag.PanicOnError)
-	flag.StringVar(&m.OutputFilename, "o", "spec.mermaid", "output filename")
+	fs.StringVar(&m.OutputFilename, "o", "spec.mermaid", "output filename")
 	return fs
 }

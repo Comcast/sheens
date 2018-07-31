@@ -16,7 +16,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -24,6 +23,7 @@ import (
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
 	ints "github.com/Comcast/sheens/interpreters"
+	"github.com/Comcast/sheens/tools"
 	. "github.com/Comcast/sheens/util/testutil"
 
 	"github.com/jsccast/yaml"
@@ -126,7 +126,7 @@ func (s *Service) GetSpec(ctx context.Context, src *crew.SpecSource) (core.Spect
 	if src.Name == "" {
 		return nil, fmt.Errorf("Unsupported SpecSource %s: needs name", JS(src))
 	}
-	specSrc, err := ioutil.ReadFile(s.specDir + "/" + src.Name + ".yaml")
+	specSrc, err := tools.ReadFileWithInlines(s.specDir + "/" + src.Name + ".yaml")
 	if err != nil {
 		return nil, err
 	}

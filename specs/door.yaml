@@ -40,11 +40,10 @@ nodes:
       - pattern: |
           {"device":"?door","state":"open"}
         guard:
-          interpreter: goja-libs
+          interpreter: ecmascript
           source:
-            requires:
-              - 'file://interpreters/goja/libs/time.js'
             code: |-
+              %inline("door-time.js") // See tools/inline.go
               return isCurrent(_.bindings.during) ? _.bindings : null;
         target: startTimer
       - pattern: |

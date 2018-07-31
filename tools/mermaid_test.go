@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/Comcast/sheens/core"
-	"github.com/Comcast/sheens/interpreters/goja"
+	"github.com/Comcast/sheens/interpreters"
 
 	"github.com/jsccast/yaml"
 )
@@ -42,10 +42,7 @@ func TestMermaid(t *testing.T) {
 			t.Fatal(err)
 		}
 	} else {
-		interpreters := core.NewInterpretersMap()
-		i := goja.NewInterpreter()
-		i.LibraryProvider = goja.MakeFileLibraryProvider("")
-		interpreters["goja"] = i
+		interpreters := interpreters.Standard()
 
 		specSrc, err := ioutil.ReadFile(specFilename)
 		if err != nil {

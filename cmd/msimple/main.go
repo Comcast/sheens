@@ -19,7 +19,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -27,6 +26,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	ints "github.com/Comcast/sheens/interpreters"
+	"github.com/Comcast/sheens/tools"
 
 	"github.com/jsccast/yaml"
 )
@@ -57,7 +57,7 @@ func main() {
 	}
 
 	// Read and compile the spec from the given filename.
-	specSrc, err := ioutil.ReadFile(*specFilename)
+	specSrc, err := tools.ReadFileWithInlines(*specFilename)
 	if err != nil {
 		panic(err)
 	}

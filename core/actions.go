@@ -74,7 +74,7 @@ type Interpreter interface {
 	Exec(ctx context.Context, bs Bindings, props StepProps, code interface{}, compiled interface{}) (*Execution, error)
 }
 
-// Interpreters resolves an interpreter name (like "goja") to an
+// Interpreters resolves an interpreter name (like "ecmascript") to an
 // Interpreter.
 //
 // See InterpretersMap for a simple implementation.

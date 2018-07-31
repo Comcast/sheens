@@ -14,11 +14,13 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 
 	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/tools"
 
 	"github.com/jsccast/yaml"
 )
@@ -31,7 +33,33 @@ func main() {
 	}
 
 	switch os.Args[1] {
-	case "expand":
+	case "inline", "inlines":
+
+		fs := flag.NewFlagSet("inlines", flag.PanicOnError)
+		var dir string
+		fs.StringVar(&dir, "d", ".", "directory for referenced files")
+
+		if err := fs.Parse(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+
+		bs, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			panic(err)
+		}
+
+		f := func(name string) ([]byte, error) {
+			return ioutil.ReadFile(dir + string(os.PathSeparator) + name)
+		}
+
+		if bs, err = tools.Inline(bs, f); err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("%s\n", bs)
+
+	case "macroexpand", "expand":
 		bs, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			panic(err)
@@ -185,6 +213,8 @@ func Usage() {
 	// go vet says "Println call ends with newline"!
 	fmt.Printf("  -p    pretty-print\n\n")
 	fmt.Printf("Usage of jsontoyaml: (no arguments)\n\n")
+	fmt.Println("Usage of inlines:")
+	fmt.Printf("  -d    directory for source files\n\n")
 }
 
 var DefaultSpecYAML = `nodes:

@@ -3,7 +3,6 @@ package interpreters
 import (
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/interpreters/ecmascript"
-	"github.com/Comcast/sheens/interpreters/goja"
 	"github.com/Comcast/sheens/interpreters/noop"
 )
 
@@ -24,7 +23,6 @@ func Standard() core.InterpretersMap {
 
 	// For backwards compatibility
 	is["goja"] = ext
-	is["goja-libs"] = goja.NewInterpreter()
 
 	return is
 }

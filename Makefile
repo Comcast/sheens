@@ -10,7 +10,6 @@ test: prereqs
 	cd core && go generate && go test
 	cd crew && go test
 	cd tools && go test
-	cd interpreters/goja && go test
 	cd interpreters/ecmascript && go test
 	cd interpreters/noop && go test
 	cd cmd/patmatch && go test
