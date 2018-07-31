@@ -17,6 +17,7 @@ test: prereqs
 	cd cmd/mexpect && go test
 	cd cmd/mcrew && go test
 	cd cmd/spectool && go test
+	cd cmd/sheensio && go test
 	cd cmd/mdb && go test
 
 install: prereqs
