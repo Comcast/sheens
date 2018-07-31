@@ -1,3 +1,15 @@
+/* Copyright 2018 Comcast Cable Communications Management, LLC
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package main
 
 import (
@@ -8,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -80,7 +91,11 @@ func (opts *Opts) run() error {
 
 		load = regexp.MustCompile("^load +(.*)")
 
+		debug = regexp.MustCompile("^debug(ging)? (on|off)")
+
 		outputPrefix = "# "
+
+		debugging = false
 
 		say = func(format string, args ...interface{}) {
 
@@ -228,8 +243,6 @@ func (opts *Opts) run() error {
 			// Fall through!
 		}
 
-		log.Println("debug", line, send.FindStringSubmatch(line))
-
 		if ss = send.FindStringSubmatch(line); 0 < len(ss) {
 			js := ss[2]
 			var msg interface{}
@@ -249,6 +262,11 @@ func (opts *Opts) run() error {
 			}
 
 			Render(w, outputPrefix, "", walkeds)
+
+			if debugging {
+				js, _ := json.MarshalIndent(walkeds, "  ", "  ")
+				fmt.Println(string(js))
+			}
 
 			for _, walked := range walkeds {
 				for _, stride := range walked.Strides {
@@ -273,6 +291,18 @@ func (opts *Opts) run() error {
 					return err // Internal error
 				}
 				say("%d. %s", i, js)
+			}
+			continue
+		}
+
+		if ss = debug.FindStringSubmatch(line); 0 < len(ss) {
+			switch ss[2] {
+			case "on":
+				debugging = true
+				say("debugging")
+			case "off":
+				debugging = true
+				say("not debugging")
 			}
 			continue
 		}
@@ -531,6 +561,7 @@ func doc() string {
   drop                       Drop the first message in the queue
   save FILENAME              Save the crew machines to this file
   load FILENAME              Load the crew machines from this file
+  debug on/off               When debugging, show walking details
   help                       Show this documentation
 `
 }

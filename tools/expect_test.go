@@ -1,3 +1,15 @@
+/* Copyright 2018 Comcast Cable Communications Management, LLC
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package tools
 
 import (
@@ -16,7 +28,7 @@ import (
 // TestExpectBasic runs a real "expect" test on a real mservice
 // process, so another mservice can't be running at the same time.
 //
-// Requires a current mservice in the path.
+// Requires a current mcrew in the path.
 //
 // If this test hangs, check to see if there's a (unclosed) storage.db
 // file.  If there is, remove it.
@@ -49,8 +61,7 @@ func TestExpectBasic(t *testing.T) {
 						Doc:     "Just an example of using a guard.",
 						Pattern: `{"doubled":"?n"}`,
 						GuardSource: &core.ActionSource{
-							Interpreter: "goja",
-							Source:      "var bs = _.bindings; if (bs.n != 2) { bs = null; } bs;",
+							Source: "var bs = _.bindings; if (bs.n != 2) { bs = null; } return bs;",
 						},
 					},
 				},
@@ -75,7 +86,7 @@ func TestExpectBasic(t *testing.T) {
 	s.ShowStdout = true
 	s.ShowStdin = true
 
-	if err := s.Run(ctx, "..", "mcrew", "-s", "specs", "-d", "", "-I", "-O", "-h", ""); err != nil {
+	if err := s.Run(ctx, "..", "mcrew", "-v", "-s", "specs", "-d", "", "-I", "-O", "-h", ""); err != nil {
 		panic(err)
 	}
 }

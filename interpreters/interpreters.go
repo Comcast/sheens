@@ -13,15 +13,17 @@ func Standard() core.InterpretersMap {
 	es := ecmascript.NewInterpreter()
 	is["ecmascript"] = es
 	is["ecmascript-5.1"] = es
+	is[""] = es // Default
 
 	ext := ecmascript.NewInterpreter()
 	ext.Extended = true
 	is["ecmascript-ext"] = ext
 	is["ecmascript-5.1-ext"] = ext
-	is["goja"] = ext // For backwards compatibility
 
 	is["noop"] = noop.NewInterpreter()
 
+	// For backwards compatibility
+	is["goja"] = ext
 	is["goja-libs"] = goja.NewInterpreter()
 
 	return is
