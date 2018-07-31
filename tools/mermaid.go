@@ -71,10 +71,10 @@ func Mermaid(spec *Spec, w io.WriteCloser, opts *MermaidOpts, fromNode, toNode s
 		nid := fmt.Sprintf("n%d", num)
 		nids[name] = nid
 
-		if n.Action == nil {
-			fmt.Fprintf(w, "  %s(%s)\n", nid, name)
+		if n != nil && n.Action == nil {
+			fmt.Fprintf(w, "  %s(\"%s\")\n", nid, name)
 		} else {
-			fmt.Fprintf(w, "  %s[%s]\n", nid, name)
+			fmt.Fprintf(w, "  %s[\"%s\"]\n", nid, name)
 			if opts.ActionClass == "" {
 				if opts.ActionFill == "" {
 				} else {
