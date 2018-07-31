@@ -11,7 +11,7 @@ cat demo.yaml | \
      -m '[{"e":{"order":"beer"},"r":{"deliver":"beer"}},{"e":{"order":"queso"},"r":{"deliver":"queso"}},{"e":{"order":"tacos"},"r":{"deliver":"tacos"}}]' | \
   spectool addGenericCancelNode | \
   spectool addMessageBranches -P -p '{"ctl":"cancel"}' -t cancel | \
-  spectool graph | \
+  spectool dot | \
   spectool analyze > \
   out.yaml
 ```

@@ -31,7 +31,9 @@ var Mods = map[string]Mod{
 	"addGenericCancelNode":  &AddGenericCancelNodeMod{},
 	"addOrderedOutMessages": &AddOrderedOutMessagesMod{},
 	"analyze":               &Analyzer{},
+	"dot":                   &Grapher{},
 	"graph":                 &Grapher{},
+	"mermaid":               &Mermaid{},
 }
 
 var (
@@ -460,5 +462,28 @@ func (m *Grapher) Doc() string {
 func (m *Grapher) Flags() *flag.FlagSet {
 	fs := flag.NewFlagSet("graph", flag.PanicOnError)
 	flag.StringVar(&m.OutputFilename, "o", "spec.dot", "output filename")
+	return fs
+}
+
+type Mermaid struct {
+	OutputFilename string
+}
+
+func (m *Mermaid) F(s *core.Spec) error {
+	f, err := os.Create(m.OutputFilename)
+	if err != nil {
+		return err
+	}
+
+	return tools.Mermaid(s, f, nil, "", "") // Will Close f.
+}
+
+func (m *Mermaid) Doc() string {
+	return "Generates input for https://mermaidjs.github.io/"
+}
+
+func (m *Mermaid) Flags() *flag.FlagSet {
+	fs := flag.NewFlagSet("mermaid", flag.PanicOnError)
+	flag.StringVar(&m.OutputFilename, "o", "spec.mermaid", "output filename")
 	return fs
 }
