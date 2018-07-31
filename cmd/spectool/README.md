@@ -19,6 +19,28 @@ cat demo.yaml | \
   demo.json
 ```
 
+The `analysis` function generates output like
+
+```
+errors: []
+nodecount: 16
+branches: 24
+actions: 9
+guards: 0
+terminalnodes: []
+orphans:
+- lunch_00
+- demo
+emptytargets: []
+missingtargets:
+- there
+- lunch_start
+branchtargetvariables:
+- '@from'
+interpreters:
+- ecmascript
+```
+
 If you have [Mermaid](https://mermaidjs.github.io/) installed, you can
 render that output spec as an [SVG](demo.svg):
 
