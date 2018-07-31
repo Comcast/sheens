@@ -13,7 +13,27 @@ cat demo.yaml | \
   spectool addGenericCancelNode | \
   spectool addMessageBranches -P -p '{"ctl":"cancel"}' -t cancel | \
   spectool dot | \
+  spectool mermaid | \
   spectool analyze |
   spectool yamltojson > \
   demo.json
 ```
+
+If you have [Mermaid](https://mermaidjs.github.io/) installed, you can
+render that output spec as an [SVG](demo.svg):
+
+```Shell
+./node_modules/.bin/mmdc -i spec.mermaid -o demo.svg
+```
+![mermaid](./demo.svg)
+
+
+If you have [Graphviz]() instaled, you can render that output spec
+with
+
+```Shell
+dot -Tpng spec.dot -o demo.png
+```
+
+![graphviz](demo.png)
+
