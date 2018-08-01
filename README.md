@@ -91,7 +91,8 @@ Other objectives
    languages.
 6. Modest resource requirements.
 
-![homeassistant](doc/homeassistant.svg)
+<a href="doc/homeassistant.svg"><img src="https://raw.githubusercontent.com/Comcast/sheens/master/doc/homeassistant.svg?sanitize=true" width="400"></a>
+
 
 ## Design
 
