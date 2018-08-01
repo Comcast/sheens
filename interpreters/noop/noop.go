@@ -17,6 +17,7 @@ import (
 	"log"
 
 	"github.com/Comcast/sheens/core"
+	. "github.com/Comcast/sheens/match"
 )
 
 // Interpreter is an core.Interpreter which just returns the bindings
@@ -33,7 +34,7 @@ func (i *Interpreter) Compile(ctx context.Context, code interface{}) (interface{
 	return nil, nil
 }
 
-func (i *Interpreter) Exec(ctx context.Context, bs core.Bindings, props core.StepProps, code interface{}, compiled interface{}) (*core.Execution, error) {
+func (i *Interpreter) Exec(ctx context.Context, bs Bindings, props core.StepProps, code interface{}, compiled interface{}) (*core.Execution, error) {
 	if !i.Silent {
 		log.Printf("warning: Using Interpreter for execution")
 	}

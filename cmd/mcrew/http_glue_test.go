@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Comcast/sheens/core"
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 
@@ -60,7 +60,7 @@ func TestHTTPGlue(t *testing.T) {
 		case <-timeout.C:
 			t.Fatal("timeout")
 		case x := <-s.Processing:
-			bss, err := core.Match(nil, Dwimjs(`{"body":"hello"}`), x, core.NewBindings())
+			bss, err := match.Match(Dwimjs(`{"body":"hello"}`), x, match.NewBindings())
 			if err != nil {
 				t.Fatal(err)
 			}

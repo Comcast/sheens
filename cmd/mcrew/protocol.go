@@ -22,6 +22,7 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
+	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 
@@ -166,7 +167,7 @@ func (o *OpAdd) Do(ctx context.Context, s *Service) error {
 	if o.Machine.State == nil {
 		o.Machine.State = &core.State{
 			NodeName: "start",
-			Bs:       core.NewBindings(),
+			Bs:       match.NewBindings(),
 		}
 	}
 	// get spec and set default values if they are not provided by

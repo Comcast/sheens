@@ -26,12 +26,13 @@ import (
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/interpreters"
+	"github.com/Comcast/sheens/match"
 )
 
 type Machine struct {
-	Spec interface{}   `json:"spec"`
-	Node string        `json:"node"`
-	Bs   core.Bindings `json:"bs"`
+	Spec interface{}    `json:"spec"`
+	Node string         `json:"node"`
+	Bs   match.Bindings `json:"bs"`
 
 	spec *core.Spec
 	Id   string `json:"id"`

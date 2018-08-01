@@ -16,6 +16,7 @@ import (
 	"context"
 	"fmt"
 
+	. "github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 )
 

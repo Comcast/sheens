@@ -16,6 +16,8 @@ import (
 	"context"
 	"errors"
 	"strings"
+
+	. "github.com/Comcast/sheens/match"
 )
 
 var (

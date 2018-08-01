@@ -10,18 +10,17 @@
  * limitations under the License.
  */
 
-package core
+package match
 
 import (
 	"errors"
 	"strings"
 )
 
-var (
-
+type Matcher struct {
 	// AllowPropertyVariables enables the experimental support for a
 	// property variable in a pattern that contains only one property.
-	AllowPropertyVariables = true
+	AllowPropertyVariables bool
 
 	// CheckForBadPropertyVariables runs a test to verify that a pattern
 	// does not contain a property variable along with other properties.
@@ -33,7 +32,7 @@ var (
 	// not report the problem.  In order to report the problem always,
 	// turn on this switch.  Performance will suffer, but any bad property
 	// variable will at least be caught.
-	CheckForBadPropertyVariables = true
+	CheckForBadPropertyVariables bool
 
 	// Inequalities is a switch to turn on experimental binding
 	// inequality support.
@@ -86,18 +85,24 @@ var (
 	// functionality (albeit with inefficiencies and without the
 	// message-oriented timer protocol that's been offered
 	// elsewhere).
-	Inequalities = true
-)
+	Inequalities bool
+}
 
-func checkForBadPropertyVariables(pattern map[string]interface{}) error {
-	if !CheckForBadPropertyVariables {
+var DefaultMatcher = &Matcher{
+	AllowPropertyVariables:       true,
+	CheckForBadPropertyVariables: true,
+	Inequalities:                 true,
+}
+
+func (m *Matcher) checkForBadPropertyVariables(pattern map[string]interface{}) error {
+	if !m.CheckForBadPropertyVariables {
 		return nil
 	}
 	if len(pattern) <= 1 {
 		return nil
 	}
 	for k := range pattern {
-		if IsVariable(k) {
+		if m.IsVariable(k) {
 			return errors.New(`can't have a variable as a key ("` + k + `") with other keys`)
 		}
 	}
@@ -177,11 +182,11 @@ func (bs Bindings) Copy() Bindings {
 // IsVariable reports if the string represents a pattern variable.
 //
 // All pattern variables start with a '?".
-func IsVariable(s string) bool {
+func (m *Matcher) IsVariable(s string) bool {
 	return strings.HasPrefix(s, "?")
 }
 
-func IsOptionalVariable(x interface{}) bool {
+func (m *Matcher) IsOptionalVariable(x interface{}) bool {
 	if s, is := x.(string); is {
 		return strings.HasPrefix(s, "??")
 	}
@@ -190,26 +195,26 @@ func IsOptionalVariable(x interface{}) bool {
 
 // IsAnonymousVariable detects a variable of the form '?'.  An binding
 // for an anonymous variable shouldn't ever make it into bindins.
-func IsAnonymousVariable(s string) bool {
+func (m *Matcher) IsAnonymousVariable(s string) bool {
 	return s == "?"
 }
 
 // IsConstant reports if the string represents a constant (and not a
 // pattern variable).
-func IsConstant(s string) bool {
-	return !IsVariable(s)
+func (m *Matcher) IsConstant(s string) bool {
+	return !m.IsVariable(s)
 }
 
 // mapcatMatch attempts to extend the given bindingss 'bss' based on
 // pair-wise matching of the pattern to the fact.
-func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, fact map[string]interface{}) ([]Bindings, error) {
-	if err := checkForBadPropertyVariables(pattern); err != nil {
+func (m *Matcher) mapcatMatch(bss []Bindings, pattern map[string]interface{}, fact map[string]interface{}) ([]Bindings, error) {
+	if err := m.checkForBadPropertyVariables(pattern); err != nil {
 		return nil, err
 	}
 
 	for k, v := range pattern {
-		if IsVariable(k) {
-			if AllowPropertyVariables {
+		if m.IsVariable(k) {
+			if m.AllowPropertyVariables {
 				if len(pattern) == 1 {
 					// Iterate over the fact keys and collect match results.
 					gather := make([]Bindings, 0, 0)
@@ -217,7 +222,7 @@ func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, f
 						ext := copyBindingss(bss)
 
 						// Try to match keys.
-						ext, err := matchWithBindingss(ctx, ext, k, fk)
+						ext, err := m.matchWithBindingss(ext, k, fk)
 						if err != nil {
 							return nil, err
 						}
@@ -226,7 +231,7 @@ func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, f
 							continue
 						}
 						// Matched keys.  Now check values.
-						ext, err = matchWithBindingss(ctx, ext, v, fv)
+						ext, err = m.matchWithBindingss(ext, v, fv)
 						if err != nil {
 							return nil, err
 						}
@@ -249,14 +254,14 @@ func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, f
 		} else {
 			fv, found := fact[k]
 			if !found {
-				if IsOptionalVariable(v) {
+				if m.IsOptionalVariable(v) {
 					continue
 				}
 
 				return nil, nil
 			}
 
-			acc, err := matchWithBindingss(ctx, bss, v, fv)
+			acc, err := m.matchWithBindingss(bss, v, fv)
 			if nil != err {
 				return nil, err
 			}
@@ -275,19 +280,19 @@ func mapcatMatch(ctx *Context, bss []Bindings, pattern map[string]interface{}, f
 //
 // An array represents a set; therefore, this function can backtrack,
 // which can be scary.
-func arraycatMatch(ctx *Context, bsss [][]Bindings, pattern interface{}, fxas []map[int]interface{}) ([][]Bindings, []map[int]interface{}, error) {
+func (m *Matcher) arraycatMatch(bsss [][]Bindings, pattern interface{}, fxas []map[int]interface{}) ([][]Bindings, []map[int]interface{}, error) {
 	var nbsss [][]Bindings
 	var nfxas []map[int]interface{}
 	for i, bss := range bsss {
-		m := fxas[i]
-		for j, fact := range m {
-			acc, err := matchWithBindingss(ctx, copyBindingss(bss), pattern, fact)
+		mm := fxas[i]
+		for j, fact := range mm {
+			acc, err := m.matchWithBindingss(copyBindingss(bss), pattern, fact)
 			if nil != err {
 				return nil, nil, err
 			}
 			if 0 != len(acc) {
 				nbsss = append(nbsss, acc)
-				copy := copyMap(m)
+				copy := copyMap(mm)
 				delete(copy, j)
 				nfxas = append(nfxas, copy)
 			}
@@ -308,10 +313,10 @@ func copyMap(source map[int]interface{}) map[int]interface{} {
 // matches of the fact against the pattern.
 //
 // Ths function mostly just calls 'Match()'.
-func matchWithBindingss(ctx *Context, bss []Bindings, pattern interface{}, fact interface{}) ([]Bindings, error) {
+func (m *Matcher) matchWithBindingss(bss []Bindings, pattern interface{}, fact interface{}) ([]Bindings, error) {
 	acc := make([]Bindings, 0, len(bss))
 	for _, bs := range bss {
-		matches, err := Match(ctx, pattern, fact, bs)
+		matches, err := m.Match(pattern, fact, bs)
 		if nil != err {
 			return nil, err
 		}
@@ -327,14 +332,14 @@ func matchWithBindingss(ctx *Context, bss []Bindings, pattern interface{}, fact 
 // For now, we look for at most one variable.
 //
 // ToDo: Improve.
-func getVariable(ctx *Context, xs []interface{}) (string, []interface{}, error) {
+func (m *Matcher) getVariable(xs []interface{}) (string, []interface{}, error) {
 	var v string
 	acc := make([]interface{}, 0, len(xs))
 	for _, x := range xs {
 		switch x.(type) {
 		case string:
 			s := x.(string)
-			if IsVariable(s) {
+			if m.IsVariable(s) {
 				if v == "" {
 					v = s
 					continue
@@ -358,8 +363,8 @@ func getVariable(ctx *Context, xs []interface{}) (string, []interface{}, error) 
 // Note that this function returns multiple (sets of) bindings.  This
 // ambiguity is introduced when a pattern contains an array that
 // contains a variable.
-func Matches(ctx *Context, pattern interface{}, fact interface{}) ([]Bindings, error) {
-	return Match(ctx, pattern, fact, make(Bindings))
+func (m *Matcher) Matches(pattern interface{}, fact interface{}) ([]Bindings, error) {
+	return m.Match(pattern, fact, make(Bindings))
 }
 
 // fudge is a hack to cast numbers to float64s.
@@ -383,13 +388,13 @@ func fudge(x interface{}) interface{} {
 // Match is a verion of 'Matches' that takes initial bindings.
 //
 // Those initial bindings are not modified.
-func Match(ctx *Context, pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
-	return match(ctx, pattern, fact, bindings.Copy())
+func (m *Matcher) Match(pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
+	return m.match(pattern, fact, bindings.Copy())
 }
 
 // match is a verion of 'Matches' that takes initial bindings (which
 // can be modified).
-func match(ctx *Context, pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
+func (m *Matcher) match(pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
 
 	pattern = fudge(pattern)
 	fact = fudge(fact)
@@ -414,7 +419,7 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 		}
 
 	// case reflect.Value:
-	// 	return match(ctx, vv.Interface(), fact, bindings)
+	// 	return match(vv.Interface(), fact, bindings)
 
 	case bool:
 		switch f.(type) {
@@ -442,7 +447,7 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 		}
 
 	case string:
-		if IsConstant(vv) {
+		if m.IsConstant(vv) {
 			switch f.(type) {
 			case string:
 				fs := f.(string)
@@ -455,17 +460,17 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 				return nil, nil
 			}
 		} else { // IsVariable
-			if IsAnonymousVariable(vv) {
+			if m.IsAnonymousVariable(vv) {
 				return []Bindings{bs}, nil
 			}
-			if using, bss, err := inequal(ctx, fact, bindings, vv); err != nil {
+			if using, bss, err := m.inequal(fact, bindings, vv); err != nil {
 				return nil, err
 			} else if using {
 				return bss, err
 			}
 			binding, found := bs[vv]
 			if found {
-				return match(ctx, binding, fact, bindings)
+				return m.match(binding, fact, bindings)
 			} else {
 				// add new binding
 				bs[vv] = fact
@@ -474,9 +479,9 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 		}
 
 	case map[string]interface{}:
-		m, ok := p.(map[string]interface{})
+		mm, ok := p.(map[string]interface{})
 		if !ok {
-			m = map[string]interface{}(p.(mmap))
+			mm = map[string]interface{}(p.(mmap))
 		}
 		switch f.(type) {
 		case map[string]interface{}:
@@ -484,18 +489,18 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 			if !ok {
 				fm = map[string]interface{}(f.(mmap))
 			}
-			if 0 == len(m) {
+			if 0 == len(mm) {
 				// Empty map pattern matched any given map.
 				return []Bindings{bs}, nil
 			}
-			return mapcatMatch(ctx, []Bindings{bs}, m, fm)
+			return m.mapcatMatch([]Bindings{bs}, mm, fm)
 		default:
 			return nil, nil
 		}
 
 	case []interface{}:
 		//separate variable and constants
-		v, xs, err := getVariable(ctx, vv)
+		v, xs, err := m.getVariable(vv)
 		if nil != err {
 			return nil, err
 		}
@@ -532,7 +537,7 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 					if 0 == len(fxa) {
 						return nil, nil
 					} else {
-						bsss, fxas, err = arraycatMatch(ctx, bsss, x, fxas)
+						bsss, fxas, err = m.arraycatMatch(bsss, x, fxas)
 						if nil != err {
 							return nil, err
 						}
@@ -557,11 +562,11 @@ func match(ctx *Context, pattern interface{}, fact interface{}, bindings Binding
 				return combine(bsss), nil
 			} else {
 				previous := bsss
-				bsss, fxas, err = arraycatMatch(ctx, bsss, v, fxas)
+				bsss, fxas, err = m.arraycatMatch(bsss, v, fxas)
 				if nil != err {
 					return nil, err
 				}
-				if len(bsss) == 0 && IsOptionalVariable(v) {
+				if len(bsss) == 0 && m.IsOptionalVariable(v) {
 					bsss = previous
 				}
 				return combine(bsss), nil
@@ -613,8 +618,8 @@ func (e *UnknownPatternType) Error() string {
 // mmap is now a mystery to me.
 type mmap map[string]interface{}
 
-func inequal(ctx *Context, fact interface{}, bs Bindings, v string) (bool, []Bindings, error) {
-	if !Inequalities {
+func (m *Matcher) inequal(fact interface{}, bs Bindings, v string) (bool, []Bindings, error) {
+	if !m.Inequalities {
 		return false, nil, nil
 	}
 
@@ -699,4 +704,8 @@ func inequal(ctx *Context, fact interface{}, bs Bindings, v string) (bool, []Bin
 
 	bs[vv] = a
 	return true, []Bindings{bs}, nil
+}
+
+func Match(pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
+	return DefaultMatcher.Match(pattern, fact, bindings)
 }
