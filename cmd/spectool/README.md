@@ -1,6 +1,12 @@
 # A tool to work with specs
 
-Docs ToDo.
+A machine specification is of course a data structure, so we can
+analyze and manipulate it.  Though this tool mostly serves as a
+demonstration, some of its functionality might actually be useful.
+
+`spectool` expects a specification (in either YAML or JSON) from
+`stdin`, and `spectool` writes out a spec (by default in YAML).  So
+you can chain `spectool` invocations via pipes.
 
 ## Example
 

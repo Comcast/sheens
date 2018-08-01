@@ -36,6 +36,8 @@ type MermaidOpts struct {
 	// ActionClass will be the CSS class for action nodes.  Not
 	// yet implemented.
 	ActionClass string `json:"actionClass,omitempty"`
+
+	PrettyPatterns bool `json:"prettyPatterns,omitempty"`
 }
 
 // Mermaid makes a Mermaid (https://mermaidjs.github.io/) input file
@@ -44,8 +46,9 @@ func Mermaid(spec *Spec, w io.WriteCloser, opts *MermaidOpts, fromNode, toNode s
 
 	if opts == nil {
 		opts = &MermaidOpts{
-			ShowPatterns: true,
-			ActionFill:   "#bcf2db",
+			ShowPatterns:   true,
+			ActionFill:     "#bcf2db",
+			PrettyPatterns: true,
 		}
 	}
 
@@ -106,13 +109,20 @@ func Mermaid(spec *Spec, w io.WriteCloser, opts *MermaidOpts, fromNode, toNode s
 
 			label := ""
 			if opts.ShowPatterns && b.Pattern != nil {
-				bs, err := json.Marshal(b.Pattern)
+				var bs []byte
+				if opts.PrettyPatterns {
+					bs, err = json.Marshal(b.Pattern)
+					if 40 < len(bs) {
+						bs, err = json.MarshalIndent(b.Pattern, "", "  ")
+					}
+				} else {
+				}
 				if err != nil {
 					return err
 				}
 				js := string(bs)
 				js = strings.Replace(js, `"`, `'`, -1)
-				label = fmt.Sprintf(`-- "%s"`, js)
+				label = fmt.Sprintf(`-- "<pre>%s</pre>"`, js)
 			}
 
 			fmt.Fprintf(w, "  %s %s --> %s\n", nid, label, to)

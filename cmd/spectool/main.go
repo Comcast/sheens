@@ -13,6 +13,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -31,6 +32,9 @@ func main() {
 		Usage()
 		os.Exit(1)
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	switch os.Args[1] {
 	case "inline", "inlines":
@@ -181,6 +185,11 @@ func main() {
 		var s *core.Spec
 
 		if err = yaml.Unmarshal(bs, &s); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+
+		if err = s.ParsePatterns(ctx); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
