@@ -77,6 +77,9 @@ func (t MatchTest) Fprintf(w io.Writer, i int) {
 	}
 	fmt.Fprintf(w, "The pattern\n```JSON\n%s\n```\n\n", JSON(t.Pattern))
 	fmt.Fprintf(w, "matched against\n```JSON\n%s\n```\n\n", JSON(t.Message))
+	if t.Bindings != nil {
+		fmt.Fprintf(w, "with bindings\n```JSON\n%s\n```\n\n", JSON(t.Bindings))
+	}
 	if t.Error {
 		fmt.Fprintf(w, "should return an error.\n")
 	} else {

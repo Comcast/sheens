@@ -515,6 +515,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{"?<n":10}
+
+```
+
 should return
 ```JSON
 [{"?<n":10,"?n":3}]
@@ -532,6 +538,12 @@ The pattern
 matched against
 ```JSON
 {"n":3}
+
+```
+
+with bindings
+```JSON
+{"?<n":2}
 
 ```
 
@@ -555,6 +567,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{"?>=n":11}
+
+```
+
 should return
 ```JSON
 [{"?>=n":11,"?n":11}]
@@ -572,6 +590,12 @@ The pattern
 matched against
 ```JSON
 {"n":11}
+
+```
+
+with bindings
+```JSON
+{"?>=n":12}
 
 ```
 
@@ -595,6 +619,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{"?<n":2}
+
+```
+
 should return
 ```JSON
 []
@@ -612,6 +642,12 @@ The pattern
 matched against
 ```JSON
 {"n":3}
+
+```
+
+with bindings
+```JSON
+{"?<n":10,"?n":3}
 
 ```
 
@@ -635,6 +671,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{"?<n":10,"?n":4}
+
+```
+
 should return
 ```JSON
 []
@@ -652,6 +694,12 @@ The pattern
 matched against
 ```JSON
 {"needs":3,"wants":{"n":3}}
+
+```
+
+with bindings
+```JSON
+{"?<n":10}
 
 ```
 
@@ -675,6 +723,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{"?<n":10}
+
+```
+
 should return
 ```JSON
 []
@@ -692,6 +746,12 @@ The pattern
 matched against
 ```JSON
 {"wants":"tacos"}
+
+```
+
+with bindings
+```JSON
+{}
 
 ```
 
@@ -715,6 +775,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{}
+
+```
+
 should return
 ```JSON
 [{"??maybe":"queso","?wanted":"tacos"}]
@@ -732,6 +798,12 @@ The pattern
 matched against
 ```JSON
 []
+
+```
+
+with bindings
+```JSON
+{}
 
 ```
 
@@ -755,6 +827,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{}
+
+```
+
 should return
 ```JSON
 [{}]
@@ -775,6 +853,12 @@ matched against
 
 ```
 
+with bindings
+```JSON
+{}
+
+```
+
 should return
 ```JSON
 [{"??opt":"c"}]
@@ -792,6 +876,12 @@ The pattern
 matched against
 ```JSON
 ["a","b","c","d"]
+
+```
+
+with bindings
+```JSON
+{}
 
 ```
 
