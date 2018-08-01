@@ -174,14 +174,48 @@ func (spec *Spec) Copy(version string) *Spec {
 	}
 }
 
+// ParsePatterns parses branch patterns.
+//
+// The method Compile calls this method.  ParsePatterns is exposed to
+// tools that might need to parse patterns without wanted to Compile
+// them.
+func (spec *Spec) ParsePatterns(ctx context.Context) error {
+	if spec.PatternParser == nil {
+		spec.PatternParser = DefaultPatternParser
+	}
+
+	if spec.Nodes == nil {
+		return nil
+	}
+
+	for _, n := range spec.Nodes {
+		if n.Branches == nil {
+			continue
+		}
+
+		for _, b := range n.Branches.Branches {
+			x, err := spec.PatternParser(spec.PatternSyntax, b.Pattern)
+			if err != nil {
+				return err
+			}
+			// ToDo: Remove
+			if x, err = Canonicalize(x); err != nil {
+				return err
+			}
+			b.Pattern = x
+		}
+	}
+	return nil
+}
+
 // Compile compiles all action-like sources into actions. Might also
 // do some other things.
 //
 // Action-like sources include Actions, Boot, Toob, and Guards.
 func (spec *Spec) Compile(ctx context.Context, interpreters Interpreters, force bool) error {
 
-	if spec.PatternParser == nil {
-		spec.PatternParser = DefaultPatternParser
+	if err := spec.ParsePatterns(ctx); err != nil {
+		return err
 	}
 
 	if spec.BootSource != nil && (force || spec.Boot == nil) {
@@ -232,9 +266,6 @@ func (spec *Spec) Compile(ctx context.Context, interpreters Interpreters, force 
 		}
 
 		if n.Branches == nil {
-			// No possibility of guards that we need to
-			// compile or string patterns we need to
-			// parse.
 			continue
 		}
 
