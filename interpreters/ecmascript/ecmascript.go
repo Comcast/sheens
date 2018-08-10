@@ -105,6 +105,10 @@ func protest(o *goja.Runtime, x interface{}) {
 	panic(o.ToValue(x))
 }
 
+func deepCopy(x interface{}) (interface{}, error) {
+	return core.Canonicalize(x)
+}
+
 // Exec implements the Interpreter method of the same name.
 //
 // The following properties are available from the runtime at _.
@@ -154,7 +158,18 @@ func (i *Interpreter) Exec(ctx context.Context, bs match.Bindings, props core.St
 	}
 
 	if bs != nil {
-		env["bindings"] = map[string]interface{}(bs.Copy())
+		// This particular action interpreter allows code to
+		// modify values, and we don't want any side effects.
+		// So:
+		x, err := deepCopy(bs)
+		if err != nil {
+			return nil, err
+		}
+		bsCopy, is := x.(map[string]interface{})
+		if !is {
+			return nil, fmt.Errorf("internal error: %#v copy failed; %s", bs, err)
+		}
+		env["bindings"] = bsCopy
 	}
 
 	o := goja.New()

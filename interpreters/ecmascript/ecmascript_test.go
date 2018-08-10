@@ -420,3 +420,47 @@ func TestActionsOutNaN(t *testing.T) {
 		t.Fatal("expected an error")
 	}
 }
+
+func TestActionsModifyBindingValue(t *testing.T) {
+	bs := match.NewBindings()
+	bs["likes"] = map[string]interface{}{
+		"weekdays": "tacos",
+		"weekends": "chips",
+	}
+
+	code := `_.bindings.likes.weekends = "queso"; throw "a fit";`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	i := NewInterpreter()
+	i.Test = true
+	compiled, err := i.Compile(ctx, code)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	exe, _ := i.Exec(ctx, bs, nil, code, compiled)
+	// Ignore the error.  We want to see if the action had a side
+	// effect.
+
+	x, have := bs["likes"]
+	if !have {
+		t.Fatalf("nothing liked in %#v", exe.Bs)
+	}
+	m, is := x.(map[string]interface{})
+	if !is {
+		t.Fatalf("liked %#v is a %T, not a %T", x, x, m)
+	}
+	y, have := m["weekends"]
+	if !have {
+		t.Fatalf("nothing liked on weekends in  %#v", exe.Bs)
+	}
+	s, is := y.(string)
+	if !is {
+		t.Fatalf("liked %#v is a %T, not a %T", y, y, s)
+	}
+	if s != "chips" {
+		t.Fatalf("didn't want \"%s\"", s)
+	}
+}
