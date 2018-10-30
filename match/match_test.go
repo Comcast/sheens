@@ -140,7 +140,7 @@ func (mt *MatchTest) Run(t *testing.T, check bool) {
 }
 
 func getMatchTests() ([]MatchTest, error) {
-	js, err := ioutil.ReadFile("match_test.js")
+	js, err := ioutil.ReadFile("match_test.json")
 	if err != nil {
 		return nil, err
 	}

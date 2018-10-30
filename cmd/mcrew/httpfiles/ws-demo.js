@@ -43,7 +43,7 @@ window.addEventListener("load", function(evt) {
 	insert("log", pre(msg));
     };
 
-    ws = new WebSocket(ws_url);
+    var ws = new WebSocket(ws_url);
     
     ws.onopen = function(evt) {
         print("open");

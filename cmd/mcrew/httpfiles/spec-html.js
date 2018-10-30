@@ -18,9 +18,9 @@ function renderMachine(mid, spec) {
 	    .text(mid);
     }
     var gdivid = divid + "_graph";
-    var gfiv = div.append("div")
+    div.append("div")
 	.classed("graph", true)
-	.attr("id", gdivid)
+	.attr("id", gdivid);
 
     var elements = [];
     if (spec && spec.nodes) {
@@ -65,7 +65,6 @@ function renderMachine(mid, spec) {
 		    'width': 1,
 		    'line-color': 'blue',
 		    'target-arrow-color': 'orange',
-		    'target-arrow-shape': 'triangle',
 		    'label': 'data(label)',
 		}
 	    }

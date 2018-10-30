@@ -16,7 +16,7 @@ var match = function() {
 
     var copyMap = function(m) {
 	var acc = {};
-	for (p in m) {
+	for (var p in m) {
 	    acc[p] = m[p];
 	}
 	return acc;
@@ -24,7 +24,7 @@ var match = function() {
 
     var copyArray = function(xs) {
 	return xs.slice();
-    }
+    };
 
     var extend = function(bs, b, v) {
 	var acc = copyMap(bs);
@@ -58,7 +58,7 @@ var match = function() {
 		if (bss_.length == 0) {
 		    continue;
 		}
-		var m_ = copyArray(m)
+		var m_ = copyArray(m);
 		m_.splice(j, 1);
 		bss_ = arraycatMatch(ctx, bss_, m_.slice(2), m_);
 		for (var k = 0; k < bss_.length; k++) {
@@ -71,7 +71,7 @@ var match = function() {
     };
 
     var mapcatMatch = function(ctx, bss, p, m) {
-	for (k in p) {
+	for (var k in p) {
 	    var v = p[k];
 	    var mv = m[k];
 	    if (mv === undefined) {
