@@ -8,6 +8,12 @@ See [`protocol.go`](protocol.go) for the protocol, and see
 
 ## Usage
 
+To build:
+
+```Shell
+go install
+```
+
 ### Via stdin/out
 
 From this directory:
