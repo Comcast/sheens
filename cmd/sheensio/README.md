@@ -1,10 +1,11 @@
 # Simple Sheens I/O
 
-This program aspires to be compatible with [Little
+This program reads messages from `stdin` and writes messages to
+`stdout`.  It aspires to be compatible with [Little
 Sheens](https://github.com/Comcast/littlesheens)'s
 [`sheensio`](https://github.com/Comcast/littlesheens/blob/master/sheensio.c).
 
-Current the `steps` output is very different, but the `updated` and
+Currently the `steps` output is very different, but the `updated` and
 `out` lines should be compatible (with the possible exception of JSON
 property rendering order from Little Sheens).
 
@@ -22,7 +23,7 @@ cat specs/double.yaml | yaml2json | jq . > specs/double.js
 cat<<EOF > crew.json
 {"id":"simpsons",
  "machines":{
-     "m1":{"spec":"double","node":"start","bs":{}}}}
+     "m1":{"spec":"double.js","node":"start","bs":{}}}}
 EOF
 
 echo '{"double":3}' | sheensio
