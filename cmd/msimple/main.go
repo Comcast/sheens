@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+// Package main is a simple program that runs a single machine.
 package main
 
 import (

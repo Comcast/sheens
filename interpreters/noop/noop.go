@@ -10,6 +10,8 @@
  * limitations under the License.
  */
 
+// Package noop provides a no-op interpreter that can be handy for
+// some tests.
 package noop
 
 import (
@@ -34,6 +36,7 @@ func (i *Interpreter) Compile(ctx context.Context, code interface{}) (interface{
 	return nil, nil
 }
 
+// Exec returns the given bindings and emits no messages.
 func (i *Interpreter) Exec(ctx context.Context, bs Bindings, props core.StepProps, code interface{}, compiled interface{}) (*core.Execution, error) {
 	if !i.Silent {
 		log.Printf("warning: Using Interpreter for execution")

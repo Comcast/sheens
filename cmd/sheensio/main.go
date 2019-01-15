@@ -10,6 +10,8 @@
  * limitations under the License.
  */
 
+// Package main is a program to run machines that listen on stdin and
+// write to stdout.
 package main
 
 import (

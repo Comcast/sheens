@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+// Package testutil provides some utility functions for Go tests.
 package testutil
 
 import (

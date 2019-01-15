@@ -10,6 +10,8 @@
  * limitations under the License.
  */
 
+// Package crew is a simple, example foundation for gathering a set of
+// machines.
 package crew
 
 import (

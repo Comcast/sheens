@@ -1,3 +1,17 @@
+/* Copyright 2018 Comcast Cable Communications Management, LLC
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Package interpreters is an example set of action interpreters that
+// are available in this repo.
 package interpreters
 
 import (
@@ -6,6 +20,10 @@ import (
 	"github.com/Comcast/sheens/interpreters/noop"
 )
 
+// Standard returns a map of interpreters that includes ECMAScript,
+// ECMAScript with some extensions, and a no-op interpreter.
+//
+// See the code and subdirectories for details.
 func Standard() core.InterpretersMap {
 	is := core.NewInterpretersMap()
 

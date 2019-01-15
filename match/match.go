@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+// Package match implements the core pattern matcher.
 package match
 
 import (

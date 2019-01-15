@@ -10,6 +10,8 @@
  * limitations under the License.
  */
 
+// Package ecmascript provides an ECMAScript-compatible action
+// interpreter.
 package ecmascript
 
 import (

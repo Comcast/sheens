@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+// Package main is a command-line machine debugger in the spirit of gdb.
 package main
 
 import (
