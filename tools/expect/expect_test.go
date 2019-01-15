@@ -10,7 +10,7 @@
  * limitations under the License.
  */
 
-package tools
+package expect
 
 import (
 	"context"
@@ -86,7 +86,7 @@ func TestExpectBasic(t *testing.T) {
 	s.ShowStdout = true
 	s.ShowStdin = true
 
-	if err := s.Run(ctx, "..", "mcrew", "-v", "-s", "specs", "-d", "", "-I", "-O", "-h", ""); err != nil {
+	if err := s.Run(ctx, "../..", "mcrew", "-v", "-s", "specs", "-d", "", "-I", "-O", "-h", ""); err != nil {
 		panic(err)
 	}
 }

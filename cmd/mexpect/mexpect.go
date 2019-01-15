@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/Comcast/sheens/interpreters"
-	"github.com/Comcast/sheens/tools"
+	"github.com/Comcast/sheens/tools/expect"
 
 	"github.com/jsccast/yaml"
 )
@@ -43,7 +43,7 @@ func main() {
 		panic(err)
 	}
 
-	var s tools.Session
+	var s expect.Session
 	if err = yaml.Unmarshal(bs, &s); err != nil {
 		panic(err)
 	}

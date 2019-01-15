@@ -1,8 +1,12 @@
-# Testing tool using tools.Session (expect)
+# Expect-like testing tool
 
-Usage:
+## Introduction
+
+This tool can test a spec based on a test definition.
+
+## Usage
 
 ```Shell
-(cd cmd/mcrew && go install) # If you haven't already)
+(cd cmd/mcrew && go install) # If you haven't already
 mexpect -f specs/tests/double.test.yaml -s specs
 ```
