@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+// Package main is a command-line program for spec testing.
 package main
 
 import (

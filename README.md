@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/Comcast/sheens.svg?branch=master)](https://travis-ci.org/Comcast/sheens)
-[![Documentation](https://godoc.org/github.com/Comcast/sheens/core?status.svg)](http://godoc.org/github.com/Comcast/sheens/core) 
+[![Documentation](https://godoc.org/github.com/Comcast/sheens?status.svg)](http://godoc.org/github.com/Comcast/sheens) 
 
 ![Sheens logo](doc/logo.png)
 
