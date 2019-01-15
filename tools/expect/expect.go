@@ -10,6 +10,19 @@
  * limitations under the License.
  */
 
+// Package expect is a tool for testing machine specifications.
+//
+// You construct a Session, which has inputs and expected outputs.
+// Then run the session to see if the expected outputs actually
+// appeared.
+//
+// Specifying what's expect can be simple, as in some literal output,
+// or fairly fancy, as in code that computes some property.
+//
+// This package also has support for delays, timeouts, and other
+// time-driven behavior.
+//
+// See ../../cmd/mexpect for command-line use.
 package expect
 
 import (
@@ -56,6 +69,9 @@ type Output struct {
 
 // IO is a package of input messages and required output message
 // specifications.
+//
+// This struct includes a list of messages to send and a set of expect
+// output messages.
 type IO struct {
 	// Doc is an opaque documentation string.
 	Doc string `json:"doc,omitempty" yaml:"doc,omitempty"`
@@ -103,8 +119,12 @@ type Session struct {
 	// logged.
 	ShowStderr bool `json:"showStderr,omitempty" yaml:"showStderr,omitempty"`
 
+	// ShowStdin controls whether the subprocess's stdin is
+	// logged.
 	ShowStdin bool `json:"showStdin,omitempty" yaml:"showStdin,omitempty"`
 
+	// ShowStdout controls whether the subprocess's stdout is
+	// logged.
 	ShowStdout bool `json:"showStdout,omitempty" yaml:"showStdout,omitempty"`
 
 	Verbose bool `json:"verbose,omitempty" yaml:"verbose,omitempty"`
@@ -116,7 +136,10 @@ type Session struct {
 // restored).
 //
 // The subprocess is given by the args. The first arg is the
-// executable.
+// executable.  Example args:
+//
+//   "mcrew", "-v", "-s", "specs", "-d", "", "-I", "-O", "-h", ""
+//
 func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 
 	if dir != "" {
