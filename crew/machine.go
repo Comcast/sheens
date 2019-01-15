@@ -23,7 +23,7 @@ import (
 // Side-effecting operations can occur during the second arrow.  When
 // there are side-effecting operations, we write new state.
 
-//  Machine is a triple: id, core.Spec, and core.State.
+// Machine is a triple: id, core.Spec, and core.State.
 type Machine struct {
 	Id      string       `json:"id,omitempty"`
 	Specter core.Specter `json:"-" yaml:"-"`
@@ -78,12 +78,14 @@ type SpecSource struct {
 	Inline *core.Spec `json:"inline,omitempty" yaml:",omitempty"`
 }
 
+// NewSpecSource creates a SpecSource with the given name.
 func NewSpecSource(name string) *SpecSource {
 	return &SpecSource{
 		Name: name,
 	}
 }
 
+// Copy makes a (deep?) copy of the given SpecSource.
 func (s *SpecSource) Copy() *SpecSource {
 	return &SpecSource{
 		Name:   s.Name,
@@ -93,6 +95,7 @@ func (s *SpecSource) Copy() *SpecSource {
 	}
 }
 
+// SpecProvider can FindSpec given a SpecSource.
 type SpecProvider interface {
 	FindSpec(ctx context.Context, s *SpecSource) (*core.Spec, error)
 }

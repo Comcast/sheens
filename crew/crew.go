@@ -18,14 +18,21 @@ import (
 	"sync"
 )
 
+// Crew is a simple collection of Machines.
 type Crew struct {
 	sync.RWMutex
 
-	Id       string              `json:"id"`
+	// Id is an optional name for this crew.
+	Id string `json:"id"`
+
+	// Machines is the collection of Machines indexed by their
+	// ids.
 	Machines map[string]*Machine `json:"machines"`
 }
 
-// Copy gets a read lock and returns a copy of the crew.
+// Copy gets a read lock and returns a deep copy of the crew.
+//
+// Each Machine is itself Copy()ed, too.
 func (c *Crew) Copy() *Crew {
 	c.RLock()
 	ms := make(map[string]*Machine, len(c.Machines))
