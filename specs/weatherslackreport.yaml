@@ -1,0 +1,43 @@
+name:  weatherslackreport
+doc: |-
+  A machine that creates a HTTP request to Open Weather Map API.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"make":"request"}
+        target: getweather
+  getweather:
+    action:
+      interpreter: ecmascript
+      source: |-
+        _.out({"to":"http","request":{"url":"http://api.openweathermap.org/data/2.5/weather?zip="+String(_.bindings.zipcode)+"&appid="+String(_.bindings.apk)}});
+        return _.bindings;
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"request":{"url":"?url"}, "body": "?body"}
+        target: report
+  report:
+    action:
+      interpreter: ecmascript
+      source: |-
+        var body = JSON.parse(_.bindings["?body"]);
+        delete _.bindings["?body"];
+        delete _.bindings["?url"];
+        var temp = parseInt(((body.main.temp - 273.15)*9/5+32));
+        var zipcode = _.bindings.zipcode;
+        var text = "The temperature for zipcode "+ zipcode +" is "+temp+".";
+        _.out({"to":"http","request":{"url":"https://hooks.slack.com/services/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", "headers": {"Content-Type": ["application/json"]}, "method":"POST", "body":JSON.stringify({"text":text})}});
+        return {};
+    branching:
+      branches:
+      - target: start
