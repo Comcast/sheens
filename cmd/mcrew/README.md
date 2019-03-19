@@ -39,7 +39,7 @@ From this directory:
 (cd ../.. && mcrew -h :8080 -w -f cmd/mcrew/httpfiles)
 ```
 
-Then try [`localhost:8080/static/demo.html`](http://localhost:8080/static/demo.html).
+Then try [`http://localhost:8080/static/ws-demo.html`](http://localhost:8080/static/ws-demo.html).
 
 
 ### Via HTTP
