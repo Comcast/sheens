@@ -1,0 +1,20 @@
+name:  makerequest
+doc: |-
+  A machine that creates a HTTP request to Open Weather Map API.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"make":"request"}
+        target: getweather
+  getweather:
+    action:
+      interpreter: ecmascript
+      source: |-
+        _.out({"to":"http","request":{"url":"https://samples.openweathermap.org/data/2.5/weather?zip="+String(_.binding.zipcode)+"&appid="+String(_.binding.apk)},"replyTo":"echoresponse"});
+    branching:
+      branches:
+      - target: start

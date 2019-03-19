@@ -15,7 +15,10 @@ nodes:
       interpreter: ecmascript
       source: |-
         _.out({echo: {url: _.bindings["?url"], status: _.bindings["?status"], body: _.bindings["?body"]}});
-        return {};
+        delete _.bindings["?url"];
+        delete _.bindings["?status"];
+        delete _.bindings["?body"];
+        return _.bindings;
     branching:
       branches:
       - target: start

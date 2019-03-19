@@ -1,0 +1,5 @@
+# Make a machine with the "request" specification.
+{"cop":{"add":{"m":{"id":"request", "state":{"bs":{"zipcode":"80021", "apk":"3267db6a426cbcd4427f8a30cdb7e99a"}}, "spec":{"name":"makerequest"}}}}}
+{"cop":{"process":{"message":{"to":"request","make":"request"}}}}
+# {"cop":{"process":{"message":{"to":"http","request":{"url":"https://google.com"},"replyTo":"response"}}}}
+sleep 10s
