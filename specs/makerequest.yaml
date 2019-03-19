@@ -16,7 +16,7 @@ nodes:
       source: |-
         _.out({"to":"http","request":{"url":"https://samples.openweathermap.org/data/2.5/weather?zip="+String(_.bindings.zipcode)+"&appid="+String(_.bindings.apk)}});
         return {};
-  branching:
+    branching:
       branches:
       - target: listen
   listen:
@@ -31,7 +31,8 @@ nodes:
       interpreter: ecmascript
       source: |-
         var body = JSON.parse(_.bindings["?body"]);
-        _.out({time: body.humidity});
+        delete _.bindings["?body"];
+        _.out({temprature: parseInt(((body.main.temp - 273.15)*9/5+32))});
         return {};
     branching:
       branches:
