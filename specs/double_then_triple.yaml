@@ -1,0 +1,58 @@
+name: timer
+doc: |-
+  start a timer with timer ID from input, when time is up, output a message
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"double":"?double"}
+        target: double
+        
+      - pattern: |
+          {"triple":"?triple"}
+        target: triple        
+  double:
+    action:
+      interpreter: ecmascript
+      source: |-
+        var d = _.bindings["?double"];
+        
+        delete _.bindings["?double"];
+       
+      
+        var f = parseInt(d);
+        if (isNaN(f)) {
+           _.out({"invalid duration":d});
+        } else {
+        _.out({"doubled":f*2});
+        _.bindings["?triple"]=f*2;
+        //_.bindings.t=f*2;
+        }
+        return _.bindings;
+      
+    branching:
+      branches:
+      - target: triple
+      
+  triple:
+    action:
+      interpreter: ecmascript
+      source: |-
+        var t = _.bindings["?triple"];
+        _.out({"test":t});
+        delete _.bindings["?triple"];
+        //t=_.bindings.t;
+        var f = parseInt(t);
+        if (isNaN(f)) {
+           _.out({"invalid duration":t});
+        } else {
+        _.out({"tripled":f*3});
+        }
+        return _.bindings;
+      
+    branching:
+      branches:
+      - target: start
