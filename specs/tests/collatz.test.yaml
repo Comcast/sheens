@@ -1,10 +1,9 @@
 doc: |
-  An mexpect-driven test of 'collatz.spec'.
+  An mexpect-driven test of 'collatz.yaml' spec.
 ios:
-- doc: Create a machine, send it a message, and verify the results.
-  inputs:
-  - '{"cop":{"add":{"m":{"id":"c","spec":{"name":"collatz"}}}}}'
-  - '{"cop":{"process":{"message":{"to":"c","collatz":5}}}}'
+- inputs:
+  - '{"to":"captain","update":{"c":{"spec":{"url":"file://specs/collatz.yaml"}}}}'
+  - '{"collatz":5}'
   outputSet:
   - pattern: '{"collatz":16}'
   - pattern: '{"collatz":8}'

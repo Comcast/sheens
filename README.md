@@ -1,72 +1,36 @@
 [![Build Status](https://travis-ci.org/Comcast/sheens.svg?branch=master)](https://travis-ci.org/Comcast/sheens)
 [![Documentation](https://godoc.org/github.com/Comcast/sheens?status.svg)](http://godoc.org/github.com/Comcast/sheens) 
 
-![Sheens logo](doc/logo.png)
+# Sheens: Messaging machines
 
-# Messaging machines
+<a href="doc/homeassistant.svg"><img src="https://raw.githubusercontent.com/Comcast/sheens/master/doc/homeassistant.svg?sanitize=true" width="400"></a>
 
-<a href="specs/door.yaml"><img src="doc/door-graph.png" width="200"></a>
+## Introduction
 
-Sheens is an automation engine that hosts message-processing state
-machines (also called "sheens").  These machines process and emit
-messages efficiently and atomically.  The initial motivation was
-implementing IoT-oriented home automations; however, Sheens has been
-useful in other settings.
+Sheens are light-weight agents that process messages.  Processing is
+efficient and atomic.  The initial motivation for Sheens was for
+IoT-oriented home automations; however, Sheens has been useful in
+other applications.
+
+For the Go implementation, the core packages contain fewer than 2,600
+lines of source code.  The Javascript [implementation](js) is fewer
+than 1000 lines of code, which can be used in C applications with a
+360KB footprint (for example).
 
 Sheens is easy to integrate via HTTP, WebSockets, MQTT, plain TCP, Go
-or C applications, or via other glue.  For example, we have integrated
-Sheens with several internal services, [AWS
-IoT](https://aws.amazon.com/iot/), [Home
-Assistant](https://home-assistant.io/), and other frameworks.
+or C applications, or other mechanism.  We have integrated Sheens with
+MQTT brokers, [AWS IoT](https://aws.amazon.com/iot/), [Home
+Assistant](https://home-assistant.io/), and other systems.
 
-The structure and behavior of sheens are amenable to
-[standardization](doc/rfc.md), and multiple
-[implementations](https://github.com/Comcast/littlesheens) are
-feasible and practical.  The Sheens engine is highly programmable.
-Sheen-oriented tools (debuggers, visualizations, monitoring,
-analyzers) are often easy to implement.
-
-
-<img src="doc/sheens.png" width="500">
+The Sheens engine is highly programmable, and Sheens-oriented tools
+(debuggers, visualizations, monitoring, analyzers) are often easy to
+implement.  The structure and behavior of Sheens are amenable to
+[standardization](doc/rfc.md) and formal
+[verification](doc/patmatch.v).
 
 ## License
 
 This repo is licensed under [Apache License 2.0](LICENSE).
-
-## Demo usage
-
-To build, first install [Go](https://golang.org/doc/install).
-
-Then:
-
-```Shell
-go get github.com/Comcast/sheens/...
-cd $GOPATH/src/github.com/Comcast/sheens # Or equivalent
-echo '{"double":1}' | msimple -s specs/double.yaml 
-```
-
-A bit fancier:
-
-```Shell
-mcrew -s specs -t :9000 &
-cat cmd/mcrew/input.txt | nc localhost 9000
-kill %%
-```
-
-See [`cmd/mcrew`](cmd/mcrew) for more discussion, and see the rest of
-this README and [`doc/by-example.md`](doc/by-example.md) for a start
-at documentation.
-
-Applications will all use the [`core`](core) package (which has decent
-[godoc](https://godoc.org/github.com/Comcast/sheens/core)).  If an
-application wants a little help with containers of machines, then the
-`crew` package might be a good start.  An application should provide
-its own message transport (both in and out), and an application should
-provide its own persistence.  For simple example, see
-[`cmd/msimple`](cmd/msimple), which is a very simple single-machine
-process.  The example [`cmd/mcrew`](cmd/mcrew) demonstrates some
-additional functionality.
-
 
 ## Goals
 
@@ -77,28 +41,55 @@ This project attempts to provide automation gear that is
 3. Debuggable, testable
 4. Efficient
 
-IoT is a motivating application area.
-
-Other objectives
+Other objectives:
 
 1. Pluggable action interpreters.  Actions can be written in a
    language that's executed by pluggable components.
-2. Transport-agnostic.  Input from and output to any sort of messaging
-   services (e.g., HTTP, MQTT, CoAP).
+2. Transport-agnostic, with input from and output to any sort of
+   messaging services (e.g., HTTP, MQTT, SNS, SQS, Kinesis, Kafka,
+   etc.).
 3. Pluggable persistence.
-4. Amenable to formal specification(s) (see below).
-5. Feasible [alternative implementations](https://github.com/Comcast/littlesheens) in other
-   languages.
+4. Amenable to formal specification(s).
+5. Feasible alternative implementations in other languages.
 6. Modest resource requirements.
 
-<a href="doc/homeassistant.svg"><img src="https://raw.githubusercontent.com/Comcast/sheens/master/doc/homeassistant.svg?sanitize=true" width="400"></a>
+## Getting started
 
+### Using a release
+
+Download and unpack a [release](https://github.com/Comcast/sheens/releases).
+
+### Building
+
+To build the Go implementation, first install
+[Go](https://golang.org/doc/install).
+
+Then:
+
+```Shell
+go get github.com/Comcast/sheens/...
+```
+
+### Running
+
+Change to the root of the repo or the `sheens-VERSION` subdirectory of
+the release.  Then try this example:
+
+```Shell
+echo '{"double":1}' | siostd -spec-file specs/double.yaml 
+```
+
+You should see `{"doubled":2}`.  After that, try
+
+```Shell
+echo '{"collatz":23}' | siostd -spec-file specs/collatz.yaml
+```
 
 ## Design
 
-A machine processes and emits messages.
+A Sheen processes messages and emits messages.
 
-1. A machine's state consists of the name of a node and the set of
+1. Machine state consists of the name of a node and the set of
    bindings (and a machine specification).  A machine's initial
    bindings are its parameters.
 2. A machine's specification defines the structure and behavior of the
@@ -107,17 +98,18 @@ A machine processes and emits messages.
 3. A state transition is determined by pattern matching against either
    a pending message or current bindings.
 4. Actions ideally just generate messages and return new bindings.  A
-   good action has no side effects nor will it ever block on IO.
+   good action can have no side effects nor will can it block on IO.
 6. A collection of machines is called a _crew_. A crew is
    typically associated with a user account (or some agent).
 7. Machines within a crew can send messages to all other machines
    in that crew or to a specific machine in that crew.
    (Intra-crew messaging is optionally provided by a _nanobus_ via
    a pluggable `Router`.)
-8. Machines can send messages to any service if routed appropriately.
+8. Machines can send messages to any external service if routed
+   appropriately.
 9. Action languages are pluggable.  Most examples here are based on
    [goja](https://github.com/dop251/goja), which is an ECMAScript
-   implementation.
+   implementation in Go.
 
 > "Transmit the message to the receiver; hope for an answer some day." 
 >
@@ -130,6 +122,47 @@ A machine processes and emits messages.
 This section provides definitions for machines.  For an example-based
 exposition, see this work-in-progress
 [documentation](doc/by-example.md).
+
+Here's the example specification that doubles numbers:
+
+```YAML
+name: double
+doc: |-
+  A simple machine that doubles numbers and protests any other double requests.
+  
+  Input: {"double":N}
+  
+  Output: {"doubled":2*N}
+  
+patternsyntax: json
+nodes:
+  start:
+    doc: Listen for a double request.
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"double":"?n"}
+        target: process
+  process:
+    doc: Try to emit a doubled message.
+    action:
+      interpreter: ecmascript
+      source: |-
+        var n = _.bindings["?n"];
+        delete _.bindings["?n"];
+        var f = parseFloat(n);
+        if (isNaN(f)) {
+           _.out({"protest": n});
+        } else {
+          _.out({"doubled": f*2});
+        }
+        return _.bindings;
+    branching:
+      branches:
+      - target: start
+
+```
 
 Given a _machine specification_ and some _initialization parameters_,
 we can make a _machine_, which can perform _actions_ in response to
@@ -172,6 +205,8 @@ A _crew_ is a group of machines associated with some agent.
 
 
 ## Pattern matching
+
+### Basics
 
 Transitions from one node to another are driven by pattern matching,
 either against the current set of bindings or a pending message.
@@ -253,7 +288,7 @@ patmatch -p '{"a":[{"b":"?x"}]}' -m '{"a":[{"b":1},{"b":2},{"c":3}]}'
 [{"?x":1},{"?x":2}]
 ```
 
-### Experimental optional pattern variables
+### Optional pattern variables
 
 If a pattern variable starts with `??`, that variable (or its
 associated property when in a map) is optional.  Examples:
@@ -275,7 +310,7 @@ patmatch -p '["??maybe","a","b"]' -m '["a"]'
 null
 ```
 
-### Experimental matching inequalities
+### Matching inequalities
 
 As an experimental feature, pattern matching supports numeric
 inequalities.
@@ -426,64 +461,74 @@ could provide durable timers.  Etc.
 
 ## Formal methods
 
-Though you can happily use sheens without worrying about formalities, you can get formal with sheens if you want to.
+Though you can happily use sheens without worrying about formalities,
+you can get formal with Sheens if you want to.
 
 ### System verification
 
-The operation of a machine is amenable to formal specification (of evolving [precision](doc/rfc.md)) and [alternate implementations](https://github.com/Comcast/littlesheens). An interprising investigator could implement a sheens system and prove properties about it.  We've started an experiment with [Idris](https://www.idris-lang.org/) along these lines.
+The operation of a machine is amenable to formal specification (of
+evolving [precision](doc/rfc.md)) and [alternate
+implementations](https://github.com/Comcast/littlesheens). An
+interprising investigator could implement a sheens system and prove
+properties about it.  We've started an experiment with
+[Idris](https://www.idris-lang.org/) along these lines.
 
 ### Action proofs
 
-In the implementation in this repo, the interpreters for actions and guards are pluggable, so an application is free to provide its own interpreter(s).  For example, a conventional native code sheens system, which ideally has been subject to extensive testing, could offer an action interpreter that enables and/or requires proofs of useful properties, such as [being total](http://docs.idris-lang.org/en/latest/tutorial/theorems.html#totality-checking), not making undesired bindings, or only emitting messages with certain properties.
+In the implementation in this repo, the interpreters for actions and
+guards are pluggable, so an application is free to provide its own
+interpreter(s).  For example, a conventional native code sheens
+system, which ideally has been subject to extensive testing, could
+offer an action interpreter that enables and/or requires proofs of
+useful properties, such as [being
+total](http://docs.idris-lang.org/en/latest/tutorial/theorems.html#totality-checking),
+not making undesired bindings, or only emitting messages with certain
+properties.
 
 ### Statistical mechanics
 
 <img src="doc/viz.gif">
 
-A sheen is not in general a _finite_ state machine. Techincally speaking, a machine is triple of node id, current bindings, and the machine's specification, and the space of bindings is in general not finite.  Therefore even holding the specification constant doesn't give a finite state.  However, a sheen step does have the [Markov property](https://en.wikipedia.org/wiki/Markov_property), which makes a wide range of analysis feasible.
+A sheen is not in general a _finite_ state machine. Techincally
+speaking, a machine is triple of node id, current bindings, and the
+machine's specification, and the space of bindings is in general not
+finite.  Therefore even holding the specification constant doesn't
+give a finite state.  However, a sheen step does have the [Markov
+property](https://en.wikipedia.org/wiki/Markov_property), which makes
+a wide range of analysis feasible.
 
-For example, consider the projection of a sheen's state space to just the set of nodes defined in the sheens's specification.  We now have a finite set of states.  Of course, state transitions still have that Markov property.  So we can (say) build and maintain simple models of state transition counts over time: `count(FROM,TO) → N`. If there are `S` nodes, then that information can be represented as a vector of `S*S` integer components.  Assume we update that data virtually at some interval to reflect a state not changing during that interval.  (Of course, we can perform that computation in one go rather than performing some actual heartbeat-like activity.)  We could then accumulate a distribution of those vectors over time.  Finally, to finish this little example, we could watch for a 2&sigma; (or whatever) excursion, which perhaps indicates a new regime or anomaly of some sort.
+For example, consider the projection of a sheen's state space to just
+the set of nodes defined in the sheens's specification.  We now have a
+finite set of states.  Of course, state transitions still have that
+Markov property.  So we can (say) build and maintain simple models of
+state transition counts over time: `count(FROM,TO) → N`. If there are
+`S` nodes, then that information can be represented as a vector of
+`S*S` integer components.  Assume we update that data virtually at
+some interval to reflect a state not changing during that interval.
+(Of course, we can perform that computation in one go rather than
+performing some actual heartbeat-like activity.)  We could then
+accumulate a distribution of those vectors over time.  Finally, to
+finish this little example, we could watch for a 2&sigma; (or
+whatever) excursion, which perhaps indicates a new regime or anomaly
+of some sort.
 
 ### Note on atomicity and errors
 
-As we mentioned above, a virtuous action performs no I/O.  Therefore, a single message (or even a batch of messages) can be processed atomically againts a set of machines. In general, the result is a structure that contains new states, which can include error states or conditions, and a set of sequences (of sequences) of messages. The caller can then decide what to do next.  If the processing resulted in no system-level error conditions, then all states are updated (hopefully atomically via the application's persistence system). Only then are the output messages actually forwarded to a system that can deliver them (with the required policies/guaranties).  If any system-level error condition occured, the application could retry all processing.  More economically, the application could retry only the specific failure. Either way, the application need not fear side effects from the previous attempt.  Of course, other approaches are possible.
-
-	
-## Sheens in Shakespeare
-
-|||
-|-|-|
-|KING LEAR|How now! what art thou?|
-|||
-|SHEEN|A machine, sir.|
-|||
-|KING LEAR|What dost thou profess? what wouldst thou with us?|
-|||
-|SHEEN|I do profess to be no less than I seem; to serve<br>him truly that will put me in trust: to love him<br>that is honest; to converse with him that is wise,<br>and says little; to fear judgment; to fight when I<br>cannot choose; and to eat no fish.|
-|||
-|KING LEAR|What art thou?|
-|||
-|SHEEN|A very honest-hearted machine, and as poor as the king.|
-|||
-|KING LEAR|If thou be as poor for a subject as he is for a<br>king, thou art poor enough. What wouldst thou?|
-|||
-|SHEEN|Service.|
-|||
-|KING LEAR|Who wouldst thou serve?|
-|||
-|SHEEN|You.|
-|||
-|KING LEAR|Dost thou know me, fellow?|
-|||
-|SHEEN|No, sir; but you have that in your countenance<br>which I would fain call master.|
-|||
-|KING LEAR|What's that?|
-|||
-|SHEEN|Authority.|
-|||
-|KING LEAR|What services canst thou do?|
-|||
-|SHEEN|I can keep honest counsel, ride, run, mar a curious<br>tale in telling it, and deliver a plain message<br>bluntly: that which ordinary men are fit for, I am<br>qualified in; and the best of me is diligence.|
+As we mentioned above, a virtuous action performs no I/O.  Therefore,
+a single message (or even a batch of messages) can be processed
+atomically againts a set of machines. In general, the result is a
+structure that contains new states, which can include error states or
+conditions, and a set of sequences (of sequences) of messages. The
+caller can then decide what to do next.  If the processing resulted in
+no system-level error conditions, then all states are updated
+(hopefully atomically via the application's persistence system). Only
+then are the output messages actually forwarded to a system that can
+deliver them (with the required policies/guaranties).  If any
+system-level error condition occured, the application could retry all
+processing.  More economically, the application could retry only the
+specific failure. Either way, the application need not fear side
+effects from the previous attempt.  Of course, other approaches are
+possible.
 
 ## Code of Conduct
 

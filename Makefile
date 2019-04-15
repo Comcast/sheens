@@ -9,21 +9,30 @@ prereqs:
 test: prereqs
 	cd core && go generate && go test
 	cd crew && go test
-	cd tools && go test
+	cd tools && go get . && go test
 	cd tools/expect && go test
 	cd interpreters/ecmascript && go test
 	cd interpreters/noop && go test
-	cd cmd/patmatch && go test
-	cd cmd/msimple && go test
-	cd cmd/mexpect && go test
-	cd cmd/mcrew && go test
-	cd cmd/spectool && go test
-	cd cmd/sheensio && go test
-	cd cmd/mdb && go test
+	cd sio && go test
+	for d in `find cmd -maxdepth 1 -type d  | grep /`; do (cd $$d && go test); done
 
 install: prereqs
-	go install cmd/...
+	for d in `find cmd -maxdepth 1 -type d  | grep /`; do (cd $$d && go install); done
 
 post-install-test:
-	mkdir -p tmp
-	set -e; for TEST in $$(ls specs/tests/*.yaml); do echo "Running $$TEST"; mexpect -f $$TEST > tmp/$$(basename $$TEST.log) 2>&1 || (echo $$TEST failed; exit 1); done
+	for T in `ls specs/tests/*.yaml`; do echo expecting $$T; mexpect -show-err -f $$T siostd -tags=false; done
+
+
+releases:
+	./tools/release.sh linux
+	./tools/release.sh darwin
+	./tools/release.sh windows
+	GOARM=5 ./release.sh linux arm
+
+.PHONY: clean
+clean:
+	cd js && make clean
+
+.PHONY: distclean
+distclean: clean
+	cd js && make distclean

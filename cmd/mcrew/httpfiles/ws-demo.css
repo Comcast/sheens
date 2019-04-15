@@ -1,9 +1,0 @@
-body {
-    margin: 2em;
-}
-
-.output {
-    font-family: "Lucida Console", Monaco, monospace;
-    width: 100%;
-    overflow: auto;
-}

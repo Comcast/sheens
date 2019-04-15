@@ -1,7 +1,0 @@
-# Make a machine with the "double" specification.
-{"cop":{"add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}
-# Send a message that will run the "double" machine.
-{"cop":{"process":{"message":{"to":"doubler","double":1}}}}
-# Create a timer.
-{"cop":{"process":{"message":{"to":"timers","makeTimer":{"in":"1s","id":"1","message":{"to":"doubler","double":100}}}}}}
-sleep 3s

@@ -301,7 +301,7 @@ matched against
 
 should return an error.
 
-## 17. Property variable vars
+## 18. Property variable vars
 
 
 You can have _at most one_ pattern variable as a key in a given map.
@@ -323,7 +323,7 @@ should return
 
 ```
 
-## 18. Multiple property variable vars
+## 19. Multiple property variable vars
 
 
 You can have _at most one_ pattern variable as a key in a given map.
@@ -341,7 +341,7 @@ matched against
 
 should return an error.
 
-## 19. A null value
+## 20. A null value
 
 The pattern
 ```JSON
@@ -361,7 +361,7 @@ should return
 
 ```
 
-## 20. Type conflict: int/string
+## 21. Type conflict: int/string
 
 The pattern
 ```JSON
@@ -381,7 +381,7 @@ should return
 
 ```
 
-## 21. Type conflict: int/bool
+## 22. Type conflict: int/bool
 
 The pattern
 ```JSON
@@ -401,7 +401,7 @@ should return
 
 ```
 
-## 22. Anonymous variable used twice
+## 23. Anonymous variable used twice
 
 The pattern
 ```JSON
@@ -421,7 +421,7 @@ should return
 
 ```
 
-## 23. Anonymous variable with normal variable
+## 24. Anonymous variable with normal variable
 
 The pattern
 ```JSON
@@ -441,7 +441,7 @@ should return
 
 ```
 
-## 24. Anonymous variable as a property variable
+## 25. Anonymous variable as a property variable
 
 The pattern
 ```JSON
@@ -461,7 +461,7 @@ should return
 
 ```
 
-## 25. Anonymous variable as a property variable and another variable
+## 26. Anonymous variable as a property variable and another variable
 
 The pattern
 ```JSON
@@ -481,7 +481,7 @@ should return
 
 ```
 
-## 26. Anonymous variable as a property variable without a match
+## 27. Anonymous variable as a property variable without a match
 
 The pattern
 ```JSON
@@ -501,7 +501,7 @@ should return
 
 ```
 
-## 34. Inequality: success
+## 35. Inequality: success
 
 The pattern
 ```JSON
@@ -527,7 +527,7 @@ should return
 
 ```
 
-## 35. Inequality: failure
+## 36. Inequality: failure
 
 The pattern
 ```JSON
@@ -553,7 +553,7 @@ should return
 
 ```
 
-## 40. Inequality: success (>=)
+## 41. Inequality: success (>=)
 
 The pattern
 ```JSON
@@ -579,7 +579,7 @@ should return
 
 ```
 
-## 41. Inequality: failure (>=)
+## 42. Inequality: failure (>=)
 
 The pattern
 ```JSON
@@ -605,7 +605,7 @@ should return
 
 ```
 
-## 44. Inequality: non-numeric
+## 45. Inequality: non-numeric
 
 The pattern
 ```JSON
@@ -631,7 +631,7 @@ should return
 
 ```
 
-## 45. Inequality: given same
+## 46. Inequality: given same
 
 The pattern
 ```JSON
@@ -657,7 +657,7 @@ should return
 
 ```
 
-## 46. Inequality: given different
+## 47. Inequality: given different
 
 The pattern
 ```JSON
@@ -683,7 +683,7 @@ should return
 
 ```
 
-## 47. Inequality: used later
+## 48. Inequality: used later
 
 The pattern
 ```JSON
@@ -709,7 +709,7 @@ should return
 
 ```
 
-## 48. Inequality: used later with conflict
+## 49. Inequality: used later with conflict
 
 The pattern
 ```JSON
@@ -735,7 +735,7 @@ should return
 
 ```
 
-## 49. Optional pattern variable (absent)
+## 50. Optional pattern variable (absent)
 
 The pattern
 ```JSON
@@ -761,7 +761,7 @@ should return
 
 ```
 
-## 50. Optional pattern variable (present)
+## 51. Optional pattern variable (present)
 
 The pattern
 ```JSON
@@ -787,7 +787,7 @@ should return
 
 ```
 
-## 52. Optional pattern variable (array, absent)
+## 53. Optional pattern variable (array, absent)
 
 The pattern
 ```JSON
@@ -813,7 +813,7 @@ should return
 
 ```
 
-## 53. Optional pattern variable (array, present)
+## 54. Optional pattern variable (array, present)
 
 The pattern
 ```JSON
@@ -839,7 +839,7 @@ should return
 
 ```
 
-## 54. Optional pattern variable (array, present)
+## 55. Optional pattern variable (array, present)
 
 The pattern
 ```JSON
@@ -865,7 +865,7 @@ should return
 
 ```
 
-## 55. Optional pattern variable (array, present, multiple bindings)
+## 56. Optional pattern variable (array, present, multiple bindings)
 
 The pattern
 ```JSON
@@ -888,5 +888,31 @@ with bindings
 should return
 ```JSON
 [{"??opt":"c"},{"??opt":"d"}]
+
+```
+
+## 63. Empty map matches any map
+
+The pattern
+```JSON
+{}
+
+```
+
+matched against
+```JSON
+{"likes":"queso"}
+
+```
+
+with bindings
+```JSON
+{}
+
+```
+
+should return
+```JSON
+[{}]
 
 ```

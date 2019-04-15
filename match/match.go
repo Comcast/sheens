@@ -1,4 +1,4 @@
-/* Copyright 2018 Comcast Cable Communications Management, LLC
+/* Copyright 2018-2019 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+
 // Package match implements the core pattern matcher.
 package match
 
@@ -19,20 +20,23 @@ import (
 )
 
 type Matcher struct {
-	// AllowPropertyVariables enables the experimental support for a
-	// property variable in a pattern that contains only one property.
+	// AllowPropertyVariables enables the experimental support for
+	// a single property variable in a map pattern that has no
+	// other properties.
 	AllowPropertyVariables bool
 
-	// CheckForBadPropertyVariables runs a test to verify that a pattern
-	// does not contain a property variable along with other properties.
+	// CheckForBadPropertyVariables runs a test to verify that a
+	// pattern does not contain a property variable along with
+	// other properties.
 	//
-	// This check might not be necessary because the other code will
-	// report an error if a bad property variable is actually enountered
-	// during matching.  The interesting twist is that if a match fails
-	// before encountering the bad property variable, then that code will
-	// not report the problem.  In order to report the problem always,
-	// turn on this switch.  Performance will suffer, but any bad property
-	// variable will at least be caught.
+	// This check might not be necessary because the other code
+	// will report an error if a bad property variable is actually
+	// enountered during matching.  The interesting twist is that
+	// if a match fails before encountering the bad property
+	// variable, then that code will not report the problem.  In
+	// order to report the problem consistently, turn on this
+	// switch.  Performance will suffer, but any bad property
+	// variable will be caught.
 	CheckForBadPropertyVariables bool
 
 	// Inequalities is a switch to turn on experimental binding
@@ -54,7 +58,7 @@ type Matcher struct {
 	// {"n":"?<n"}, and message {"n":3}, the match will succeed
 	// with bindings {"?<n":10,"?n":3}.
 	//
-	// See match_test.js for several examples. (Search for
+	// See match_test.json for several examples. (Search for
 	// "inequality".)
 	//
 	// For now at least, the inequalities only work for numeric
@@ -89,6 +93,11 @@ type Matcher struct {
 	Inequalities bool
 }
 
+// DefaultMatcher is just that.
+//
+// Change it if you want.
+//
+// The Match() function uses this value.
 var DefaultMatcher = &Matcher{
 	AllowPropertyVariables:       true,
 	CheckForBadPropertyVariables: true,
@@ -114,6 +123,7 @@ func (m *Matcher) checkForBadPropertyVariables(pattern map[string]interface{}) e
 // their values.
 type Bindings map[string]interface{}
 
+// NewBindings returns empty Bindings.
 func NewBindings() Bindings {
 	return make(Bindings, 8)
 }
@@ -157,6 +167,8 @@ func (bs Bindings) Remove(ps ...string) Bindings {
 // DeleteExcept removes all but the given properties.
 //
 // Does not copy.
+//
+// This method is handy in some actions.
 func (bs Bindings) DeleteExcept(keeps ...string) Bindings {
 REM:
 	for p := range bs {
@@ -187,6 +199,8 @@ func (m *Matcher) IsVariable(s string) bool {
 	return strings.HasPrefix(s, "?")
 }
 
+// IsOptionalVariable reports whether the value is a variable that
+// starts with two "?" instead of a single "?".  Example: "??x".
 func (m *Matcher) IsOptionalVariable(x interface{}) bool {
 	if s, is := x.(string); is {
 		return strings.HasPrefix(s, "??")
@@ -362,7 +376,7 @@ func (m *Matcher) getVariable(xs []interface{}) (string, []interface{}, error) {
 // variables to their values.
 //
 // Note that this function returns multiple (sets of) bindings.  This
-// ambiguity is introduced when a pattern contains an array that
+// possibility is introduced when a pattern contains an array that
 // contains a variable.
 func (m *Matcher) Matches(pattern interface{}, fact interface{}) ([]Bindings, error) {
 	return m.Match(pattern, fact, make(Bindings))
@@ -500,7 +514,7 @@ func (m *Matcher) match(pattern interface{}, fact interface{}, bindings Bindings
 		}
 
 	case []interface{}:
-		//separate variable and constants
+		// Separate variable and constants.
 		v, xs, err := m.getVariable(vv)
 		if nil != err {
 			return nil, err
@@ -707,6 +721,7 @@ func (m *Matcher) inequal(fact interface{}, bs Bindings, v string) (bool, []Bind
 	return true, []Bindings{bs}, nil
 }
 
+// Match calls DefaultMatcher.Match.
 func Match(pattern interface{}, fact interface{}, bindings Bindings) ([]Bindings, error) {
 	return DefaultMatcher.Match(pattern, fact, bindings)
 }

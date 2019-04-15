@@ -109,6 +109,13 @@
 	"doc": "Two pattern variables inside an array isn't allowed (because the computational complexity means that some input could be very costly to process)."
     },
     {
+	"title": "Duplicate array vars",
+	"p": {"a":["?x","?x"]},
+	"m": {"a":[1]},
+	"err": true,
+	"nodoc": true
+    },
+    {
 	"title": "Property variable vars",
 	"p": {"?x":1},
 	"m": {"n":1},
@@ -390,5 +397,52 @@
 	"b": {},
 	"w": [{"??opt":"c"},{"??opt":"d"}],
 	"nodoc": true
+    },
+    {
+	"title": "Simple boolean match",
+	"p": true,
+	"m": true,
+	"b": {},
+	"w": [{}],
+	"nodoc": true
+    },
+    {
+	"title": "Simple boolean mismatch",
+	"p": true,
+	"m": false,
+	"b": {},
+	"w": [],
+	"nodoc": true
+    },
+    {
+	"title": "nil match",
+	"p": null,
+	"m": null,
+	"b": {},
+	"w": [{}],
+	"nodoc": true
+    },
+    {
+	"title": "nil mismatch",
+	"p": null,
+	"m": true,
+	"b": {},
+	"w": [],
+	"nodoc": true
+    },
+    {
+	"title": "string v non-string",
+	"p": "tacos",
+	"m": true,
+	"b": {},
+	"w": [],
+	"nodoc": true
+    },
+    {
+	"title": "Empty map matches any map",
+	"p": {},
+	"m": {"likes":"queso"},
+	"b": {},
+	"w": [{}]
     }
 ]

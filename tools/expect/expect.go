@@ -1,4 +1,4 @@
-/* Copyright 2018 Comcast Cable Communications Management, LLC
+/* Copyright 2018-2019 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -9,6 +9,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 // Package expect is a tool for testing machine specifications.
 //
@@ -35,6 +36,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/Comcast/sheens/core"
@@ -130,7 +132,7 @@ type Session struct {
 	Verbose bool `json:"verbose,omitempty" yaml:"verbose,omitempty"`
 }
 
-// Run processes all the IOs in the Sesson.
+// Run processes all the IOs in the Session.
 //
 // The current directory is changed to 'dir' (and then hopefully
 // restored).
@@ -141,6 +143,8 @@ type Session struct {
 //   "mcrew", "-v", "-s", "specs", "-d", "", "-I", "-O", "-h", ""
 //
 func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
+
+	ctx, cancel := context.WithCancel(ctx)
 
 	if dir != "" {
 		cwd, err := os.Getwd()
@@ -194,7 +198,9 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 				break
 			}
 			if err != nil {
-				log.Printf("stderr error %s", err)
+				if strings.Index(err.Error(), "already closed") < 0 {
+					log.Printf("stderr error %s", err)
+				}
 				break
 			}
 			if s.ShowStderr {
@@ -210,8 +216,7 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 		}
 
 		var (
-			timer *time.Timer
-			errs  = make(chan error, 3) // At least three
+			errs = make(chan error, 4)
 
 			happy    = errors.New("happy")
 			timeout  = errors.New("timeout")
@@ -219,12 +224,13 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 		)
 
 		if 0 < iop.Timeout {
-			timer = time.AfterFunc(iop.Timeout, func() {
+			time.AfterFunc(iop.Timeout, func() {
+				errs <- timeout
 				errs <- timeout
 			})
 		}
 
-		// Process stdout.
+		// Consume stdout.
 		go func() {
 			f := func() error {
 
@@ -235,7 +241,7 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 					}
 				}
 
-				for {
+				for 0 < need {
 					line, err := out.ReadBytes('\n')
 					if err != nil {
 						return err
@@ -298,18 +304,13 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 								need--
 							}
 						}
-						if need == 0 {
-							return nil
-						}
 					}
 				}
+
+				return nil
 			}
 
-			err := f()
-			if timer != nil {
-				timer.Stop()
-			}
-			if err == nil {
+			if err := f(); err == nil {
 				errs <- happy
 			} else {
 				errs <- err
@@ -350,15 +351,15 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 			} else {
 				errs <- err
 			}
-
 		}()
+
+		// Wait until we are done.
 
 		happies := 0
 		want := 2
 
 	LOOP:
-		for {
-
+		for happies < want {
 			select {
 			case <-ctx.Done():
 				return canceled
@@ -366,9 +367,6 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 				switch err {
 				case happy:
 					happies++
-					if want <= happies {
-						break LOOP
-					}
 				default:
 					break LOOP
 				}
@@ -380,8 +378,14 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 		}
 	}
 
+	cancel()
+
 	if err := stdin.Close(); err != nil {
 		log.Printf("stdin.Close() error %s", err)
+	}
+
+	if err := stdout.Close(); err != nil {
+		log.Printf("stdout.Close() error %s", err)
 	}
 
 	if err := cmd.Wait(); err != nil {

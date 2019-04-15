@@ -1,0 +1,9 @@
+*~
+*.so
+*.a
+*.o
+demo
+double.js
+duktape-*
+sheens.js
+sheens_js.c

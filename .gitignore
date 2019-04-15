@@ -2,3 +2,4 @@ TAGS
 *~
 *.db
 tmp/
+rel/

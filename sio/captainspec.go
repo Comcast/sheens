@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+
 package sio
 
 import (
@@ -103,7 +104,7 @@ func (c *Crew) NewCaptainSpec() *core.Spec {
 
 						err = c.DoOp(ctx, op)
 						if err != nil {
-							return core.NewExecution(bs.Extend("error", "crew op error: "+err.Error())), nil
+							return core.NewExecution(bs.Extend("error", "crew op error: "+err.Error())), err
 						}
 
 						return core.NewExecution(match.NewBindings()), nil

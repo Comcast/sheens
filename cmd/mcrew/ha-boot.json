@@ -1,3 +1,0 @@
-{"cop":{"add":{"m":{"id":"ha","spec":{"name":"homeassistant"},"state":{"bs":{"password":"$SHEEN_HA_PASSWORD"}}}}}}
-{"cop":{"process":{"message":{"to":"ha","ctl":"start"}}}}
-{"cop":{"add":{"m":{"id":"switches","spec":{"name":"ha-switches"},"state":{"bs":{"?targetSwitch":"switch.lamp","?triggerSwitch":"switch.shed_light"}}}}}}

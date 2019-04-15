@@ -5,7 +5,7 @@
 This tool can test a spec based on a test definition.
 
 For example, see
-[specs/test/double.test.yaml](../../specs/test/double.test.yaml),
+[specs/test/double.test.yaml](../../specs/tests/double.test.yaml),
 which specifies one set of tests for the spec
 [specs/double.yaml](../../specs/double.yaml).
 

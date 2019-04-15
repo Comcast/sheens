@@ -10,13 +10,15 @@
  * limitations under the License.
  */
 
+
 package sio
 
 import (
-	"bytes"
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -54,38 +56,35 @@ func TestCrew(t *testing.T) {
 {"to":"timers","makeTimer":{"in":"2s","msg":{"double":10000,"from":"timer"},"id":"t0"}}
 {"to":"timers","makeTimer":{"in":"4s","msg":{"collatz":13, "from":"timer"},"id":"t1"}}
 {"to":"d","double":3}
-{"to":"dc","double":4}
-quit
-`
+{"to":"dc","double":4}`
 
 	input = fmt.Sprintf(input,
 		yaml2json(specPath+"/collatz.yaml"),
 		yaml2json(specPath+"/doublecount.yaml"),
 		yaml2json(specPath+"/double.yaml"))
 
-	io := NewStdio(true)
-	io.In = strings.NewReader(input)
-
-	var buf bytes.Buffer
-	io.Out = &buf
+	sio := NewStdio(true)
+	ri, wi := io.Pipe()
+	sio.In = ri
+	ro, wo := io.Pipe()
+	sio.Out = wo
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+
+	if err := sio.Start(ctx); err != nil {
+		t.Fatal(err)
+	}
 
 	conf := &CrewConf{
 		Ctl: core.DefaultControl,
 	}
 
-	c, err := NewCrew(ctx, conf, io)
+	c, err := NewCrew(ctx, conf, sio)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err = io.Start(ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	ms, err := io.Read(ctx)
+	ms, err := sio.Read(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -96,8 +95,37 @@ quit
 	}
 
 	go func() {
-		<-io.InputEOF
-		time.Sleep(5 * time.Second)
+		for _, line := range strings.Split(input, "\n") {
+			fmt.Fprintf(wi, "%s\n", line)
+		}
+	}()
+
+	need1 := true
+	need2 := true
+	go func() {
+		out := bufio.NewReader(ro)
+		for {
+			line, err := out.ReadString('\n')
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			log.Printf("heard %s", line)
+
+			if 0 <= strings.Index(line, `{"doubled":20000}`) {
+				need1 = false
+			}
+
+			if 0 <= strings.Index(line, `{"collatz":40}`) {
+				need2 = false
+			}
+		}
+	}()
+
+	go func() {
+		time.Sleep(6 * time.Second)
 		cancel()
 	}()
 
@@ -105,26 +133,17 @@ quit
 		t.Fatal(err)
 	}
 
-	if err = io.Stop(context.Background()); err != nil {
+	fmt.Fprintf(wi, "quit\n")
+
+	if err = sio.Stop(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 
-	output := buf.String()
-
-	fmt.Printf("%s", output)
-
-	{
-		want := `{"doubled":20000}`
-		if strings.Index(output, want) < 0 {
-			t.Fatalf("Didn't see %s", want)
-		}
+	if need1 {
+		t.Fatal(1)
 	}
-
-	{
-		want := `{"collatz":40}`
-		if strings.Index(output, want) < 0 {
-			t.Fatalf("Didn't see %s", want)
-		}
+	if need2 {
+		t.Fatal(2)
 	}
 
 }

@@ -1,4 +1,4 @@
-/* Copyright 2018 Comcast Cable Communications Management, LLC
+/* Copyright 2018-2019 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -9,6 +9,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 // Package main is a command-line program for spec testing.
 package main
@@ -28,18 +29,19 @@ import (
 func main() {
 
 	var (
-		inputFilename = flag.String("f", "specs/tests/double.test.yaml", "filename for test session")
-		dir           = flag.String("d", ".", "working directory")
-		showStderr    = flag.Bool("e", true, "show subprocess stderr")
-		timeout       = flag.Duration("t", 10*time.Second, "main timeout")
-
-		specDir = flag.String("s", "specs", "specs directory")
-		libDir  = flag.String("i", ".", "directory containing 'interpreters'")
+		testFilename = flag.String("f", "specs/tests/double.test.yaml", "filename for test session")
+		dir          = flag.String("d", ".", "working directory")
+		showStderr   = flag.Bool("show-err", false, "show subprocess stderr")
+		showStdin    = flag.Bool("show-in", false, "show subprocess stdin")
+		showStdout   = flag.Bool("show-out", false, "show subprocess stdout")
+		timeout      = flag.Duration("t", 10*time.Second, "main timeout")
 	)
 
 	flag.Parse()
 
-	bs, err := ioutil.ReadFile(*inputFilename)
+	cmd := flag.Args()
+
+	bs, err := ioutil.ReadFile(*testFilename)
 	if err != nil {
 		panic(err)
 	}
@@ -50,12 +52,14 @@ func main() {
 	}
 
 	s.Interpreters = interpreters.Standard()
+	s.ShowStdin = *showStdin
+	s.ShowStdout = *showStdout
 	s.ShowStderr = *showStderr
 
 	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 	defer cancel()
 
-	if err = s.Run(ctx, *dir, "mcrew", "-v", "-s", *specDir, "-l", *libDir, "-d", "", "-I", "-O", "-h", ""); err != nil {
+	if err = s.Run(ctx, *dir, cmd...); err != nil {
 		panic(err)
 	}
 }

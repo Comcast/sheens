@@ -1,0 +1,17 @@
+include(ExternalProject)
+
+set(DUK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/duktape")
+
+ExternalProject_Add(duktape-ext
+    URL https://github.com/svaarala/duktape-releases/raw/master/duktape-2.2.0.tar.xz
+    URL_MD5 0f7c9fac5547f7f3fc1c671fc90b2ccf
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/duktape"
+
+    UPDATE_COMMAND ""
+
+    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt-duktape ${CMAKE_CURRENT_SOURCE_DIR}/duktape/CMakeLists.txt
+
+    CMAKE_ARGS "${CMAKE_ARGS}" "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
+
+    TEST_COMMAND ""
+    )

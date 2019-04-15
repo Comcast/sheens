@@ -32,10 +32,10 @@ See [Issue 13](https://github.com/Comcast/sheens/issues/13).
 
 Some code deserializes YAML.  We were using
 [`github.com/go-yaml`](https://github.com/go-yaml/yaml), but that code
--- correctly -- deserializes maps as `map[interface{}]interface{}` and
-not as `map[string]interface{}`.  (See
-[issue 139](https://github.com/go-yaml/yaml/issues/139).) We also work
-with JSON representations, and
+(correctly) deserializes maps as `map[interface{}]interface{}` and not
+as `map[string]interface{}`.  (See [issue
+139](https://github.com/go-yaml/yaml/issues/139).) We also work with
+JSON representations, and
 [`encoding/json`](https://golang.org/pkg/encoding/json/) doesn't
 support serialization of `map[interface{}]interface{}`.
 
@@ -44,6 +44,6 @@ code, we're just using a fork of
 [`github.com/go-yaml`](https://github.com/go-yaml/yaml):
 [`github.com/jsccast/yaml`](https://github.com/jsccast/yaml).  Yes,
 we'll need to check to see that that fork remains current w.r.t. its
-upstream.
+upstream.  Famous last words.
 
 

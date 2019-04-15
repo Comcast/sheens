@@ -10,6 +10,7 @@
  * limitations under the License.
  */
 
+
 package sio
 
 import (
@@ -27,7 +28,7 @@ import (
 	"github.com/Comcast/sheens/interpreters/ecmascript"
 	"github.com/Comcast/sheens/match"
 
-	yaml "gopkg.in/yaml.v2"
+	"github.com/jsccast/yaml"
 )
 
 var (
@@ -75,24 +76,52 @@ type Result struct {
 	// batches are NOT orders (because the order that machines are
 	// presented with an in-bound message is not specified).
 	Emitted [][]interface{}
+
+	// Diag includes internal processing data.
+	Diag []*Stroll
+}
+
+// Stroll is a internal processing data for the given message.
+//
+// Result.Diag gathers this information.
+type Stroll struct {
+	Msg     interface{} `json:"msg"`
+	Walkeds interface{} `json:"walks"`
+	Err     string      `json:"err,omitempty"`
 }
 
 // Crew represents a collection of machines and associated gear to
 // support message processing, with I/O coupled via two channels (in
 // and out).
 type Crew struct {
+	// Machines represents this's Crews current machines.
 	Machines map[string]*crew.Machine
-	Conf     *CrewConf `json:"conf"`
+
+	// Conf provides some basic Crew parameters.
+	Conf *CrewConf `json:"conf"`
 
 	// Verbose turns on logging.
 	Verbose bool
 
-	changed  map[string]*Changed
-	previous map[string]string
-	timers   *Timers
+	// changed is a cache of machine state changes that are
+	// accumulated during message processing.
+	changed map[string]*Changed
 
-	in  chan interface{}
+	// previous is a cache of machine states prior to processing a
+	// message.  Used to compute net changes.
+	previous map[string]string
+
+	// timers holds the local, internal, native Timers system.
+	timers *Timers
+
+	// in receives all in-bound messages.
+	in chan interface{}
+
+	// out receives all out-bound messages.
 	out chan *Result
+
+	// done is closed by Couplings when its input is closed.
+	done chan bool
 
 	// Mutex can probably be removed once code is cleaned up to
 	// perform all state changes, including timers state changes,
@@ -105,7 +134,7 @@ type Crew struct {
 // The coupling's IO() method is called to obtain the crew's in/out
 // channels.
 func NewCrew(ctx context.Context, conf *CrewConf, couplings Couplings) (*Crew, error) {
-	in, out, err := couplings.IO(ctx)
+	in, out, done, err := couplings.IO(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +142,7 @@ func NewCrew(ctx context.Context, conf *CrewConf, couplings Couplings) (*Crew, e
 		Conf: conf,
 		in:   in,
 		out:  out,
+		done: done,
 	}
 
 	return c, c.init(ctx)
@@ -125,10 +155,18 @@ func (c *Crew) init(ctx context.Context) error {
 	c.previous = make(map[string]string, 8)
 
 	f := func(ctx context.Context, te *TimerEntry) {
-		c.in <- te.Msg
+		select {
+		case <-ctx.Done():
+		case c.in <- te.Msg:
+		}
 	}
 	c.timers = NewTimers(f)
 	c.timers.c = c
+
+	// c.UpdateHook = func(m map[string]*Changed) error {
+	// 	log.Printf("changes: %s", JS(m))
+	// 	return nil
+	// }
 
 	if err := c.SetMachine(ctx, CaptainMachine, nil, nil); err != nil {
 		return err
@@ -256,6 +294,7 @@ func (c *Crew) ProcessMsg(ctx context.Context, msg interface{}) (*Result, error)
 
 	r := &Result{
 		Emitted: make([][]interface{}, 0, 8),
+		Diag:    make([]*Stroll, 0, 8),
 	}
 
 	for 0 < len(pending) {
@@ -269,11 +308,21 @@ func (c *Crew) ProcessMsg(ctx context.Context, msg interface{}) (*Result, error)
 		}
 
 		walkeds, err := c.RunMachines(ctx, msg)
+		stroll := &Stroll{
+			Msg:     msg,
+			Walkeds: walkeds,
+		}
+		r.Diag = append(r.Diag, stroll)
+
 		if err != nil {
-			return nil, err
+			stroll.Err = err.Error()
+			return r, err
 		}
 
 		for _, walked := range walkeds {
+			if walked.Error != nil {
+				c.Errorf("ProcessMsg %s", walked.Error)
+			}
 			emitted := make([]interface{}, 0, 8)
 			walked.DoEmitted(func(msg interface{}) error {
 				if m, is := msg.(map[string]interface{}); is {
@@ -370,18 +419,25 @@ func (c *Crew) Loop(ctx context.Context) error {
 LOOP:
 	for {
 		select {
+		case <-c.done:
+			break LOOP
+		case <-ctx.Done():
+			c.Logf("Crew.Loop shutting down")
+			break LOOP
 		case msg := <-c.in:
+			if msg == nil {
+				break LOOP
+			}
 			r, err := c.ProcessMsg(ctx, msg)
 			if err != nil {
 				c.Errorf("Crew.Loop ProcessMsg %s", err)
 				// ToDo: Consider reprocessing msg?
 				continue
 			}
-			c.out <- r
-
-		case <-ctx.Done():
-			c.Logf("Crew.Loop shutting down")
-			break LOOP
+			select {
+			case <-ctx.Done():
+			case c.out <- r:
+			}
 		}
 	}
 
@@ -506,10 +562,8 @@ func (c *Crew) RunMachine(ctx context.Context, msg interface{}, m *crew.Machine)
 	return walked, err
 }
 
-// ResolveSpecSource attempts to find and compile a spec based o a
+// ResolveSpecSource attempts to find and compile a spec based on a
 // crew.SpecSource (or something that looks like one).
-//
-// Only SpecSource.Inline has been used recently.
 //
 // ToDo: Test and document.
 func ResolveSpecSource(ctx context.Context, specSource interface{}) (*crew.SpecSource, *core.Spec, error) {
@@ -529,13 +583,13 @@ func ResolveSpecSource(ctx context.Context, specSource interface{}) (*crew.SpecS
 		return &src, src.Inline, nil
 	}
 
+	var body []byte
+
 	if src.URL != "" {
 		// Yikes.  We hate doing blocking IO. ToDo: Something better?
 
-		var body []byte
 		if strings.HasPrefix(src.URL, "file://") {
 			filename := src.URL[7:]
-			log.Println("ResolveSpecSource: reading file", filename)
 			body, err = ioutil.ReadFile(filename)
 		} else {
 			resp, err := http.Get(src.URL)
@@ -545,23 +599,31 @@ func ResolveSpecSource(ctx context.Context, specSource interface{}) (*crew.SpecS
 			body, err = ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
 		}
-
-		var spec core.Spec
-		if body[0] == '{' {
-			err = json.Unmarshal(body, &spec)
-		} else {
-			err = yaml.Unmarshal(body, &spec)
-		}
-		if err != nil {
-			return nil, nil, err
-		}
-		if err = spec.Compile(ctx, Interpreters, true); err != nil {
-			return nil, nil, err
-		}
-		return &src, &spec, nil
 	}
 
-	return nil, nil, nil
+	if src.Source != "" {
+		body = []byte(src.Source)
+	}
+
+	if len(body) == 0 {
+		return nil, nil, fmt.Errorf("spec source is empty")
+	}
+
+	var spec core.Spec
+	switch body[0] {
+	case '{':
+		err = json.Unmarshal(body, &spec)
+	default:
+		err = yaml.Unmarshal(body, &spec)
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = spec.Compile(ctx, Interpreters, true); err != nil {
+		return nil, nil, err
+	}
+
+	return &src, &spec, nil
 }
 
 // DefaultState returns a state at "state" with empty bindings.
