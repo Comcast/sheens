@@ -16,11 +16,11 @@ echo $VERSION
 REL=sheens-$GOOS-$GOARCH-$VERSION
 TARGET=`pwd`/rel/$REL
 rm -rf $TARGET
-mkdir $TARGET
-for D in cmd/msimple cmd/mdb cmd/mexpect cmd/msimple cmd/patmatch cmd/spectool sio/mqclient sio/siomq sio/siostd; do
+mkdir -p $TARGET
+for D in cmd/mexpect cmd/patmatch cmd/spectool cmd/mqclient cmd/siomq cmd/siostd; do
     echo $D
     # -ldflags "-X main.GitCommit=$$(git rev-list -1 HEAD) -X main.Version=$${VERSION:-NA}"
-    (cd $D && go build -o $TARGET/$(basename $D) -ldflags="-s -w" )
+    (cd $D && go build -o $TARGET/$(basename $D) -ldflags="-s -w -X main.GitCommit=$(git rev-list -1 HEAD) -X main.Version=${VERSION:-NA}" )
 done
 
 go get -u github.com/bronze1man/yaml2json

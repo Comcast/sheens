@@ -24,10 +24,10 @@ post-install-test:
 
 
 releases:
-	./tools/release.sh linux
 	./tools/release.sh darwin
 	./tools/release.sh windows
-	GOARM=5 ./release.sh linux arm
+	./tools/release.sh linux
+	./tools/release.sh linux arm
 
 .PHONY: clean
 clean:
