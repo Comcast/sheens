@@ -11,7 +11,7 @@ narratives.  See the [README](../README.md) a more formal description.
 In particular, [this section](../README.md#Definitions) semi-formally
 specifies what a machine is, the
 [this section](../README.md#Processing) describes machine behavior.
-You can use the demo program [`mcrew`](../cmd/mcrew) to
+You can use the demo program [`siostd`](../cmd/siostd) to
 experiment.
 
 ## Example 1: Simple reponse to an incoming messaging
@@ -66,7 +66,7 @@ For this node, there is only one branch, and it has the pattern
 `{"wants":"?wanted"}`.  In this YAML specification, the pattern is
 actually a string, but the specification has set `patternsyntax` to
 `"json"`.  That setting means that the string is parsed as JSON.  The
-pattern language itself is the same as
+pattern language itself was based on
 [Rulio's](https://github.com/Comcast/rulio/blob/master/doc/Manual.md#patterns). The
 target for this branch is `deliver`, which is the name of the only
 other node in the specification.
@@ -112,8 +112,7 @@ populated with an object at `_`, which has two important properties:
 
 The value of `_` also has some additional properties:
 
-1. `_.randstr()`: A function that generates an random string (not a
-   symbol!).
+1. `_.randstr()`: A function that generates an random string.
 2. `_.log(x)`: A function to emit a log message.
 3. `_.match(pattern, message, bindings)`: Utility to invoke pattern matching.
 
@@ -460,20 +459,20 @@ it that certain messages that rerepresent HTTP requests result in HTTP
 requests, with the responses return as messages submitted to the
 machine.  
 
-For exampe, the demo process `cmd/mcrew` includes internal services to
-support timers and HTTP requests.  Alternatively, a process might
-delegate this functionality to external services such as a pool of
-HTTP requester or Elasticron.  Other possibilities, too, of course --
-with interesting trade-offs and possible combinations.  For example,
-perhaps there is an efficient but slightly less robust internal HTTP
-and timer services, which are used when requests are marked with a
-`qualityOfService: "internal"` property.  Much more to say on this
-topic.
+For exampe, the demo program [`cmd/siostd`](../cmd/siostd) includes
+internal services to support timers and HTTP requests.  Alternatively,
+a process might delegate this functionality to external services such
+as a pool of HTTP requester or Elasticron.  Other possibilities, too,
+of course -- with interesting trade-offs and possible combinations.
+For example, perhaps there is an efficient but slightly less robust
+internal HTTP and timer services, which are used when requests are
+marked with a `qualityOfService: "internal"` property.  Much more to
+say on this topic.
 
 ### Timers
 
-The `cmd/mcrew` process has an internal service that responds to
-messages like
+The [`cmd/siostd`](../cmd/siostd) program has an internal service that
+responds to messages like
 
 ```Javascript
 {"makeTimer":{"in": "2s", "id": "chips", "message": {"likes":"queso"}}}
@@ -483,7 +482,7 @@ When triggered, that process will send the message `{"likes":"queso"}`
 all the machines in the crew.  (Fancier routing is possible; see
 [Routing](#routing) below.)
 
-Here's an example use using the `mcrew` TCP API:
+Here's an example use using the `siostd` TCP API:
 
 ```
 cat<<EOF | nc localhost 8081
@@ -494,14 +493,14 @@ cat<<EOF | nc localhost 8081
 EOF
 ```
 
-Each line is input to `mcrew`.  These lines are _not_ messages to a
+Each line is input to `siostd`.  These lines are _not_ messages to a
 machine or crew.  Instead, they are messages to the container of a
 crew (and, in the case of the `sleep` line, to an input processor in
 front of that container).
 
 ### HTTP requests
 
-The `cmd/mcrew` program has an internal service that processes
+The `cmd/siostd` program has an internal service that processes
 messages that are HTTP requests.  For an example use, here's an
 excerpt of specification that shows a real use of that HTTP service:
 
@@ -541,7 +540,7 @@ response messages.
 ## Example 5: Message routing
 
 A crew container can provide arbitrary message routing.  For example,
-when `mcrew` receives a message that contains `"to":"turnstile"`, then
+when `siostd` receives a message that contains `"to":"turnstile"`, then
 the container will send that message _only_ to a machine with id
 `"turnstile"` (if such a machine exists in the crew). Using this
 behavior, a sender can send a message to a specified machine.  By
