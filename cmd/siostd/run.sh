@@ -11,8 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This file might have changed after the fork.
-
 set -e
 
 go install

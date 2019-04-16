@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 // Package main is a simple single-crew sheens process that reads from
 // stdin and writes to stdout.
 package main

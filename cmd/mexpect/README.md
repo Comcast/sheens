@@ -9,15 +9,21 @@ For example, see
 which specifies one set of tests for the spec
 [specs/double.yaml](../../specs/double.yaml).
 
-This tool will invoke [`mcrew`](../mcrew), so you'll need to
-[build](../mcrew/README.md) that program first.
+This tool will run [`siostd`](../siostd), so you'll need to
+[build](../siostd/README.md) that program first if you don't already
+have it.
 
 ## Usage
 
-From this directory:
+`mexpect` takes some optional command-line flags, and then the rest of
+the command line is used to start a subprocess.
+
+Example:
 
 ```Shell
-(cd ../mcrew && go install) # If you haven't already
-go install
-mexpect -f ../../specs/tests/double.test.yaml -s ../../specs
+# Get siostd and mexpect executables.
+go get github.com/Comcast/sheens/cmd/...
+
+# Run an mexpect test.
+mexpect -d ../.. -show-in -show-out -f specs/tests/double.test.yaml siostd -tags=false
 ```

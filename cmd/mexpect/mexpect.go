@@ -10,14 +10,16 @@
  * limitations under the License.
  */
 
-
 // Package main is a command-line program for spec testing.
 package main
 
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
+	"os"
+	path "path/filepath"
 	"time"
 
 	"github.com/Comcast/sheens/interpreters"
@@ -41,14 +43,20 @@ func main() {
 
 	cmd := flag.Args()
 
-	bs, err := ioutil.ReadFile(*testFilename)
+	puntf := func(format string, args ...interface{}) {
+		fmt.Fprintf(os.Stderr, format, args...)
+		os.Exit(1)
+	}
+
+	path := path.FromSlash(*dir + "/" + *testFilename) // ToDo: Not this.
+	bs, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		puntf("error reading '%s': %v\n", *testFilename, err)
 	}
 
 	var s expect.Session
 	if err = yaml.Unmarshal(bs, &s); err != nil {
-		panic(err)
+		puntf("error parsing '%s': %v\n", *testFilename, err)
 	}
 
 	s.Interpreters = interpreters.Standard()
@@ -60,6 +68,6 @@ func main() {
 	defer cancel()
 
 	if err = s.Run(ctx, *dir, cmd...); err != nil {
-		panic(err)
+		puntf("error running %v: %v\n", cmd, err)
 	}
 }

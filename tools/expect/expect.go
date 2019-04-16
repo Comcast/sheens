@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 // Package expect is a tool for testing machine specifications.
 //
 // You construct a Session, which has inputs and expected outputs.
@@ -28,6 +27,7 @@ package expect
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -129,6 +129,10 @@ type Session struct {
 	// logged.
 	ShowStdout bool `json:"showStdout,omitempty" yaml:"showStdout,omitempty"`
 
+	// InputPrefix specifies the prefix of input lines that should
+	// be consumed.
+	InputPrefix string `json:"inputPrefix,omitempty" yaml:"inputPrefix,omitempty"`
+
 	Verbose bool `json:"verbose,omitempty" yaml:"verbose,omitempty"`
 }
 
@@ -140,7 +144,7 @@ type Session struct {
 // The subprocess is given by the args. The first arg is the
 // executable.  Example args:
 //
-//   "mcrew", "-v", "-s", "specs", "-d", "", "-I", "-O", "-h", ""
+//   "siostd", "-spec-file", "specs/double.yaml"
 //
 func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 
@@ -251,9 +255,13 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 						log.Printf("out %s", line)
 					}
 
+					if bytes.HasPrefix(line, []byte(s.InputPrefix)) {
+						line = bytes.TrimSpace(line[len(s.InputPrefix):])
+					}
+
 					var message interface{}
 					if err = json.Unmarshal(line, &message); err != nil {
-						log.Printf("ignoring %s", line)
+						log.Printf("ignoring '%s'", line)
 						continue
 					} else {
 						for _, output := range iop.OutputSet {
