@@ -15,8 +15,6 @@
 
 Require Import String Bool Arith List.
 
-(* Require Import SetoidDec. *)
-
 (* for jsCoq: Comments "pkgs: coq-arith".  Then From Coq Require Import String. *)
 
 (* Require Import Cpdt.CpdtTactics. 
@@ -25,71 +23,16 @@ Require Import String Bool Arith List.
 
 Module patmatch.
 
-  Open Scope string_scope.
-
-  Section experiment.
-
-    Inductive exp : Set :=
-    | Atom: string -> exp
-    | Nil : exp
-    | Assoc: (string*exp*exp) -> exp.
-
-    Fixpoint some (k:string) (P:exp->Prop) (alist:list(string*exp)) : Prop :=
-      match alist with
-      | nil => False
-      | (k',v)::more =>
-        if string_dec k k'
-        then P v
-        else some k P more
-      end.
-
-    Fixpoint subexp (p:exp) (m:exp) : Prop :=
-      match p with
-      | Atom s =>
-        match m with
-        | Atom s' =>
-          if string_dec s s' then True else False
-        | _ => False
-        end
-      | Nil =>
-        match m with
-        | Nil => True
-        | _ => False
-        end
-      | Assoc (k,v,more) =>
-        match m with
-        | Assoc (k',v',more') =>
-          (if string_dec k k'
-           then subexp v v'
-           else subexp p more')
-          /\
-          subexp more m
-        | _ => False
-        end
-      end.
-
-    Compute subexp (Atom "tacos") (Atom "queso").
-
-    Compute (Assoc (("likes",(Atom "tacos"))::nil)).
-
-    Compute let e := (Assoc (("likes",(Atom "tacos"))::nil)) in
-            subexp e e.
-    
-
-  End experiment.
-
   (* We define our own association list to help with
      well-foundedness arguments for important functions. *)
   
   Section alists.
 
-    Definition alist (T:Set) := list (string*T).
-
     (* Our association lists. *)
-    Definition new_alist {T:Set} : (alist T) := nil.
+    Definition new_alist {T:Set} : (list (string*T)) := nil.
 
     (* Add a pair to an alist. *)
-    Fixpoint acons {T:Set} (a: (alist T)) (k:string) (v:T) : (alist T) :=
+    Fixpoint acons {T:Set} (a: list (string*T)) (k:string) (v:T) : list (string*T) :=
       match a with
       | nil => (k,v)::nil
       | (k',v')::more =>
@@ -99,163 +42,62 @@ Module patmatch.
       end.
 
     (* Get the value for a given key. *)
-    Fixpoint assoc {T:Set} (a: (alist T)) (k: string) : option T :=
+    Fixpoint assoc {T:Set} (a: list (string*T)) (k: string) : option T :=
       match a with
       | nil => None
       | (p,v)::more =>
-        if string_dec k p
-        then Some v
-        else assoc more k
+        if string_dec k p then Some v else assoc more k
       end.
 
   End alists.
 
   Section patterns_and_messages.
 
-    (* Expression experiment *)
+    (* Patterns *)
+    Inductive pat : Set :=
+    | PStr : string -> pat
+    | Var : string -> pat
+    | PMap : list (string*pat) -> pat.
 
-    Inductive atom : Set :=
-    | AStr : string -> atom
-    | AVar : string -> atom.
-    
-    Check AStr "foo".
-    
-    Inductive exp {A:Set} : Set :=
-    | EAtom : A -> exp
-    | EMap : (alist (@exp A)) -> exp.
+    (* Messages *)
+    Inductive msg : Set :=
+    | Str : string -> msg
+    | Map : list (string*msg) -> msg.
 
-    Check EAtom (AStr "foo").
+    Definition bindings := list (string*msg).
 
-    Check EAtom "tacos".
-
-    Check EMap new_alist.
-
-    (* Definition mexp := exp (A:=string). *)
-
-    Definition mexp := @exp string.
-
-    Definition pexp := @exp atom.
-    
   End patterns_and_messages.
 
   Section matching.
 
     (* Is the first message is a sub-message of the second message? *)
-    Fixpoint submsg (p:mexp) (m:mexp) : bool :=
+    Fixpoint submsg (p:msg) (m:msg) : bool :=
       match p, m with
-      | EAtom s, EAtom s' =>
+      | Str s, Str s' =>
         if string_dec s s' then true else false
-      | EMap xs, EMap ys =>
-        let fix f xs :=
-            match xs with
+      | Map kvs, Map mm =>
+        let fix f kvs :=
+            match kvs with
             | nil => true
-            | (k,x)::more =>
-              match assoc ys k with
-                | None => false
-                | Some y =>
-                  if submsg x y
-                  then f more
-                  else false
+            | (k,v)::kvs' =>
+              match assoc mm k with
+              | None => false
+              | Some v' =>
+                if submsg v v'
+                then f kvs'
+                else false
               end
             end
-        in f xs
-      | _, _ => false
+        in f kvs
+      |  _, _ => false
       end.
-
-    Compute submsg (EAtom "tacos") (EAtom "tacos").
-
-    Compute submsg (EAtom "tacos") (EAtom "queso").
-    
-    Compute submsg (EMap (acons (new_alist) "likes" (EAtom "tacos"))) (EAtom "chips").
-
-    Fixpoint All (p:(string*mexp)->Prop) (xs:list (string*mexp)) : Prop :=
-      match xs with
-      | nil => True
-      | x::more => p x /\ All p more
-      end.
-
-    (* Is the first message is a sub-message of the second message? *)
-    Program Fixpoint submsgp (p:mexp) (m:mexp) : Prop :=
-      match p, m with
-      | EAtom s, EAtom s' =>
-        if string_dec s s' then True else False
-      | EMap xs, EMap ys =>
-        let fix p kv :=
-            match kv with
-            | (k,v) =>
-              match assoc ys k with
-              | None => False
-              | Some y => submsgp v y
-              end
-            end
-        in All p xs
-      | _, _ => False
-      end.
-
-    Compute submsgp (EAtom "tacos") (EAtom "tacos").
-
-    Compute submsgp (EAtom "tacos") (EAtom "queso").
-    
-    Compute submsgp (EMap (acons (new_alist) "likes" (EAtom "tacos"))) (EAtom "chips").
-
-    Lemma submsgp_refl : forall x:mexp, submsgp x x.
-    Proof.
-      intros.
-      induction x.
-      {
-        simpl.
-        destruct (string_dec a a).
-        reflexivity.
-        contradiction.
-      }
-      {
-        induction a.
-        {
-          simpl.
-          trivial.
-        }
-        {
-          
-          induction a.
-          simpl.
-          destruct (string_dec a a).
-
-          
-          induction a0.
-          reflexivity.
-          simpl.
-          
-    Definition bindings := alist mexp.
 
     Definition apply_app {A:Type} (lsts:list (list A)) :=
       fold_right (fun x y => x ++ y) nil lsts.
-    
+
     (* The main function. *)
-    Fixpoint patmatch (p:pexp) (bs:bindings) (m:mexp) : list bindings :=
-      match p with
-      | EAtom a =>
-        match a with
-        | AStr s =>
-          match m with
-          | EAtom s' =>
-            if string_dec s s' then bs::nil else nil
-          | _ => nil
-          end
-        | AVar v =>
-          match assoc bs v with
-          | None =>
-            (acons bs v m)::nil
-          | Some m' =>
-            if submsg m' m then bs::nil else nil
-          end
-        end
-      | _ => nil
-      end.
-        
-    Definition apply_app {A:Type} (lsts:list (list A)) :=
-      fold_right (fun x y => x ++ y) nil lsts.
-
-                                                   
+    Fixpoint patmatch (p:pat) (bs:bindings) (m:msg) : list bindings :=
+      match p, m with
       | PStr ps, Str ms =>
         if string_dec ps ms then bs::nil else nil
       | Var v, _ =>
@@ -500,5 +342,3 @@ Module patmatch.
   End verification.
 
 End patmatch.
-
-
