@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package sio
 
 // ToDo: Timers.Suspend, Timers.Resune
@@ -29,6 +28,9 @@ import (
 var (
 	// TimersMachine is the id of the timers machine.
 	TimersMachine = "timers"
+
+	// HTTPMachine is the id of the HTTP machine.
+	HTTPMachine = "http"
 )
 
 // TimerEntry represents a pending timer.

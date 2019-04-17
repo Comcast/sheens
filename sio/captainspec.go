@@ -10,12 +10,12 @@
  * limitations under the License.
  */
 
-
 package sio
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/Comcast/sheens/core"
 	"github.com/Comcast/sheens/crew"
@@ -71,6 +71,23 @@ func (c *Crew) DoOp(ctx context.Context, op *CrewOp) error {
 	return nil
 }
 
+func exeEmitError(e *core.Execution, err error) *core.Execution {
+	if e.Events == nil {
+		e.Events = &core.Events{
+			Emitted: make([]interface{}, 4),
+		}
+	}
+
+	msg := map[string]interface{}{
+		"error": err.Error(),
+		"from":  "captain",
+	}
+
+	e.Events.Emitted = append(e.Events.Emitted, msg)
+
+	return e
+}
+
 // NewCaptainSpec creates a machine Spec for a "captain" who can
 // execute CrewOps.
 func (c *Crew) NewCaptainSpec() *core.Spec {
@@ -90,13 +107,15 @@ func (c *Crew) NewCaptainSpec() *core.Spec {
 			"do": {
 				Action: &core.FuncAction{
 					F: func(ctx context.Context, bs match.Bindings, props core.StepProps) (*core.Execution, error) {
+						exe := core.NewExecution(match.NewBindings())
+
 						x, have := bs["?op"]
 						if !have {
-							return core.NewExecution(bs.Extend("error", "no op")), nil
+							return exeEmitError(exe, fmt.Errorf("no op for Captain")), nil
 						}
 						op, err := AsCrewOp(x)
 						if err != nil {
-							return core.NewExecution(bs.Extend("error", "bad crew op: "+err.Error())), nil
+							return exeEmitError(exe, fmt.Errorf("bad op: %v", err)), nil
 						}
 						if op == nil {
 							return core.NewExecution(bs), nil
@@ -104,10 +123,10 @@ func (c *Crew) NewCaptainSpec() *core.Spec {
 
 						err = c.DoOp(ctx, op)
 						if err != nil {
-							return core.NewExecution(bs.Extend("error", "crew op error: "+err.Error())), err
+							return exeEmitError(exe, fmt.Errorf("op error: %v", err)), nil
 						}
 
-						return core.NewExecution(match.NewBindings()), nil
+						return exe, nil
 					},
 				},
 				Branches: &core.Branches{

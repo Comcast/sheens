@@ -1,0 +1,32 @@
+name: echo
+doc: |-
+  A machine that echos a message that wasn't already echoed.
+patternsyntax: json
+nodes:
+  start:
+    branching:
+      type: message
+      branches:
+      - pattern: |-
+          "?msg"
+        guard:
+          interpreter: ecmascript
+          source: |-
+            var msg = _.bindings["?msg"];
+            var echoed = false;
+            if (typeof msg === 'object' && msg !== null) {
+               echoed = msg.hasOwnProperty("echo");
+            }
+            return echoed ? null : _.bindings;
+        target: echo
+  echo:
+    action:
+      interpreter: ecmascript
+      source: |-
+        _.out({echo: _.bindings["?msg"]});
+        delete _.bindings["?msg"];
+        return _.bindings;
+    branching:
+      type: bindings
+      branches:
+      - target: start

@@ -13,21 +13,22 @@
 
 set -e
 
-go install
-
-cat<<EOF | siostd -sh -ts -echo -pad -wait 7s -state-out state.json
+cat<<EOF | siostd -sh -ts -echo -pad -wait 8s -state-out state.json
 {"to":"captain","update":{"c":{"spec":{"inline":<<cat ../../specs/collatz.yaml | yaml2json>>}}}}
 {"to":"captain","update":{"dc":{"spec":{"inline":<<cat ../../specs/doublecount.yaml | yaml2json>>}}}}
 {"to":"captain","update":{"d":{"spec":{"inline":<<cat ../../specs/double.yaml | yaml2json>>}}}}
+{"to":"echo","like":"queso"}
 {"double":10}
 {"double":100}
 {"double":1000}
 {"collatz":17}
 {"collatz":5}
-{"to":"timers","makeTimer":{"in":"2s","msg":{"double":10000},"id":"t0"}}
-{"to":"timers","makeTimer":{"in":"4s","msg":{"collatz":21},"id":"t1"}}
+{"to":"timers","makeTimer":{"in":"2s","id":"t0","msg":{"double":10000}}}
+{"to":"timers","makeTimer":{"in":"3s","id":"t1","msg":{"collatz":21}}}
+{"to":"timers","makeTimer":{"in":"4s","id":"t2","msg":{"to":"http","replyTo":"echo","httpRequest":{"url":"http://worldclockapi.com/api/json/est/now"}}}}
 {"to":"d","double":3}
 {"to":"dc","double":4}
+{"to":"captain","update":{"echo":{"spec":{"inline":<<cat ../../specs/echo.yaml | yaml2json>>}}}}
 EOF
 
 echo

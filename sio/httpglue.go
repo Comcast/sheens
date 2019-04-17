@@ -1,4 +1,4 @@
-/* Copyright 2019 Comcast Cable Communications Management, LLC
+/* Copyright 2018-2019 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,17 +11,3 @@
  */
 
 package sio
-
-import (
-	"github.com/Comcast/sheens/core"
-)
-
-// CrewConf contains (or will contain) basic crew configuration data.
-//
-// Not much is needed now.
-type CrewConf struct {
-	Id             string        `json:"id,omitempty"`
-	Ctl            *core.Control `json:"ctl"`
-	EnableHTTP     bool          `json:"enableHTTP,omitempty"`
-	HaltOnInputEOF bool          `json:"haltOnInputEOF,omitempty"`
-}

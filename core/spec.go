@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package core
 
 import (
@@ -279,12 +278,8 @@ func (spec *Spec) Compile(ctx context.Context, interpreters Interpreters, force 
 		}
 
 		for _, b := range n.Branches.Branches {
-			x, err := spec.PatternParser(spec.PatternSyntax, b.Pattern)
+			x, err := Canonicalize(b.Pattern) // ToDo: Remove?
 			if err != nil {
-				return err
-			}
-			// ToDo: Remove
-			if x, err = Canonicalize(x); err != nil {
 				return err
 			}
 			b.Pattern = x

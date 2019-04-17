@@ -1,8 +1,6 @@
 name: collatz
 doc: |-
   https://en.wikipedia.org/wiki/Collatz_conjecture
-
-  echo 2197 | msimple -s specs/collatz.yaml | wc -l 
 nodes:
   start:
     branching:

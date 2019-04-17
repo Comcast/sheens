@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"flag"
 	"io/ioutil"
+	"log"
 	"time"
 
 	"github.com/Comcast/sheens/core"
@@ -39,11 +40,12 @@ func main() {
 	flag.BoolVar(&io.PrintDiag, "diag", false, "print diagnostic data")
 
 	var (
-		specFile = flag.String("spec-file", "", "optional spec filename")
-		mid      = flag.String("mid", "m", "Machine id for -spec-file (if given)")
-		stateJS  = flag.String("state", "{}", "State for -spec-file (if given)")
-		wait     = flag.Duration("wait", time.Second, "wait this long before shutting down couplings")
-		verbose  = flag.Bool("v", false, "verbose")
+		specFile  = flag.String("spec-file", "", "optional spec filename")
+		mid       = flag.String("mid", "m", "Machine id for -spec-file (if given)")
+		stateJS   = flag.String("state", "{}", "State for -spec-file (if given)")
+		wait      = flag.Duration("wait", time.Second, "wait this long before shutting down couplings")
+		haltOnEOF = flag.Bool("halt-on-eof", false, "stop on input EOF")
+		verbose   = flag.Bool("v", false, "verbose")
 
 		specSource *crew.SpecSource
 		state      *core.State
@@ -75,7 +77,9 @@ func main() {
 	}
 
 	conf := &sio.CrewConf{
-		Ctl: core.DefaultControl,
+		Ctl:            core.DefaultControl,
+		EnableHTTP:     true,
+		HaltOnInputEOF: *haltOnEOF,
 	}
 
 	c, err := sio.NewCrew(ctx, conf, io)
@@ -107,6 +111,7 @@ func main() {
 
 	go func() {
 		<-io.InputEOF
+		log.Printf("input EOF (%v)", *wait)
 		time.Sleep(*wait)
 		cancel()
 	}()
@@ -116,7 +121,6 @@ func main() {
 	}
 
 	if err = io.Stop(context.Background()); err != nil {
-		panic(err)
+		log.Printf("error from io.Stop: %v", err)
 	}
-
 }

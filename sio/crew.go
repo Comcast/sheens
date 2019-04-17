@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package sio
 
 import (
@@ -138,6 +137,11 @@ func NewCrew(ctx context.Context, conf *CrewConf, couplings Couplings) (*Crew, e
 	if err != nil {
 		return nil, err
 	}
+	if conf == nil {
+		conf = &CrewConf{
+			Ctl: core.DefaultControl,
+		}
+	}
 	c := &Crew{
 		Conf: conf,
 		in:   in,
@@ -176,6 +180,12 @@ func (c *Crew) init(ctx context.Context) error {
 		return err
 	}
 
+	if c.Conf.EnableHTTP {
+		if err := c.SetMachine(ctx, HTTPMachine, nil, nil); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -197,9 +207,20 @@ func (c *Crew) Logf(format string, args ...interface{}) {
 	log.Printf(format, args...)
 }
 
-// Errorf writes a log with "ERROR" prepended.
+// Errorf emits an error message and writes a log line with "ERROR"
+// prepended.
 func (c *Crew) Errorf(format string, args ...interface{}) {
-	log.Printf("ERROR "+format, args...)
+	msg := fmt.Sprintf(format, args...)
+	log.Println("ERROR " + msg)
+	c.out <- &Result{
+		Emitted: [][]interface{}{
+			[]interface{}{
+				map[string]interface{}{
+					"error": msg,
+				},
+			},
+		},
+	}
 }
 
 // SetMachine creates or updates a machine.
@@ -227,6 +248,14 @@ func (c *Crew) SetMachine(ctx context.Context, mid string, src *crew.SpecSource,
 	}
 
 	switch mid {
+	case HTTPMachine:
+		if m.Specter == nil {
+			spec := c.NewHTTPSpec()
+			if err := spec.Compile(ctx, Interpreters, true); err != nil {
+				return err
+			}
+			m.Specter = spec
+		}
 	case TimersMachine:
 		if m.Specter == nil {
 			spec := c.NewTimersSpec()
@@ -260,6 +289,7 @@ func (c *Crew) SetMachine(ctx context.Context, mid string, src *crew.SpecSource,
 		if src != nil {
 			ss, spec, err := ResolveSpecSource(ctx, src)
 			if err != nil {
+				delete(c.Machines, mid)
 				return err
 			}
 			m.SpecSource = ss
@@ -415,14 +445,17 @@ func (c *Crew) GetChanged(ctx context.Context) (map[string]*Changed, error) {
 // This loop calls ProcessMsg on each message that arrives via the
 // input coupling, and the loop halts when ctx.Done().
 func (c *Crew) Loop(ctx context.Context) error {
-	c.Logf("Loop starting")
+	c.Logf("Crew.Loop starting")
 LOOP:
 	for {
 		select {
 		case <-c.done:
-			break LOOP
+			if c.Conf.HaltOnInputEOF {
+				c.Logf("Crew.Loop shutting down (c.done)")
+				break LOOP
+			}
 		case <-ctx.Done():
-			c.Logf("Crew.Loop shutting down")
+			c.Logf("Crew.Loop shutting down (ctx.Done)")
 			break LOOP
 		case msg := <-c.in:
 			if msg == nil {
@@ -441,7 +474,7 @@ LOOP:
 		}
 	}
 
-	c.Logf("Loop done")
+	c.Logf("Crew.Loop done")
 	return nil
 }
 
@@ -454,6 +487,7 @@ func (c *Crew) allMachines() []string {
 	acc := make([]string, 0, len(c.Machines))
 	for mid, _ := range c.Machines {
 		switch mid {
+		case HTTPMachine:
 		case TimersMachine:
 		case CaptainMachine:
 		default:
@@ -576,11 +610,14 @@ func ResolveSpecSource(ctx context.Context, specSource interface{}) (*crew.SpecS
 		return nil, nil, err
 	}
 
-	if src.Inline != nil {
-		if err = src.Inline.Compile(ctx, Interpreters, true); err != nil {
-			return nil, nil, err
+	if true {
+		if src.Inline != nil {
+			if err = src.Inline.Compile(ctx, Interpreters, true); err != nil {
+				log.Printf("spec.Compile error: %v", err)
+				return nil, nil, err
+			}
+			return &src, src.Inline, nil
 		}
-		return &src, src.Inline, nil
 	}
 
 	var body []byte
@@ -620,6 +657,7 @@ func ResolveSpecSource(ctx context.Context, specSource interface{}) (*crew.SpecS
 		return nil, nil, err
 	}
 	if err = spec.Compile(ctx, Interpreters, true); err != nil {
+		log.Printf("spec.Compile error: %v", err)
 		return nil, nil, err
 	}
 

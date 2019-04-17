@@ -31,3 +31,15 @@ You can cancel a timer with a message like
 ```JSON
 {"to":"timers","cancelTimer":"ID"}
 ```
+
+## HTTP
+
+If `Crew.EnableHTTP` is `true`, this crew can make HTTP request.
+These requests are asynchronous.  The responses are returned as
+in-bound messages.
+
+```JSON
+{"to":"http","httpRequest":{"url":"http://worldclockapi.com/api/json/est/now"},"replyTo":"thisMachine"}
+```
+
+For now, see [`http.go`](http.go) for the structure of the HTTP request.

@@ -10,13 +10,11 @@
  * limitations under the License.
  */
 
-
 package tools
 
 import (
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -42,7 +40,6 @@ func Inline(bs []byte, f func(string) ([]byte, error)) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("debug inlining %s: %s", part[3], replacement)
 		acc = append(acc, replacement...)
 	}
 
