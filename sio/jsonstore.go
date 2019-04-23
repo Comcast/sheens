@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package sio
 
 import (
@@ -31,17 +30,19 @@ type JSONStore struct {
 	// writing state as JSON.
 	StateOutputFilename string
 
-	// StateInputFilename optionall gives a filename that contains
-	// state to return when Read is called.
+	// StateInputFilename optionally gives a filename that
+	// contains state to return when Read is called.
 	StateInputFilename string
 
-	state map[string]*crew.Machine
+	State map[string]*crew.Machine
 
 	WG sync.WaitGroup
 }
 
 func NewJSONStore() *JSONStore {
-	return &JSONStore{}
+	return &JSONStore{
+		StateOutputFilename: "state.json",
+	}
 }
 
 // Start does nothing.
@@ -67,10 +68,10 @@ func (s *JSONStore) Read(ctx context.Context) (map[string]*crew.Machine, error) 
 		if err != nil {
 			return nil, err
 		}
-		if err = json.Unmarshal(js, &s.state); err != nil {
+		if err = json.Unmarshal(js, &s.State); err != nil {
 			return nil, err
 		}
-		return s.state, nil
+		return s.State, nil
 
 	}
 	return make(map[string]*crew.Machine), nil
@@ -78,13 +79,40 @@ func (s *JSONStore) Read(ctx context.Context) (map[string]*crew.Machine, error) 
 
 // writeState writes the entire crew as JSON.
 func (s *JSONStore) WriteState(ctx context.Context) error {
-	if s.state != nil {
-		js, err := json.MarshalIndent(&s.state, "", "  ")
+	if s.State != nil {
+		js, err := json.MarshalIndent(&s.State, "", "  ")
 		if err != nil {
 			return err
 		}
 		if err = ioutil.WriteFile(s.StateOutputFilename, js, 0644); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func (s *JSONStore) Update(r *Result) error {
+	// We could spend CPU now to determine any net changes, which
+	// would allow others to avoid unnecessary writes.  But we
+	// don't.
+	state := s.State
+	for mid, m := range r.Changed {
+		if state != nil {
+			if m.Deleted {
+				delete(state, mid)
+			} else {
+				n, have := state[mid]
+				if !have {
+					n = &crew.Machine{}
+					state[mid] = n
+				}
+				if m.State != nil {
+					n.State = m.State.Copy()
+				}
+				if m.SpecSrc != nil {
+					n.SpecSource = m.SpecSrc.Copy()
+				}
+			}
 		}
 	}
 	return nil

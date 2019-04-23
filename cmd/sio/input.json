@@ -1,0 +1,12 @@
+{"to":"captain","update":{"c":{"spec":{"url":"file://specs/collatz.yaml"}}}}
+{"to":"captain","update":{"dc":{"spec":{"url":"file://specs/doublecount.yaml"}}}}
+{"to":"captain","update":{"d":{"spec":{"url":"file://specs/double.yaml"}}}}
+{"double":10}
+{"double":100}
+{"collatz":17}
+{"to":"timers","makeTimer":{"in":"2s","id":"t0","msg":{"double":1000}}}
+{"to":"timers","makeTimer":{"in":"3s","id":"t1","msg":{"collatz":21}}}
+{"to":"captain","update":{"echo":{"spec":{"url":"file://specs/echo.yaml"}}}}
+{"to":"timers","makeTimer":{"in":"4s","id":"t2","msg":{"to":"http","replyTo":"echo","httpRequest":{"url":"http://worldclockapi.com/api/json/est/now"}}}}
+{"to":"d","double":3}
+{"to":"dc","double":4}

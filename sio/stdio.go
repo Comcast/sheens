@@ -114,10 +114,10 @@ func (s *Stdio) Read(ctx context.Context) (map[string]*crew.Machine, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err = json.Unmarshal(js, &s.state); err != nil {
+		if err = json.Unmarshal(js, &s.State); err != nil {
 			return nil, err
 		}
-		return s.state, nil
+		return s.State, nil
 
 	}
 	return make(map[string]*crew.Machine), nil
@@ -129,7 +129,7 @@ func (s *Stdio) IO(ctx context.Context) (chan interface{}, chan *Result, chan bo
 	done := make(chan bool)
 
 	if s.StateOutputFilename != "" {
-		s.state = make(map[string]*crew.Machine)
+		s.State = make(map[string]*crew.Machine)
 	}
 
 	printf := func(tag, format string, args ...interface{}) {
@@ -166,11 +166,11 @@ func (s *Stdio) IO(ctx context.Context) (chan interface{}, chan *Result, chan bo
 					log.Printf("stdin error %s", err)
 					return
 				}
-				if strings.HasPrefix(line, "#") {
-					continue
-				}
 				if s.EchoInput {
 					printf("input", "%s", line)
+				}
+				if strings.HasPrefix(line, "#") || len(strings.TrimSpace(line)) == 0 {
+					continue
 				}
 				if s.ShellExpand {
 					line, err = ShellExpand(line)
@@ -220,29 +220,9 @@ func (s *Stdio) IO(ctx context.Context) (chan interface{}, chan *Result, chan bo
 						}
 					}
 				}
-				for mid, m := range r.Changed {
-					if s.PrintUpdates {
-						printf("update", "%s %s\n", mid, JShort(m))
-					}
-					if s.state != nil {
-						if m.Deleted {
-							delete(s.state, mid)
-						} else {
-							n, have := s.state[mid]
-							if !have {
-								n = &crew.Machine{}
-								s.state[mid] = n
-							}
-							if m.State != nil {
-								n.State = m.State.Copy()
-							}
-							if m.SpecSrc != nil {
-								n.SpecSource = m.SpecSrc.Copy()
-							}
-						}
-					}
+				if err := s.Update(r); err != nil {
+					panic(err)
 				}
-
 				if s.WriteStatePerMsg {
 					if err := s.writeState(ctx); err != nil {
 						panic(err)
@@ -259,8 +239,8 @@ func (s *Stdio) IO(ctx context.Context) (chan interface{}, chan *Result, chan bo
 
 // writeState writes the entire crew as JSON.
 func (s *Stdio) writeState(ctx context.Context) error {
-	if s.state != nil {
-		js, err := json.MarshalIndent(&s.state, "", "  ")
+	if s.State != nil {
+		js, err := json.MarshalIndent(&s.State, "", "  ")
 		if err != nil {
 			return err
 		}

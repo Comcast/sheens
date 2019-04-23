@@ -3,3 +3,4 @@ TAGS
 *.db
 tmp/
 rel/
+state.json

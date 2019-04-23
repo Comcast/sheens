@@ -11,7 +11,7 @@ narratives.  See the [README](../README.md) a more formal description.
 In particular, [this section](../README.md#Definitions) semi-formally
 specifies what a machine is, the
 [this section](../README.md#Processing) describes machine behavior.
-You can use the demo program [`siostd`](../cmd/siostd) to
+You can use the demo program [`sio`](../cmd/sio) to
 experiment.
 
 ## Example 1: Simple reponse to an incoming messaging
@@ -459,7 +459,7 @@ it that certain messages that rerepresent HTTP requests result in HTTP
 requests, with the responses return as messages submitted to the
 machine.  
 
-For exampe, the demo program [`cmd/siostd`](../cmd/siostd) includes
+For exampe, the demo program [`cmd/sio`](../cmd/sio) includes
 internal services to support timers and HTTP requests.  Alternatively,
 a process might delegate this functionality to external services such
 as a pool of HTTP requester or Elasticron.  Other possibilities, too,
@@ -471,7 +471,7 @@ say on this topic.
 
 ### Timers
 
-The [`cmd/siostd`](../cmd/siostd) program has an internal service that
+The [`cmd/sio`](../cmd/sio) program has an internal service that
 responds to messages like
 
 ```Javascript
@@ -482,25 +482,23 @@ When triggered, that process will send the message `{"likes":"queso"}`
 all the machines in the crew.  (Fancier routing is possible; see
 [Routing](#routing) below.)
 
-Here's an example use using the `siostd` TCP API:
+Here's an example use using the `sio` TCP API:
 
 ```
-cat<<EOF | nc localhost 8081
-# Make a machine with the "double" specification.
-{"cop":{"add":{"m":{"id":"doubler","spec":{"name":"double"}}}}}
-# Send a message that will run the "double" machine.
-{"cop":{"process":{"message":{"to":{"mid":"doubler"},"double":1}}}}
+cat<<EOF | sio -wait 3s
+{"to":"captain","update":{"d":{"spec":{"url":"file://specs/double.yaml"}}}}
+{"to":"timers","makeTimer":{"in":"2s","id":"t0","msg":{"double":1}}}
 EOF
 ```
 
-Each line is input to `siostd`.  These lines are _not_ messages to a
+Each line is input to `sio`.  These lines are _not_ messages to a
 machine or crew.  Instead, they are messages to the container of a
 crew (and, in the case of the `sleep` line, to an input processor in
 front of that container).
 
 ### HTTP requests
 
-The `cmd/siostd` program has an internal service that processes
+The `cmd/sio` program has an internal service that processes
 messages that are HTTP requests.  For an example use, here's an
 excerpt of specification that shows a real use of that HTTP service:
 
@@ -540,7 +538,7 @@ response messages.
 ## Example 5: Message routing
 
 A crew container can provide arbitrary message routing.  For example,
-when `siostd` receives a message that contains `"to":"turnstile"`, then
+when `sio` receives a message that contains `"to":"turnstile"`, then
 the container will send that message _only_ to a machine with id
 `"turnstile"` (if such a machine exists in the crew). Using this
 behavior, a sender can send a message to a specified machine.  By

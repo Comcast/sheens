@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package crew
 
 import (
@@ -72,10 +71,21 @@ func (m *Machine) Copy() *Machine {
 //
 // Currently a source for a Spec can either be a name, a URL, or maybe
 // given explicitly as a string in an unspecified syntax.
+//
+// Just how a SpecSource is used is up to the application.
 type SpecSource struct {
-	Name   string     `json:"name,omitempty" yaml:"name,omitempty"`
-	URL    string     `json:"url,omitempty" yaml:"url,omitempty"`
-	Source string     `json:"source,omitempty" yaml:"source,omitempty"`
+	// Name is an optional string that could be used by a resolve
+	// to obtain some spec.
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+
+	// URL is an optional pointer to a spec.
+	URL string `json:"url,omitempty" yaml:"url,omitempty"`
+
+	// Source is a optional string representing a spec (in a
+	// representation determined by the application).
+	Source string `json:"source,omitempty" yaml:"source,omitempty"`
+
+	// Inline is an optional actual spec right here.
 	Inline *core.Spec `json:"inline,omitempty" yaml:",omitempty"`
 }
 

@@ -599,7 +599,9 @@ func (c *Crew) RunMachine(ctx context.Context, msg interface{}, m *crew.Machine)
 // ResolveSpecSource attempts to find and compile a spec based on a
 // crew.SpecSource (or something that looks like one).
 //
-// ToDo: Test and document.
+// Attempts to obtain a spec by examining .Inline, .URL, and .Source
+// in that order.  The URL can be a 'file://' (with support for
+// relative paths).  The Source can be JSON or YAML.
 func ResolveSpecSource(ctx context.Context, specSource interface{}) (*crew.SpecSource, *core.Spec, error) {
 	js, err := json.Marshal(&specSource)
 	if err != nil {
@@ -610,20 +612,18 @@ func ResolveSpecSource(ctx context.Context, specSource interface{}) (*crew.SpecS
 		return nil, nil, err
 	}
 
-	if true {
-		if src.Inline != nil {
-			if err = src.Inline.Compile(ctx, Interpreters, true); err != nil {
-				log.Printf("spec.Compile error: %v", err)
-				return nil, nil, err
-			}
-			return &src, src.Inline, nil
+	if src.Inline != nil {
+		if err = src.Inline.Compile(ctx, Interpreters, true); err != nil {
+			log.Printf("spec.Compile error: %v", err)
+			return nil, nil, err
 		}
+		return &src, src.Inline, nil
 	}
 
 	var body []byte
 
 	if src.URL != "" {
-		// Yikes.  We hate doing blocking IO. ToDo: Something better?
+		// Yikes.  We detest IO.
 
 		if strings.HasPrefix(src.URL, "file://") {
 			filename := src.URL[7:]

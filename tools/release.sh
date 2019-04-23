@@ -19,7 +19,7 @@ REL=sheens-$GOOS-$GOARCH-$VERSION
 TARGET=`pwd`/rel/$REL
 rm -rf $TARGET
 mkdir -p $TARGET/bin
-for D in cmd/mexpect cmd/patmatch cmd/spectool cmd/mqclient cmd/siomq cmd/siostd; do
+for D in cmd/mexpect cmd/patmatch cmd/spectool cmd/mqclient cmd/sio; do
     echo $D
     (cd $D && go build -o $TARGET/bin/$(basename $D) -ldflags="-s -w -X main.GitCommit=$(git rev-list -1 HEAD) -X main.Version=${VERSION:-NA}" )
 done
