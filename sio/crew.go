@@ -314,6 +314,9 @@ func (c *Crew) DeleteMachine(ctx context.Context, mid string) error {
 func (c *Crew) ProcessMsg(ctx context.Context, msg interface{}) (*Result, error) {
 	c.Logf("ProcessMsg %s", JS(msg))
 
+	c.Lock()
+	defer c.Unlock()
+
 	// Some emitted messages are routed back to sheens.  Rather
 	// than call ProcessMsg recursively, we take a breadth-first
 	// approach.  That approach is the correct one since an

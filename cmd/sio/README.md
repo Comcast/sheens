@@ -5,6 +5,7 @@ This program runs a single crew that can talk via
 1. `stdin`/`stdout` with `-io std` or as the default
 2. MQTT with `-io mq`
 3. WebSockets with `-io ws`
+4. HTTP with `-io httpd`
 
 Use `-h` to see command-line arguments.
 

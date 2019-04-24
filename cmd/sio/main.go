@@ -72,6 +72,12 @@ func main() {
 			fs.PrintDefaults()
 		}
 
+		{
+			fmt.Fprintf(os.Stderr, "\n-io httpds:\n\n")
+			_, fs := NewHTTPDCouplings(nil)
+			fs.PrintDefaults()
+		}
+
 		os.Exit(0)
 	}
 
@@ -92,6 +98,11 @@ func main() {
 	case "ws":
 		c, _ := NewWebSocketCouplings(flag.Args())
 		store = &c.JSONStore
+		cio = c
+	case "httpd", "http":
+		c, _ := NewHTTPDCouplings(flag.Args())
+		store = &c.JSONStore
+		// But see hack below to set the crew.
 		cio = c
 	default:
 		panic(fmt.Errorf("unknown io: '%s'", *coupling))
@@ -141,6 +152,11 @@ func main() {
 		panic(err)
 	}
 	c.Verbose = *verbose
+
+	// Hack to set crew.
+	if h, is := cio.(*HTTPDCouplings); is {
+		h.crew = c
+	}
 
 	ms, err := cio.Read(ctx)
 	if err != nil {
