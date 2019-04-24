@@ -39,8 +39,24 @@ import (
 //
 // The HTTP API also supports long-polling to obtain messages emitted
 // asychronously.
+//
+//   /in:     Send body as message to the crew.
+//            sync=true: Receive the messages emitted (if any)
+//   /since:  Get emitted messages; blocks if none available.
+//            timeout=Ns: Wait for N seconds.
+//            offset=N: Only messsages with sequence number > N.
+//            limit=N: At most N messages.
+//   /recent: Get recent emitted messages; blocks if none available.
+//            timeout=Ns: Wait for N seconds.
+//            offset=N: Only messsages with sequence number > N.
+//            limit=N: At most N messages.
+//
 type HTTPDCouplings struct {
+	// Port gives the interface:port for the HTTP service.
 	Port string
+
+	// EmitToStdout will write all emitted messages to stdout.
+	EmitToStdout bool
 
 	sio.JSONStore
 
@@ -59,11 +75,15 @@ type HTTPDCouplings struct {
 // returns the flag.FlagSet used to process the command-line args.
 func NewHTTPDCouplings(args []string) (*HTTPDCouplings, *flag.FlagSet) {
 	c := &HTTPDCouplings{}
+
 	fs := flag.NewFlagSet("httpd", flag.ExitOnError)
 	fs.StringVar(&c.Port, "-port", "localhost:8080", "Port (host:port) for HTTP service")
+	fs.BoolVar(&c.EmitToStdout, "-stdout", true, "rite all out-bound messages to stdout")
+
 	if args == nil {
 		return nil, fs
 	}
+
 	fs.Parse(args)
 	c.sigs = NewSignals()
 	return c, fs
@@ -98,10 +118,18 @@ func (c *HTTPDCouplings) Start(ctx context.Context) error {
 		fmt.Fprintf(w, "%s\n", js)
 	}
 
-	mux.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/since", func(w http.ResponseWriter, r *http.Request) {
 		var since int64
-		if n, err := strconv.ParseInt(r.FormValue("since"), 10, 64); err == nil {
+		if n, err := strconv.ParseInt(r.FormValue("offset"), 10, 64); err == nil {
 			since = n
+		}
+
+		var limit int64
+		if n, err := strconv.ParseInt(r.FormValue("limit"), 10, 64); err == nil {
+			limit = n
+		}
+		if limit <= 0 {
+			limit = 10
 		}
 
 		timeout, err := time.ParseDuration(r.FormValue("timeout"))
@@ -109,7 +137,31 @@ func (c *HTTPDCouplings) Start(ctx context.Context) error {
 			timeout = 10 * time.Second
 		}
 
-		msgs := hist.Get(ctx, since, timeout)
+		msgs := hist.Get(ctx, since, limit, timeout)
+
+		js, err := json.Marshal(&msgs)
+		if err != nil {
+			puntf(w, "Marshal error %v on %#v", err, msgs)
+			return
+		}
+		fmt.Fprintf(w, "%s\n", js)
+	})
+
+	mux.HandleFunc("/recent", func(w http.ResponseWriter, r *http.Request) {
+		var limit int64
+		if n, err := strconv.ParseInt(r.FormValue("limit"), 10, 64); err == nil {
+			limit = n
+		}
+		if limit <= 0 {
+			limit = 10
+		}
+
+		timeout, err := time.ParseDuration(r.FormValue("timeout"))
+		if err != nil {
+			timeout = 10 * time.Second
+		}
+
+		msgs := hist.Recent(ctx, limit, timeout)
 
 		js, err := json.Marshal(&msgs)
 		if err != nil {
@@ -199,6 +251,14 @@ func (c *HTTPDCouplings) Start(ctx context.Context) error {
 						}
 
 						hist.Add(msg)
+						if c.EmitToStdout {
+							js, err := json.Marshal(m)
+							if err != nil {
+								E(err, "Marshal of %#v", m)
+							} else {
+								fmt.Printf("%s\n", js)
+							}
+						}
 					}
 				}
 				if err := c.Update(r); err != nil {
@@ -287,6 +347,7 @@ func NewHistory(size int) *History {
 // HistoryMsg associates a number with a message.
 type HistoryMsg struct {
 	N   int64       `json:"n"`
+	T   time.Time   `json:"t"`
 	Msg interface{} `json:"msg"`
 }
 
@@ -310,6 +371,7 @@ func (h *History) Add(msg interface{}) {
 	h.last++
 	hm := HistoryMsg{
 		N:   h.last,
+		T:   time.Now().UTC(),
 		Msg: msg,
 	}
 	h.buffer = append(h.buffer, hm)
@@ -318,9 +380,16 @@ func (h *History) Add(msg interface{}) {
 }
 
 // get returns messages after the given sequence number.
-func (h *History) get(since int64) []HistoryMsg {
+func (h *History) get(since, limit int64) []HistoryMsg {
+
 	h.RLock()
 
+	if since < 0 {
+		since = h.last - limit
+		if since < 0 {
+			since = 0
+		}
+	}
 	var (
 		have        = int64(len(h.buffer))
 		startSeqNum = h.last - have
@@ -342,8 +411,8 @@ func (h *History) get(since int64) []HistoryMsg {
 //
 // When no messages are available, this method blocks, with the given
 // timeout, until a new message arrives.
-func (h *History) Get(ctx context.Context, since int64, timeout time.Duration) []HistoryMsg {
-	msgs := h.get(since)
+func (h *History) Get(ctx context.Context, since, limit int64, timeout time.Duration) []HistoryMsg {
+	msgs := h.get(since, limit)
 
 	if len(msgs) == 0 {
 		timer := time.NewTimer(timeout)
@@ -351,7 +420,28 @@ func (h *History) Get(ctx context.Context, since int64, timeout time.Duration) [
 		case <-ctx.Done():
 		case <-timer.C:
 		case <-h.Wait():
-			msgs = h.get(since)
+			msgs = h.get(since, limit)
+		}
+	}
+
+	return msgs
+
+}
+
+// Recent obtains the most recent messages from the history.
+//
+// When no messages are available, this method blocks, with the given
+// timeout, until a new message arrives.
+func (h *History) Recent(ctx context.Context, limit int64, timeout time.Duration) []HistoryMsg {
+	msgs := h.get(-1, limit)
+
+	if len(msgs) == 0 {
+		timer := time.NewTimer(timeout)
+		select {
+		case <-ctx.Done():
+		case <-timer.C:
+		case <-h.Wait():
+			msgs = h.get(-1, limit)
 		}
 	}
 
