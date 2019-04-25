@@ -67,6 +67,10 @@ type Spec struct {
 	// like "1.2".
 	Version string `json:"version,omitempty" yaml:",omitempty"`
 
+	// SheensVersion is an optional indication of what version(s)
+	// of Sheens this spec requires.
+	SheensVersion string `json:"sheensVersion,omitempty" yaml:",omitempty"`
+
 	// Id should be a globally unique identifier (such as a hash
 	// of a canonical representation of the Spec).
 	//
