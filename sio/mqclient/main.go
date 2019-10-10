@@ -48,12 +48,10 @@ func main() {
 	var (
 		// Follow mosquitto_sub command line args.
 
-		broker      = flag.String("h", "tcp://localhost", "Broker hostname")
-		clientId    = flag.String("i", "", "Client id")
-		port        = flag.Int("p", 1883, "Broker port")
+		broker = flag.String("h", "tcp://localhost", "Broker hostname")
+		port   = flag.Int("p", 1883, "Broker port")
+
 		keepAlive   = flag.Int("k", 10, "Keep-alive in seconds")
-		userName    = flag.String("u", "", "Username")
-		password    = flag.String("P", "", "Password")
 		willTopic   = flag.String("will-topic", "", "Optional will topic")
 		willPayload = flag.String("will-payload", "", "Optional will message")
 		willQoS     = flag.Int("will-qos", 0, "Optional will QoS")
@@ -62,12 +60,15 @@ func main() {
 		clean       = flag.Bool("c", true, "Clean session")
 		quiesce     = flag.Int("quiesce", 100, "Disconnection quiescence (in milliseconds)")
 
+		clientId     = flag.String("i", "", "Client id")
+		userName     = flag.String("u", "", "Username")
+		password     = flag.String("P", "", "Password")
 		certFilename = flag.String("cert", "", "Optional cert filename")
 		keyFilename  = flag.String("key", "", "Optional key filename")
 		insecure     = flag.Bool("insecure", false, "Skip broker cert checking")
 		caFilename   = flag.String("cafile", "", "Optional CA cert filename")
-		caPath       = flag.String("capath", "", "Optional path to CA cert filename") // Why separate?
-		shellExpand  = flag.Bool("sh", true, "Enable shell expansion (<<...>>)")
+
+		shellExpand = flag.Bool("sh", true, "Enable shell expansion (<<...>>)")
 	)
 
 	flag.Parse()
@@ -91,6 +92,7 @@ func main() {
 		if *willPayload == "" {
 			log.Fatal("will topic without payload")
 		}
+		log.Printf("configuring will")
 		opts.WillEnabled = true
 		opts.WillTopic = *willTopic
 		opts.WillPayload = []byte(*willPayload)
@@ -99,23 +101,18 @@ func main() {
 	}
 
 	var rootCAs *x509.CertPool
-	{
-		if *caPath != "" {
-			if rootCAs, _ = x509.SystemCertPool(); rootCAs == nil {
-				rootCAs = x509.NewCertPool()
-				log.Printf("Including system CA certs")
-			}
+	if rootCAs, _ = x509.SystemCertPool(); rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+		log.Printf("Including system CA certs")
+	}
+	if *caFilename != "" {
+		certs, err := ioutil.ReadFile(*caFilename)
+		if err != nil {
+			log.Fatalf("couldn't read '%s': %s", *caFilename, err)
+		}
 
-			if !strings.HasSuffix(*caPath, "/") {
-				*caPath += "/"
-			}
-			filename := *caPath + *caFilename
-			certs, err := ioutil.ReadFile(filename)
-			log.Fatalf("couldn't read '%s': %s", filename, err)
-
-			if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-				log.Println("No certs appended, using system certs only")
-			}
+		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
+			log.Println("No certs appended, using system certs only")
 		}
 	}
 
