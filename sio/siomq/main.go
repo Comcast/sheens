@@ -18,13 +18,16 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -44,12 +47,12 @@ func main() {
 		broker      = flag.String("h", "tcp://localhost", "Broker hostname")
 		clientId    = flag.String("i", "", "Client id")
 		port        = flag.Int("p", 1883, "Broker port")
-		keepAlive   = flag.Int("k", 10, "Keep-alive in seconds")
+		keepAlive   = flag.Int("k", 600, "Keep-alive in seconds")
 		userName    = flag.String("u", "", "Username")
 		password    = flag.String("P", "", "Password")
 		willTopic   = flag.String("will-topic", "", "Optional will topic")
 		willPayload = flag.String("will-payload", "", "Optional will message")
-		willQoS     = flag.Int("will-qos", 0, "Optional will QoS")
+		willQoS     = flag.Int("will-qos", 1, "Optional will QoS")
 		willRetain  = flag.Bool("will-retain", false, "Optional will retention")
 		reconnect   = flag.Bool("reconnect", false, "Automatically attempt to reconnect")
 		clean       = flag.Bool("c", true, "Clean session")
@@ -59,14 +62,19 @@ func main() {
 		keyFilename  = flag.String("key", "", "Optional key filename")
 		insecure     = flag.Bool("insecure", false, "Skip broker cert checking")
 		caFilename   = flag.String("cafile", "", "Optional CA cert filename")
-		caPath       = flag.String("capath", "", "Optional path to CA cert filename") // Why separate?
+
+		tokenKey       = flag.String("token-key-name", "CustAuth", "AWS custom authorizer token key")
+		token          = flag.String("token", "", "AWS custom authorizer token")
+		tokenSig       = flag.String("token-sig", "", "AWS custom authorizer token signature")
+		authorizerName = flag.String("authorizer-name", "", "AWS custom authorizer name")
 
 		subTopics = flag.String("t", "", "subscription topic(s)")
+		initFile  = flag.String("init", "", "File containing mqclient 'pub' commands to execute")
 
 		injectTopic          = flag.Bool("inject-topic", true, "put topic in map of incoming messages")
 		wrapWithTopic        = flag.Bool("wrap-with-topic", false, "wrap non-maps in a map along with the topic")
 		defaultOutboundTopic = flag.String("def-outbound-topic", "misc", "Default out-bound message topic")
-		inTimeout            = flag.Duration("in-timeout", time.Second, "timeout for in-bound queuing")
+		inTimeout            = flag.Duration("in-timeout", 5*time.Second, "timeout for in-bound queuing")
 	)
 
 	flag.Parse()
@@ -78,16 +86,40 @@ func main() {
 
 	opts := mqtt.NewClientOptions()
 
-	*broker = fmt.Sprintf("%s:%d", *broker, *port)
+	if *port != 0 {
+		*broker = fmt.Sprintf("%s:%d", *broker, *port)
+	}
+	log.Printf("broker: %s", *broker)
 	opts.AddBroker(*broker)
 	opts.SetClientID(*clientId)
 	opts.SetKeepAlive(time.Second * time.Duration(*keepAlive))
-	// opts.SetPingTimeout(10 * time.Second)
+	opts.SetPingTimeout(10 * time.Second)
 
 	opts.Username = *userName
 	opts.Password = *password
 	opts.AutoReconnect = *reconnect
 	opts.CleanSession = *clean
+
+	if *token != "" {
+		var (
+			bs     = make([]byte, 16)
+			_, err = rand.Read(bs)
+			key    = hex.EncodeToString(bs)
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		opts.HTTPHeaders = http.Header{
+			"x-amz-customauthorizer-name":      []string{*authorizerName},
+			"x-amz-customauthorizer-signature": []string{*tokenSig},
+			*tokenKey:                          []string{*token},
+			"sec-WebSocket-Key":                []string{key},
+			"sec-websocket-protocol":           []string{"mqtt"},
+			"sec-WebSocket-Version":            []string{"13"},
+		}
+
+	}
 
 	if *willTopic != "" {
 		if *willPayload == "" {
@@ -101,23 +133,18 @@ func main() {
 	}
 
 	var rootCAs *x509.CertPool
-	{
-		if *caPath != "" {
-			if rootCAs, _ = x509.SystemCertPool(); rootCAs == nil {
-				rootCAs = x509.NewCertPool()
-				log.Printf("Including system CA certs")
-			}
+	if rootCAs, _ = x509.SystemCertPool(); rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+		log.Printf("Including system CA certs")
+	}
+	if *caFilename != "" {
+		certs, err := ioutil.ReadFile(*caFilename)
+		if err != nil {
+			log.Fatalf("couldn't read '%s': %s", *caFilename, err)
+		}
 
-			if !strings.HasSuffix(*caPath, "/") {
-				*caPath += "/"
-			}
-			filename := *caPath + *caFilename
-			certs, err := ioutil.ReadFile(filename)
-			log.Fatalf("couldn't read '%s': %s", filename, err)
-
-			if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-				log.Println("No certs appended, using system certs only")
-			}
+		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
+			log.Println("No certs appended, using system certs only")
 		}
 	}
 
@@ -192,6 +219,39 @@ func main() {
 
 	go io.outLoop(ctx)
 
+	go func() {
+		if *initFile != "" {
+			in, err := ioutil.ReadFile(*initFile)
+			if err != nil {
+				panic(err)
+			}
+			for _, line := range strings.Split(string(in), "\n") {
+				line, err = sio.ShellExpand(line) // ToDo: Warn/switch!
+				if err != nil {
+					panic(fmt.Errorf("shell expansion error %s", err))
+				}
+				line = strings.TrimSpace(line)
+				if line == "" || strings.HasPrefix(line, "#") {
+					continue
+				}
+				parts := strings.SplitN(line, " ", 3)
+				switch strings.TrimSpace(parts[0]) {
+				case "pub":
+					if len(parts) != 3 {
+						log.Printf("bad init line '%s'", line)
+						continue
+					}
+					topic := parts[1]
+					msg := parts[2]
+					io.consume(ctx, topic, []byte(msg))
+				case "echo":
+				default:
+					log.Printf("ignoring line '%s'", line)
+				}
+			}
+		}
+	}()
+
 	if err := c.Loop(ctx); err != nil {
 		panic(err)
 	}
@@ -220,16 +280,8 @@ type Couplings struct {
 	outbound chan *sio.Result
 }
 
-// inHandler is a Paho publish handler, which is used to handle
-// messages send to us from the MQTT broker due to our subscriptions.
-func (c *Couplings) inHandler(ctx context.Context, client mqtt.Client, msg mqtt.Message) {
-	log.Printf("incoming: %s %s\n", msg.Topic(), msg.Payload())
-	var (
-		x       interface{}
-		payload = msg.Payload()
-		topic   = msg.Topic()
-	)
-
+func (c *Couplings) consume(ctx context.Context, topic string, payload []byte) {
+	var x interface{}
 	if err := json.Unmarshal(payload, &x); err != nil {
 		log.Printf("Couldn't JSON-parse payload: %s", payload)
 		x = string(payload)
@@ -256,9 +308,15 @@ func (c *Couplings) inHandler(ctx context.Context, client mqtt.Client, msg mqtt.
 	case c.incoming <- x:
 		log.Printf("Couplings forwarded incoming %s", payload)
 	case <-to.C:
-		log.Printf("Publisher not publishing due to stall")
+		log.Printf("Publisher not publishing due to stall ('%s','%s')", topic, payload)
 	}
+}
 
+// inHandler is a Paho publish handler, which is used to handle
+// messages send to us from the MQTT broker due to our subscriptions.
+func (c *Couplings) inHandler(ctx context.Context, client mqtt.Client, msg mqtt.Message) {
+	log.Printf("incoming: %s %s\n", msg.Topic(), msg.Payload())
+	c.consume(ctx, msg.Topic(), msg.Payload())
 }
 
 // Start creates the MQTT session.
@@ -278,6 +336,7 @@ func (c *Couplings) Start(ctx context.Context) error {
 		if t := c.Client.Subscribe(topic, qos, nil); t.Wait() && t.Error() != nil {
 			return t.Error()
 		}
+		log.Printf("Subscribed to %s (%d)", topic, qos)
 	}
 	log.Printf("Couplings started")
 
@@ -312,7 +371,7 @@ LOOP:
 							if f, is := n.(float64); is {
 								qos = byte(f)
 							} else {
-								log.Printf("warning: ignoring qos %#v %T", n, n)
+								log.Printf("Warning: ignoring qos %#v %T", n, n)
 							}
 						}
 					}
@@ -321,17 +380,19 @@ LOOP:
 						log.Printf("Failed to marshal %#v", x)
 						continue
 					}
+					log.Printf("Publishing %s %s", topic, js)
 					token := c.Client.Publish(topic, qos, false, js)
 					token.Wait()
 					if token.Error() != nil {
 						log.Fatalf("Publish error: %s", token.Error())
 					}
+					log.Printf("Published to %s", topic)
 				}
 
 				// Where we could store state changes.
 				for mid, m := range r.Changed {
 					if false {
-						log.Printf("update %s %s\n", mid, sio.JShort(m))
+						log.Printf("Update %s %s\n", mid, sio.JShort(m))
 					}
 				}
 			}
