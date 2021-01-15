@@ -24,7 +24,7 @@ import (
 	. "github.com/Comcast/sheens/util/testutil"
 	"github.com/jsccast/yaml"
 
-	md "gopkg.in/russross/blackfriday.v2"
+	md "github.com/russross/blackfriday/v2"
 )
 
 func RenderSpecHTML(s *core.Spec, out io.Writer) error {
