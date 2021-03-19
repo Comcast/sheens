@@ -37,7 +37,8 @@ nodes:
       interpreter: ecmascript
       source: |-
         _.out({send: _.bindings["?wanted"]});
-        return _.bindings.Remove("?wanted");
+		delete _.bindings["?wanted"];
+        return _.bindings;
     branching:
       branches:
       - target: start
@@ -106,9 +107,7 @@ populated with an object at `_`, which has two important properties:
 1. `_.out(x)`: A function adds the given argument to the list of
    messages that the action will emit (if action execution does not
    result in an error).  This function _does not block_.
-2. `_.bindings`: The current set of bindings.  This value has methods
-   `Remove(p1, p2, ... )` and `Extend(p, v)` to remove and add
-   properties respectively.
+2. `_.bindings`: The current set of bindings.
 
 The value of `_` also has some additional properties:
 
@@ -133,7 +132,8 @@ The "deliver" node's ECMAscript action is
 
 ```Javascript
 _.out({send: _.bindings["?wanted"]});
-_.bindings.Remove("?wanted");
+delete _.bindings["?wanted"];
+return _.bindings;
 ```
 
 The first line ends up queuing the message `{"send":"tacos"}`.
@@ -241,7 +241,9 @@ nodes:
       interpreter: ecmascript
       source: |-
         _.out({send: _.bindings["?wanted"], count: _.bindings["?n"]});
-        return _.bindings.Remove("?wanted","?n");
+		delete _.bindings["?wanted"];
+		delete _.bindings["?n"];
+        return _.bindings;
     branching:
       branches:
       - target: start
@@ -249,7 +251,9 @@ nodes:
     action:
       interpreter: ecmascript
       source: |-
-        return _.bindings.Remove("?wanted","?n");
+		delete _.bindings["?wanted"];
+		delete _.bindings["?n"];
+        return _.bindings;
     branching:
       branches:
       - target: start
@@ -274,7 +278,9 @@ bindings and return the machine to the `start` node.
 In this example, we clean up bindings twice and in the same manner:
 
 ```Javascript
-return _.bindings.Remove("?wanted","?n");
+delete _.bindings["?wanted"];
+delete _.bindings["?n"];
+return _.bindings;
 ```
 
 In both cases, we just head back to start.
@@ -316,7 +322,9 @@ nodes:
     action:
       interpreter: ecmascript
       source: |-
-        return _.bindings.Remove("?wanted","?n");
+		delete _.bindings["?wanted"];
+		delete _.bindings["?n"];
+        return _.bindings;
     branching:
       branches:
       - target: start
@@ -344,7 +352,9 @@ nodes:
         if (3 >= _.bindings["?n"]) { 
            _.out({send: _.bindings["?wanted"], count: _.bindings["?n"]});
         }
-        return _.bindings.Remove("?wanted","?n");
+		delete _.bindings["?wanted"];
+		delete _.bindings["?n"];
+        return _.bindings;
     branching:
       branches:
       - target: start
@@ -390,7 +400,10 @@ nodes:
     action:
       interpreter: ecmascript
       source: |-
-        return _.bindings.Remove("?wanted","?n","allowed");
+		delete _.bindings["?wanted"];
+		delete _.bindings["?n"];
+		delete _.bindings["allowed"];
+        return _.bindings;
     branching:
       branches:
       - target: start
