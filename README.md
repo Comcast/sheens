@@ -152,10 +152,11 @@ Each branch consists of an optional _pattern_, optional _guard_, and a
 required _target_, which is the name of a node in the machine
 specification.
 
-A pattern is a structure object that can include pattern variables.
-(See below for more about pattern.)  A _guard_ is an optional
-procedure that generates bindings (perhaps nil) from bindings.  If a
-guard returns no bindings, then the branch isn't followed.
+A _pattern_, which can include pattern variables, can be matched
+against an incoming message or current bindings.  See below for more
+about patterns.  A _guard_ is an optional procedure that generates
+bindings (perhaps nil) from bindings.  If a guard returns no bindings,
+then the branch isn't followed.
 
 A machine consists of its _current state_: the name of the current
 node, the current bindings, and a pointer to the machine's
@@ -176,8 +177,13 @@ A _crew_ is a group of machines associated with some agent.
 Transitions from one node to another are driven by pattern matching,
 either against the current set of bindings or a pending message.
 
-A _pattern_ is a map (perhaps with deep structure) that might contain
-some strings that start with a `?`.  Example:
+A _pattern_ is a string, array, or map (perhaps with deep structure)
+that can be matched against an incoming message or the current
+bindings.  A string in a pattern that starts with a `?` is a _pattern
+variable_ that will be bound when a message or bindinings matches the
+pattern.
+
+Here's a pattern with two pattern variables (`?here` and `?address`):
 
 ```Javascript
 {"person": "homer",
@@ -185,10 +191,9 @@ some strings that start with a `?`.  Example:
  "at": {"type": "residence", "address": "?address"}}
 ```
 
-A string that starts with a `?` is a _pattern variable_.  (The string
-`?` (without anything else) is an anonymous pattern variable that
-matches anything and is not based on input bindings or included in
-output bindings.)
+The string `?` (without anything else) is an anonymous pattern
+variable that matches anything and is not based on input bindings or
+included in output bindings.
 
 A message matched against a pattern results in zero or more sets of
 variable bindings.
