@@ -27,6 +27,9 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// MachineState is pretty cool type if you ask me. It's the basic building block of what
+// a "machine" is. When the idea of a machine is just an inkling in your eye, the next
+// step is to create a MachineState
 type MachineState struct {
 	// Mid is the id for the machine.
 	Mid string `json:"id,omitempty"`
@@ -41,6 +44,9 @@ type MachineState struct {
 	Deleted bool `json:"-" yaml:"-"`
 }
 
+// AsMachinesStates is a function, naturally, and it takes in changes
+// to a MashcineState and record them each as a new state. In return it will
+// give you back those states to do with as you please
 func AsMachinesStates(changes map[string]*core.State) []*MachineState {
 	acc := make([]*MachineState, 0, len(changes))
 	for mid, s := range changes {
@@ -54,6 +60,10 @@ func AsMachinesStates(changes map[string]*core.State) []*MachineState {
 	return acc
 }
 
+
+// AsMachines takes in a mss, which I believe might be a set of machines
+// also known as a crew. A crew of machines. This function takes in Machine
+// states, and builds a crew of out them. You will get a crew back. I think.
 func AsMachines(mss []*MachineState) map[string]*crew.Machine {
 	acc := make(map[string]*crew.Machine, len(mss))
 	for _, ms := range mss {
@@ -70,18 +80,23 @@ func AsMachines(mss []*MachineState) map[string]*crew.Machine {
 	return acc
 }
 
+// Storage is a type of persistance
 type Storage struct {
 	Debug    bool
 	filename string
 	db       *bolt.DB
 }
 
+// NewStorage takes in a filename and returns a Storage object
 func NewStorage(filename string) (*Storage, error) {
 	return &Storage{
 		filename: filename,
 	}, nil
 }
 
+// Open is a function which uses a specific persistance layer,
+// bolt, and calls it's Open() funciton on the set Storage objects
+// filename
 func (s *Storage) Open(ctx context.Context) error {
 	opts := &bolt.Options{
 		Timeout: time.Second,
