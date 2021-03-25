@@ -23,6 +23,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// WebSocketService setups up endpoint to receive socket connections
 func (s *Service) WebSocketService(ctx context.Context) error {
 
 	s.ops = make(chan interface{}, 1024)
