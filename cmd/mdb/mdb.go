@@ -326,7 +326,7 @@ func (opts *Opts) run() error {
 				return nil
 			}
 			if mid == "" {
-				for mid, _ := range h.crew.Machines {
+				for mid := range h.crew.Machines {
 					say("machine %s:", mid)
 					if err := printer(mid); err != nil {
 						protest("%s", err)
