@@ -95,7 +95,7 @@ func NewStorage(filename string) (*Storage, error) {
 }
 
 // Open is a function which uses a specific persistance layer,
-// bolt, and calls it's Open() funciton on the set Storage objects
+// bolt, and calls its Open() funciton on the set Storage objects
 // filename
 func (s *Storage) Open(ctx context.Context) error {
 	opts := &bolt.Options{
@@ -110,6 +110,8 @@ func (s *Storage) Open(ctx context.Context) error {
 	return nil
 }
 
+// Close is a function which uses a specific persistance layer,
+// bolt, and call its Close() function on the set Storage object 
 func (s *Storage) Close(ctx context.Context) error {
 	if s == nil {
 		return nil
@@ -126,6 +128,9 @@ func (s *Storage) logf(format string, args ...interface{}) {
 	}
 }
 
+// EnsureCrew is a function which uses a specific persistance layer,
+// bolt, and does some very specifically scoped calling of the
+// CreateBucketIfNotExists function on the Storage object
 func (s *Storage) EnsureCrew(ctx context.Context, pid string) error {
 	if s == nil {
 		return nil
@@ -136,6 +141,8 @@ func (s *Storage) EnsureCrew(ctx context.Context, pid string) error {
 	})
 }
 
+// RemCrew also uses a specific persistance layer known as bolt,
+// it has some specificlly scoped calls to DeleteBucket
 func (s *Storage) RemCrew(ctx context.Context, pid string) error {
 	if s == nil {
 		return nil
@@ -145,6 +152,10 @@ func (s *Storage) RemCrew(ctx context.Context, pid string) error {
 	})
 }
 
+// GetCrew looks like a function that is a record "retriever", it takes in a pid
+// which is a string and not an int, yet a string might also be a int "thing". The universe
+// is mystical. Hopefully if all works, this function will give you back an array of machine states.
+// which might be crew. Yet, it might just be a collection of MachineStates.
 func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*MachineState, error) {
 	if s == nil {
 		return []*MachineState{}, nil
@@ -180,8 +191,12 @@ func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*MachineState, err
 	return mss, nil
 }
 
+// Huh... ?
 var NotImplemented = errors.New("not implemented")
 
+// WriteState is a critical function. Generally as you change a machines state, you will
+// need to write it back to the persistance layer. This function will help you do that.
+// Possibly bolt related. Just fyi.
 func (s *Storage) WriteState(ctx context.Context, pid string, mss []*MachineState) error {
 	if s == nil {
 		return nil
