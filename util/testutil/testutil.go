@@ -29,7 +29,7 @@ func JS(x interface{}) string {
 	return string(bs)
 }
 
-// Dwimjs, when given a string or bytes, parses that data as JSON.
+// Dwimjs when given a string or bytes, parses that data as JSON.
 // When given anything else, just returns what's given.
 //
 // See https://en.wikipedia.org/wiki/DWIM.
