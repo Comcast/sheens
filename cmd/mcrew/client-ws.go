@@ -26,6 +26,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// WebSocketClient sets up a web socket connection with the specified url
 func (s *Service) WebSocketClient(ctx context.Context, urls string) error {
 
 	ctx, cancel := context.WithCancel(ctx)

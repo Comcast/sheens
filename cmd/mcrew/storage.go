@@ -27,6 +27,9 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// MachineState is pretty cool type if you ask me. It's the basic building block of what
+// a "machine" is. When the idea of a machine is just an inkling in your eye, the next
+// step is to create a MachineState
 type MachineState struct {
 	// Mid is the id for the machine.
 	Mid string `json:"id,omitempty"`
@@ -41,6 +44,9 @@ type MachineState struct {
 	Deleted bool `json:"-" yaml:"-"`
 }
 
+// AsMachinesStates is a function, naturally, and it takes in changes
+// to a MashcineState and record them each as a new state. In return it will
+// give you back those states to do with as you please
 func AsMachinesStates(changes map[string]*core.State) []*MachineState {
 	acc := make([]*MachineState, 0, len(changes))
 	for mid, s := range changes {
@@ -54,6 +60,10 @@ func AsMachinesStates(changes map[string]*core.State) []*MachineState {
 	return acc
 }
 
+
+// AsMachines takes in a mss, which I believe might be a set of machines
+// also known as a crew. A crew of machines. This function takes in Machine
+// states, and builds a crew of out them. You will get a crew back. I think.
 func AsMachines(mss []*MachineState) map[string]*crew.Machine {
 	acc := make(map[string]*crew.Machine, len(mss))
 	for _, ms := range mss {
@@ -70,18 +80,23 @@ func AsMachines(mss []*MachineState) map[string]*crew.Machine {
 	return acc
 }
 
+// Storage is a type of persistance
 type Storage struct {
 	Debug    bool
 	filename string
 	db       *bolt.DB
 }
 
+// NewStorage takes in a filename and returns a Storage object
 func NewStorage(filename string) (*Storage, error) {
 	return &Storage{
 		filename: filename,
 	}, nil
 }
 
+// Open is a function which uses a specific persistance layer,
+// bolt, and calls its Open() funciton on the set Storage objects
+// filename
 func (s *Storage) Open(ctx context.Context) error {
 	opts := &bolt.Options{
 		Timeout: time.Second,
@@ -95,6 +110,8 @@ func (s *Storage) Open(ctx context.Context) error {
 	return nil
 }
 
+// Close is a function which uses a specific persistance layer,
+// bolt, and call its Close() function on the set Storage object 
 func (s *Storage) Close(ctx context.Context) error {
 	if s == nil {
 		return nil
@@ -111,6 +128,9 @@ func (s *Storage) logf(format string, args ...interface{}) {
 	}
 }
 
+// EnsureCrew is a function which uses a specific persistance layer,
+// bolt, and does some very specifically scoped calling of the
+// CreateBucketIfNotExists function on the Storage object
 func (s *Storage) EnsureCrew(ctx context.Context, pid string) error {
 	if s == nil {
 		return nil
@@ -121,6 +141,8 @@ func (s *Storage) EnsureCrew(ctx context.Context, pid string) error {
 	})
 }
 
+// RemCrew also uses a specific persistance layer known as bolt,
+// it has some specificlly scoped calls to DeleteBucket
 func (s *Storage) RemCrew(ctx context.Context, pid string) error {
 	if s == nil {
 		return nil
@@ -130,6 +152,10 @@ func (s *Storage) RemCrew(ctx context.Context, pid string) error {
 	})
 }
 
+// GetCrew looks like a function that is a record "retriever", it takes in a pid
+// which is a string and not an int, yet a string might also be a int "thing". The universe
+// is mystical. Hopefully if all works, this function will give you back an array of machine states.
+// which might be crew. Yet, it might just be a collection of MachineStates.
 func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*MachineState, error) {
 	if s == nil {
 		return []*MachineState{}, nil
@@ -165,8 +191,12 @@ func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*MachineState, err
 	return mss, nil
 }
 
+// Huh... ?
 var NotImplemented = errors.New("not implemented")
 
+// WriteState is a critical function. Generally as you change a machines state, you will
+// need to write it back to the persistance layer. This function will help you do that.
+// Possibly bolt related. Just fyi.
 func (s *Storage) WriteState(ctx context.Context, pid string, mss []*MachineState) error {
 	if s == nil {
 		return nil

@@ -17,6 +17,8 @@ import (
 	"fmt"
 )
 
+// JS is provided here for DEMO purposes ONLY, use testutil package JS func
+// for all other cases
 func JS(x interface{}) string {
 	js, err := json.Marshal(&x)
 	if err != nil {
