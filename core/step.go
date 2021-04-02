@@ -53,8 +53,13 @@ var (
 	Exp_BranchTargetVariables = true
 )
 
+// StepProps is an object that can hold optional information
+// It can be used for example, to output the results of an
+// of an operation. It is usually used inside an action
+// interperters code that you Exec()
 type StepProps map[string]interface{}
 
+// Copy will return you a literal copy of the StepProps
 func (ps StepProps) Copy() StepProps {
 	acc := make(StepProps, len(ps))
 	for p, v := range ps {
@@ -115,6 +120,7 @@ type Control struct {
 	Breakpoints map[string]Breakpoint `json:"-"`
 }
 
+// Copy will return you a copy of the Control object
 func (c *Control) Copy() *Control {
 	bs := make(map[string]Breakpoint, len(c.Breakpoints))
 	for id, b := range c.Breakpoints {
@@ -140,6 +146,7 @@ func NewTraces() *Traces {
 	}
 }
 
+// Add will append more Messages to Traces
 func (ts *Traces) Add(xs ...interface{}) {
 	ts.Messages = append(ts.Messages, xs...)
 }
@@ -196,6 +203,7 @@ type Stride struct {
 	Consumed interface{} `json:"consumed,omitempty" yaml:",omitempty"`
 }
 
+// New Stride will return an default Stride
 func NewStride() *Stride {
 	return &Stride{
 		Events: newEvents(),
@@ -416,6 +424,8 @@ func (b *Branches) consider(ctx context.Context, bs Bindings, pending interface{
 	return nil, ts, consumer, nil
 }
 
+// IsBranchTargetVariable determines if the Branch Target
+// is actually a variable you can pass around, or not
 func IsBranchTargetVariable(s string) bool {
 	if len(s) == 0 {
 		return false
