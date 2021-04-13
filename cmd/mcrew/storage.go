@@ -95,7 +95,7 @@ func NewStorage(filename string) (*Storage, error) {
 }
 
 // Open is a function which uses a specific persistance layer,
-// bolt, and calls its Open() funciton on the set Storage objects
+// bolt, and calls its Open() function on the set Storage objects
 // filename
 func (s *Storage) Open(ctx context.Context) error {
 	opts := &bolt.Options{
