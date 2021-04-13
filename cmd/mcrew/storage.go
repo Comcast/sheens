@@ -45,7 +45,7 @@ type MachineState struct {
 }
 
 // AsMachinesStates is a function, naturally, and it takes in changes
-// to a MashcineState and record them each as a new state. In return it will
+// to a MachineState and record them each as a new state. In return it will
 // give you back those states to do with as you please
 func AsMachinesStates(changes map[string]*core.State) []*MachineState {
 	acc := make([]*MachineState, 0, len(changes))
