@@ -2,7 +2,7 @@
 
 Doesn't provide any persistence.
 
-Also see [`mqclient`](../mqclient).
+Also see [`mqshell`](../mqshell).
 
 ## Usage
 
