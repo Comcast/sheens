@@ -56,7 +56,7 @@ var (
 // StepProps is an object that can hold optional information
 // It can be used for example, to output the results of an
 // of an operation. It is usually used inside an action
-// interperters code that you Exec()
+// interperter where you would typically Exec()
 type StepProps map[string]interface{}
 
 // Copy will return you a literal copy of the StepProps
