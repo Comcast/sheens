@@ -80,7 +80,7 @@ func AsMachines(mss []*MachineState) map[string]*crew.Machine {
 	return acc
 }
 
-// Storage is a type of persistance
+// Storage is a type of persistence
 type Storage struct {
 	Debug    bool
 	filename string
@@ -94,7 +94,7 @@ func NewStorage(filename string) (*Storage, error) {
 	}, nil
 }
 
-// Open is a function which uses a specific persistance layer,
+// Open is a function which uses a specific persistence layer,
 // bolt, and calls its Open() function on the set Storage objects
 // filename
 func (s *Storage) Open(ctx context.Context) error {
@@ -128,7 +128,7 @@ func (s *Storage) logf(format string, args ...interface{}) {
 	}
 }
 
-// EnsureCrew is a function which uses a specific persistance layer,
+// EnsureCrew is a function which uses a specific persistence layer,
 // bolt, and does some very specifically scoped calling of the
 // CreateBucketIfNotExists function on the Storage object
 func (s *Storage) EnsureCrew(ctx context.Context, pid string) error {
@@ -141,7 +141,7 @@ func (s *Storage) EnsureCrew(ctx context.Context, pid string) error {
 	})
 }
 
-// RemCrew also uses a specific persistance layer known as bolt,
+// RemCrew also uses a specific persistence layer known as bolt,
 // it has some specificlly scoped calls to DeleteBucket
 func (s *Storage) RemCrew(ctx context.Context, pid string) error {
 	if s == nil {
@@ -195,7 +195,7 @@ func (s *Storage) GetCrew(ctx context.Context, pid string) ([]*MachineState, err
 var NotImplemented = errors.New("not implemented")
 
 // WriteState is a critical function. Generally as you change a machines state, you will
-// need to write it back to the persistance layer. This function will help you do that.
+// need to write it back to the persistence layer. This function will help you do that.
 // Possibly bolt related. Just fyi.
 func (s *Storage) WriteState(ctx context.Context, pid string, mss []*MachineState) error {
 	if s == nil {
