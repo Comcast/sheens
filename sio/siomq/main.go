@@ -69,7 +69,7 @@ func main() {
 		authorizerName = flag.String("authorizer-name", "", "AWS custom authorizer name")
 
 		subTopics = flag.String("t", "", "subscription topic(s)")
-		initFile  = flag.String("init", "", "File containing mqclient 'pub' commands to execute")
+		initFile  = flag.String("init", "", "File containing mqshell 'pub' commands to execute")
 
 		injectTopic          = flag.Bool("inject-topic", true, "put topic in map of incoming messages")
 		wrapWithTopic        = flag.Bool("wrap-with-topic", false, "wrap non-maps in a map along with the topic")

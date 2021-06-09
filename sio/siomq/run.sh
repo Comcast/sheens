@@ -13,13 +13,13 @@
 
 set -e
 
-go install && (cd ../mqclient && go install)
+go install && (cd ../mqshell && go install)
 
 siomq -t foo &
 
 sleep 1
 
-cat<<EOF | mqclient
+cat<<EOF | mqshell
 sub misc
 pub foo {"to":"captain","update":{"c":{"spec":{"inline":<<cat ../../specs/collatz.yaml | yaml2json>>}}}}
 pub foo {"to":"captain","update":{"dc":{"spec":{"inline":<<cat ../../specs/doublecount.yaml | yaml2json>>}}}}
