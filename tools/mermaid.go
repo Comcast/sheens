@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package tools
 
 // dot -Tpng g.dot > g.png
@@ -123,7 +122,7 @@ func Mermaid(spec *Spec, w io.WriteCloser, opts *MermaidOpts, fromNode, toNode s
 				}
 				js := string(bs)
 				js = strings.Replace(js, `"`, `'`, -1)
-				label = fmt.Sprintf(`-- "<pre>%s</pre>"`, js)
+				label = fmt.Sprintf(`-- "%s"`, js)
 			}
 
 			fmt.Fprintf(w, "  %s %s --> %s\n", nid, label, to)

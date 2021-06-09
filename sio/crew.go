@@ -488,7 +488,7 @@ LOOP:
 // CaptainMachine only if specifically directed.
 func (c *Crew) allMachines() []string {
 	acc := make([]string, 0, len(c.Machines))
-	for mid, _ := range c.Machines {
+	for mid := range c.Machines {
 		switch mid {
 		case HTTPMachine:
 		case TimersMachine:

@@ -50,7 +50,7 @@ Other objectives:
    etc.).
 3. Pluggable persistence.
 4. Amenable to formal specification(s).
-5. Feasible alternative implementations in other languages.
+5. Easy to implement in a wide range of languages.
 6. Modest resource requirements.
 
 ## Getting started
@@ -185,10 +185,11 @@ Each branch consists of an optional _pattern_, optional _guard_, and a
 required _target_, which is the name of a node in the machine
 specification.
 
-A pattern is a structure object that can include pattern variables.
-(See below for more about pattern.)  A _guard_ is an optional
-procedure that generates bindings (perhaps nil) from bindings.  If a
-guard returns no bindings, then the branch isn't followed.
+A _pattern_, which can include pattern variables, can be matched
+against an incoming message or current bindings.  See below for more
+about patterns.  A _guard_ is an optional procedure that generates
+bindings (perhaps nil) from bindings.  If a guard returns no bindings,
+then the branch isn't followed.
 
 A machine consists of its _current state_: the name of the current
 node, the current bindings, and a pointer to the machine's
@@ -211,8 +212,13 @@ A _crew_ is a group of machines associated with some agent.
 Transitions from one node to another are driven by pattern matching,
 either against the current set of bindings or a pending message.
 
-A _pattern_ is a map (perhaps with deep structure) that might contain
-some strings that start with a `?`.  Example:
+A _pattern_ is a string, array, or map (perhaps with deep structure)
+that can be matched against an incoming message or the current
+bindings.  A string in a pattern that starts with a `?` is a _pattern
+variable_ that will be bound when a message or bindinings matches the
+pattern.
+
+Here's a pattern with two pattern variables (`?here` and `?address`):
 
 ```Javascript
 {"person": "homer",
@@ -220,10 +226,9 @@ some strings that start with a `?`.  Example:
  "at": {"type": "residence", "address": "?address"}}
 ```
 
-A string that starts with a `?` is a _pattern variable_.  (The string
-`?` (without anything else) is an anonymous pattern variable that
-matches anything and is not based on input bindings or included in
-output bindings.)
+The string `?` (without anything else) is an anonymous pattern
+variable that matches anything and is not based on input bindings or
+included in output bindings.
 
 A message matched against a pattern results in zero or more sets of
 variable bindings.
@@ -390,11 +395,12 @@ is specified.  There are almost no exceptions.  (The only exception is
 when an internal error occurs, and, even in that case, a setting
 controls what happens next.
 	
-For example, the processor inject the error in bindings to allow for
-standard, branching-based transitions based on the error.
-Alternative, the machine could automatically transition to an error
-node.  (That behavior would be the only possibility if the error
-occured at a location that prevented branching-based error handling.)
+For example, in the event of an internal error, the processor injects
+the error in bindings to allow for standard, branching-based
+transitions based on the error.  Alternatively, the machine could
+automatically transition to an error node.  (That behavior would be
+the only possibility if the error occured at a location that prevented
+branching-based error handling.)
 
 ### Simple state model	
 
@@ -548,5 +554,6 @@ how to contribute to our project.
 1. [AWS Step Functions](https://aws.amazon.com/step-functions/) and [their state language](https://states-language.net/spec.html) 
 1. Erlang's [`gen_statem`](http://erlang.org/doc/design_principles/statem.html)	
 1. [Leslie Lamport](https://en.wikipedia.org/wiki/Leslie_Lamport) on [state machines](http://lamport.azurewebsites.net/pubs/state-machine.pdf)
-1. The [Rulio](https://github.com/Comcast/rulio) rules engine
-1. [Little Sheens](https://github.com/Comcast/littlesheens)
+1. The [Rulio](https://github.com/Comcast/rulio) rules engine, a predecessor to Sheens that uses basically the same pattern matching
+1. [Little Sheens](https://github.com/Comcast/littlesheens): Sheens for small hosts
+1. [Plax](https://github.com/Comcast/plax): a test engine that uses Sheens pattern matching

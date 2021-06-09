@@ -53,8 +53,13 @@ var (
 	Exp_BranchTargetVariables = true
 )
 
+// StepProps is an object that can hold optional information
+// It can be used for example, to output the results of an
+// of an operation. It is usually used inside an action
+// interperter where you would typically Exec()
 type StepProps map[string]interface{}
 
+// Copy will return you a literal copy of the StepProps
 func (ps StepProps) Copy() StepProps {
 	acc := make(StepProps, len(ps))
 	for p, v := range ps {
@@ -115,6 +120,7 @@ type Control struct {
 	Breakpoints map[string]Breakpoint `json:"-"`
 }
 
+// Copy will return you a copy of the Control object
 func (c *Control) Copy() *Control {
 	bs := make(map[string]Breakpoint, len(c.Breakpoints))
 	for id, b := range c.Breakpoints {
@@ -140,6 +146,7 @@ func NewTraces() *Traces {
 	}
 }
 
+// Add will append more Messages to Traces
 func (ts *Traces) Add(xs ...interface{}) {
 	ts.Messages = append(ts.Messages, xs...)
 }
@@ -196,6 +203,7 @@ type Stride struct {
 	Consumed interface{} `json:"consumed,omitempty" yaml:",omitempty"`
 }
 
+// New Stride will return an default Stride
 func NewStride() *Stride {
 	return &Stride{
 		Events: newEvents(),
@@ -212,6 +220,10 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 	if c == nil {
 		c = DefaultControl
 	}
+
+	// Remember what we were given in case we need this
+	// information to generate an error transition.
+	givenState := st
 
 	// Each error case should be scrutinized.  It might be
 	// possible (and desirable?) to have any error transition to
@@ -261,6 +273,12 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 		e, err = n.Action.Exec(ctx, bs, props)
 		if e != nil {
 			stride.AddEvents(e.Events)
+			if e.Bs == nil {
+				// If the action returned nil
+				// bindings, use empty bindings.
+				// ToDo: Reconsider.
+				e.Bs = NewBindings()
+			}
 		}
 
 		if err == nil {
@@ -296,6 +314,49 @@ func (s *Spec) Step(ctx context.Context, st *State, pending interface{}, c *Cont
 
 	if st != nil {
 		stride.To = st.Copy()
+	}
+
+	if st == nil && haveAction {
+		// Important case: We followed no branch but this node
+		// had an action.  As is, this situation leaves us in
+		// a bad place.  A Walk would continue at this node,
+		// and this node has bindings-type branching, which
+		// means the node will be processed (again)
+		// erroneously.
+		//
+		// In the past, this condition was prevented by a
+		// specification check that made sure there was a
+		// default branch in every action node.  That
+		// requirement disappeared and therefore created the
+		// present problem.
+		//
+		// Rather than enforcing a default branch for action
+		// nodes now (which would not be backwards compatible
+		// for many specs), we handle this situation as a spec
+		// error, sending the machine to the error node
+		// (whether it exists or not).
+		//
+		// Background: In the early days of Sheens, a spec was
+		// built from of a somewhat richer set of types, and
+		// these types made this situation a compile-time
+		// error (in a sense).  There was a desire (note
+		// passive voice) for easier-on-the-eyes specs, which
+		// loosed the structure and allowed this circumstance
+		// to be a runtime problem.
+		//
+		// In a new major version, we should consider
+		// (re-)enforcing a default branch for action nodes
+		// (or moving back to the richer type system).
+		if bs == nil {
+			bs = NewBindings()
+		}
+		bs, _ = bs.Extendm("error", "Action node followed no branch",
+			"lastNode", givenState.NodeName,
+			"lastBindings", givenState.Bs.Copy())
+		stride.To = &State{
+			NodeName: "error",
+			Bs:       bs,
+		}
 	}
 
 	return stride, err
@@ -363,6 +424,8 @@ func (b *Branches) consider(ctx context.Context, bs Bindings, pending interface{
 	return nil, ts, consumer, nil
 }
 
+// IsBranchTargetVariable determines if the Branch Target
+// is actually a variable you can pass around, or not
 func IsBranchTargetVariable(s string) bool {
 	if len(s) == 0 {
 		return false

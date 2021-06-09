@@ -210,7 +210,8 @@ func (s *Stdio) IO(ctx context.Context) (chan interface{}, chan *Result, chan bo
 				}
 				for _, emitted := range r.Emitted {
 					for _, msg := range emitted {
-						printf("emit", "%s\n", JS(msg))
+						// printf("emit", "%s\n", JS(msg))
+						fmt.Fprintf(s.Out, "%s\n", JS(msg))
 					}
 				}
 				if s.PrintDiag {

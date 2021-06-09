@@ -4,6 +4,16 @@ package core
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[Done-0]
+	_ = x[Limited-1]
+	_ = x[InternalError-2]
+	_ = x[BreakpointReached-3]
+}
+
 const _StopReason_name = "DoneLimitedInternalErrorBreakpointReached"
 
 var _StopReason_index = [...]uint8{0, 4, 11, 24, 41}

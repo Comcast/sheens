@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package sio
 
 import (
@@ -86,20 +85,22 @@ func TestCrew(t *testing.T) {
 
 	ms, err := sio.Read(ctx)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	for mid, m := range ms {
 		if err := c.SetMachine(ctx, mid, m.SpecSource, m.State); err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 	}
 
+	// Send input to crew.
 	go func() {
 		for _, line := range strings.Split(input, "\n") {
 			fmt.Fprintf(wi, "%s\n", line)
 		}
 	}()
 
+	// Read output from crew.
 	need1 := true
 	need2 := true
 	go func() {
@@ -124,6 +125,7 @@ func TestCrew(t *testing.T) {
 		}
 	}()
 
+	// In a few seconds, shut us down.
 	go func() {
 		time.Sleep(6 * time.Second)
 		cancel()

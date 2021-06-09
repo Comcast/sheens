@@ -545,3 +545,51 @@ func TestTerminalBindingsNode(t *testing.T) {
 		t.Fatalf("stopped because %s", walked.StoppedBecause)
 	}
 }
+
+func TestActionStuck(t *testing.T) {
+	spec := &Spec{
+		Name:          "test",
+		PatternSyntax: "json",
+		Nodes: map[string]*Node{
+			"start": {
+				Action: &FuncAction{
+					F: func(ctx context.Context, bs Bindings, props StepProps) (*Execution, error) {
+						return NewExecution(nil), nil
+					},
+				},
+				Branches: &Branches{
+					Branches: []*Branch{
+						{
+							Target: "there",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := spec.Compile(ctx, nil, true); err != nil {
+		t.Fatal(err)
+	}
+
+	st := &State{
+		NodeName: "start",
+		Bs:       make(Bindings),
+	}
+
+	c := &Control{
+		Limit: 10,
+	}
+
+	walked, err := spec.Walk(ctx, st, nil, c, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if walked.To() == nil {
+		t.Fatal("Walked.To is nil")
+	}
+}

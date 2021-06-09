@@ -6,22 +6,21 @@ prereqs:
 	(which stringer > /dev/null) || go get golang.org/x/tools/cmd/stringer
 	(which jsonenums > /dev/null) || go get github.com/campoy/jsonenums
 
-test: prereqs
-	cd core && go generate && go test
-	cd crew && go test
-	cd tools && go get . && go test
-	cd tools/expect && go test
-	cd interpreters/ecmascript && go test
-	cd interpreters/noop && go test
-	cd sio && go test
-	for d in `find cmd -maxdepth 1 -type d  | grep /`; do (cd $$d && go test); done
+.PHONY: unit-test
+unit-test: prereqs
+	cd core && go generate
+	go test ./...
+
+.PHONY: expect-test
+expect-test:
+	cd cmd/mexpect && go install
+	cd cmd/sio && go install
+	for T in `ls specs/tests/*.yaml`; do echo expecting $$T; mexpect -f $$T sio; done
+
+test:	unit-test expect-test
 
 install: prereqs
-	for d in `find cmd -maxdepth 1 -type d  | grep /`; do (cd $$d && go install); done
-
-post-install-test:
-	for T in `ls specs/tests/*.yaml`; do echo expecting $$T; mexpect -show-err -f $$T siostd -tags=false; done
-
+	go install ./...
 
 releases:
 	./tools/release.sh darwin

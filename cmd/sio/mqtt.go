@@ -14,13 +14,16 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -74,7 +77,11 @@ func NewMQTTCouplings(args []string) (*MQTTCouplings, *flag.FlagSet) {
 		keyFilename  = fs.String("key", "", "Optional key filename")
 		insecure     = fs.Bool("insecure", false, "Skip broker cert checking")
 		caFilename   = fs.String("cafile", "", "Optional CA cert filename")
-		caPath       = fs.String("capath", "", "Optional path to CA cert filename") // Why separate?
+
+		tokenKey       = flag.String("token-key-name", "CustAuth", "AWS custom authorizer token key")
+		token          = flag.String("token", "", "AWS custom authorizer token")
+		tokenSig       = flag.String("token-sig", "", "AWS custom authorizer token signature")
+		authorizerName = flag.String("authorizer-name", "", "AWS custom authorizer name")
 
 		subTopics = fs.String("t", "", "subscription topic(s)")
 
@@ -97,16 +104,40 @@ func NewMQTTCouplings(args []string) (*MQTTCouplings, *flag.FlagSet) {
 
 	opts := mqtt.NewClientOptions()
 
-	*broker = fmt.Sprintf("%s:%d", *broker, *port)
+	if *port != 0 {
+		*broker = fmt.Sprintf("%s:%d", *broker, *port)
+	}
+	log.Printf("broker: %s", *broker)
 	opts.AddBroker(*broker)
 	opts.SetClientID(*clientId)
 	opts.SetKeepAlive(time.Second * time.Duration(*keepAlive))
-	// opts.SetPingTimeout(10 * time.Second)
+	opts.SetPingTimeout(10 * time.Second)
 
 	opts.Username = *userName
 	opts.Password = *password
 	opts.AutoReconnect = *reconnect
 	opts.CleanSession = *clean
+
+	if *token != "" {
+		var (
+			bs     = make([]byte, 16)
+			_, err = rand.Read(bs)
+			key    = hex.EncodeToString(bs)
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		opts.HTTPHeaders = http.Header{
+			"x-amz-customauthorizer-name":      []string{*authorizerName},
+			"x-amz-customauthorizer-signature": []string{*tokenSig},
+			*tokenKey:                          []string{*token},
+			"sec-WebSocket-Key":                []string{key},
+			"sec-websocket-protocol":           []string{"mqtt"},
+			"sec-WebSocket-Version":            []string{"13"},
+		}
+
+	}
 
 	if *willTopic != "" {
 		if *willPayload == "" {
@@ -120,23 +151,18 @@ func NewMQTTCouplings(args []string) (*MQTTCouplings, *flag.FlagSet) {
 	}
 
 	var rootCAs *x509.CertPool
-	{
-		if *caPath != "" {
-			if rootCAs, _ = x509.SystemCertPool(); rootCAs == nil {
-				rootCAs = x509.NewCertPool()
-				log.Printf("Including system CA certs")
-			}
+	if rootCAs, _ = x509.SystemCertPool(); rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+		log.Printf("Including system CA certs")
+	}
+	if *caFilename != "" {
+		certs, err := ioutil.ReadFile(*caFilename)
+		if err != nil {
+			log.Fatalf("couldn't read '%s': %s", *caFilename, err)
+		}
 
-			if !strings.HasSuffix(*caPath, "/") {
-				*caPath += "/"
-			}
-			filename := *caPath + *caFilename
-			certs, err := ioutil.ReadFile(filename)
-			log.Fatalf("couldn't read '%s': %s", filename, err)
-
-			if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-				log.Println("No certs appended, using system certs only")
-			}
+		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
+			log.Println("No certs appended, using system certs only")
 		}
 	}
 
@@ -224,9 +250,8 @@ func (c *MQTTCouplings) inHandler(ctx context.Context, client mqtt.Client, msg m
 	case c.incoming <- x:
 		log.Printf("Couplings forwarded incoming %s", payload)
 	case <-to.C:
-		log.Printf("Publisher not publishing due to stall")
+		log.Printf("Publisher not publishing due to stall ('%s','%s')", topic, payload)
 	}
-
 }
 
 // Start creates the MQTT session.
@@ -246,6 +271,7 @@ func (c *MQTTCouplings) Start(ctx context.Context) error {
 		if t := c.Client.Subscribe(topic, qos, nil); t.Wait() && t.Error() != nil {
 			return t.Error()
 		}
+		log.Printf("Subscribed to %s (%d)", topic, qos)
 	}
 	log.Printf("Couplings started")
 
@@ -280,7 +306,7 @@ LOOP:
 							if f, is := n.(float64); is {
 								qos = byte(f)
 							} else {
-								log.Printf("warning: ignoring qos %#v %T", n, n)
+								log.Printf("Warning: ignoring qos %#v %T", n, n)
 							}
 						}
 					}
@@ -289,11 +315,13 @@ LOOP:
 						log.Printf("Failed to marshal %#v", x)
 						continue
 					}
+					log.Printf("Publishing %s %s", topic, js)
 					token := c.Client.Publish(topic, qos, false, js)
 					token.Wait()
 					if token.Error() != nil {
 						log.Fatalf("Publish error: %s", token.Error())
 					}
+					log.Printf("Published to %s", topic)
 				}
 			}
 			if err := c.Update(r); err != nil {

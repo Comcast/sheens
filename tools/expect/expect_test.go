@@ -10,7 +10,6 @@
  * limitations under the License.
  */
 
-
 package expect
 
 import (
@@ -24,7 +23,7 @@ import (
 	"github.com/jsccast/yaml"
 )
 
-// TestExpectBasic runs specs/test/double.test.yaml with a real siostd
+// TestExpectBasic runs specs/test/double.test.yaml with a real 'sio'
 // process.
 //
 // Requires a current siostd in the path.  Sorry.
@@ -33,7 +32,7 @@ func TestExpectBasic(t *testing.T) {
 	root := "../.."
 
 	// This test requires `cmd/siosstd` in the PATH!  That's not good.
-	if _, err := exec.LookPath("siostd"); err != nil {
+	if _, err := exec.LookPath("sio"); err != nil {
 		t.Skip(err)
 	}
 
@@ -56,7 +55,7 @@ func TestExpectBasic(t *testing.T) {
 		s.ShowStdin = true
 	}
 
-	if err := s.Run(ctx, root, "siostd", "-tags=false"); err != nil {
+	if err := s.Run(ctx, root, "sio"); err != nil {
 		panic(err)
 	}
 }

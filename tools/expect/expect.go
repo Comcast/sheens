@@ -166,6 +166,10 @@ func (s *Session) Run(ctx context.Context, dir string, args ...string) error {
 		}()
 	}
 
+	if len(args) == 0 {
+		return fmt.Errorf("need a command (and optional args) (for expect.Session.Run)")
+	}
+
 	cmd := exec.Command(args[0], args[1:]...)
 
 	stdin, err := cmd.StdinPipe()
