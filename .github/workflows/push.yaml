@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  create:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: [ ubuntu-latest ]
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Setup Go
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.x' # The Go version to download (if necessary) and use.
+
+      # Run gofmt on the code
+      - name: Run gofmt
+        run: gofmt -d
+
+      # Run unit tests for the code
+      - name: Run tests
+        run: |
+          go test -v -race ./...
+
