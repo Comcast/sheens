@@ -24,7 +24,7 @@ import (
 	"github.com/Comcast/sheens/match"
 	. "github.com/Comcast/sheens/util/testutil"
 
-	"github.com/boltdb/bolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 // MachineState is pretty cool type if you ask me. It's the basic building block of what
@@ -59,7 +59,6 @@ func AsMachinesStates(changes map[string]*core.State) []*MachineState {
 	}
 	return acc
 }
-
 
 // AsMachines takes in a mss, which I believe might be a set of machines
 // also known as a crew. A crew of machines. This function takes in Machine
@@ -111,7 +110,7 @@ func (s *Storage) Open(ctx context.Context) error {
 }
 
 // Close is a function which uses a specific persistance layer,
-// bolt, and call its Close() function on the set Storage object 
+// bolt, and call its Close() function on the set Storage object
 func (s *Storage) Close(ctx context.Context) error {
 	if s == nil {
 		return nil
