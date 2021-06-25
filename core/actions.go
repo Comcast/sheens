@@ -1,4 +1,4 @@
-/* Copyright 2018 Comcast Cable Communications Management, LLC
+/* Copyright 2021 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -92,11 +92,7 @@ func NewInterpretersMap() InterpretersMap {
 }
 
 func (m InterpretersMap) Find(name string) Interpreter {
-	i, have := m[name]
-	if !have {
-		return nil
-	}
-	return i
+	return m[name]
 }
 
 // Action returns Bindings based on the given (current) Bindings.

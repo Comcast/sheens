@@ -2,3 +2,5 @@ TAGS
 *~
 *.db
 tmp/
+
+vendor/
