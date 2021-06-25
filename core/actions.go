@@ -92,11 +92,7 @@ func NewInterpretersMap() InterpretersMap {
 }
 
 func (m InterpretersMap) Find(name string) Interpreter {
-	i, have := m[name]
-	if !have {
-		return nil
-	}
-	return i
+	return m[name]
 }
 
 // Action returns Bindings based on the given (current) Bindings.
