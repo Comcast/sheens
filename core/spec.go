@@ -18,7 +18,7 @@ import (
 	"errors"
 )
 
-const (
+var (
 	// DefaultBranchType is used for Branches.Type when
 	// Branches.Type is zero.
 	DefaultBranchType = "bindings"
@@ -26,11 +26,34 @@ const (
 	// DefaultErrorNodeName is the name of the node state
 	// switched to in the event of an internal error.
 	DefaultErrorNodeName = "error"
-)
 
-var (
 	defaultErrorNode = &Node{}
 )
+
+// DefaultPatternParser is used during Spec.Compile if the
+// given Spec has no PatternParser.
+//
+// This function is useful to allow a Spec to provide branch
+// patterns in whatever syntax is convenient.  For example, if
+// a Spec is authored in YAML, patterns in JSON might be more
+// convenient (or easier to read) that patterns in YAML.
+var DefaultPatternParser = func(syntax string, p interface{}) (interface{}, error) {
+	switch syntax {
+	case "none", "":
+		return p, nil
+	case "json":
+		if js, is := p.(string); is {
+			var x interface{}
+			if err := json.Unmarshal([]byte(js), &x); err != nil {
+				return nil, err
+			}
+			return x, nil
+		}
+		return p, nil
+	default:
+		return nil, errors.New("unsupposed pattern syntax: " + syntax)
+	}
+}
 
 // Spec is a specification used to build a machine.
 //
@@ -406,30 +429,5 @@ func (b *Branch) Copy() *Branch {
 		Guard:       b.Guard,
 		GuardSource: b.GuardSource,
 		Target:      b.Target,
-	}
-}
-
-// DefaultPatternParser is used during Spec.Compile if the
-// given Spec has no PatternParser.
-//
-// This function is useful to allow a Spec to provide branch
-// patterns in whatever syntax is convenient.  For example, if
-// a Spec is authored in YAML, patterns in JSON might be more
-// convenient (or easier to read) that patterns in YAML.
-func DefaultPatternParser(syntax string, p interface{}) (interface{}, error) {
-	switch syntax {
-	case "none", "":
-		return p, nil
-	case "json":
-		if js, is := p.(string); is {
-			var x interface{}
-			if err := json.Unmarshal([]byte(js), &x); err != nil {
-				return nil, err
-			}
-			return x, nil
-		}
-		return p, nil
-	default:
-		return nil, errors.New("unsupposed pattern syntax: " + syntax)
 	}
 }
