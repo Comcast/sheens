@@ -29,5 +29,5 @@ jobs:
       # Run unit tests for the code
       - name: Run tests
         run: |
-          go test -v -race ./...
+          go test -v ./...
 

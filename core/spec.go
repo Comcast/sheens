@@ -1,4 +1,4 @@
-/* Copyright 2018 Comcast Cable Communications Management, LLC
+/* Copyright 2021 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,36 +19,41 @@ import (
 )
 
 var (
-	// DefaultPatternParser is used during Spec.Compile if the
-	// given Spec has no PatternParser.
-	//
-	// This function is useful to allow a Spec to provide branch
-	// patterns in whatever syntax is convenient.  For example, if
-	// a Spec is authored in YAML, patterns in JSON might be more
-	// convenient (or easier to read) that patterns in YAML.
-	DefaultPatternParser = func(syntax string, p interface{}) (interface{}, error) {
-		switch syntax {
-		case "none", "":
-			return p, nil
-		case "json":
-			if js, is := p.(string); is {
-				var x interface{}
-				if err := json.Unmarshal([]byte(js), &x); err != nil {
-					return nil, err
-				}
-				return x, nil
-			}
-			return p, nil
-		default:
-			return nil, errors.New("unsupposed pattern syntax: " + syntax)
-		}
-	}
-
 	// DefaultBranchType is used for Branches.Type when
-	// Branches.Type is zero.  This var should probably be a
-	// const.
+	// Branches.Type is zero.
 	DefaultBranchType = "bindings"
+
+	// DefaultErrorNodeName is the name of the node state
+	// switched to in the event of an internal error.
+	DefaultErrorNodeName = "error"
+
+	defaultErrorNode = &Node{}
 )
+
+// DefaultPatternParser is used during Spec.Compile if the
+// given Spec has no PatternParser.
+//
+// This function is useful to allow a Spec to provide branch
+// patterns in whatever syntax is convenient.  For example, if
+// a Spec is authored in YAML, patterns in JSON might be more
+// convenient (or easier to read) that patterns in YAML.
+var DefaultPatternParser = func(syntax string, p interface{}) (interface{}, error) {
+	switch syntax {
+	case "none", "":
+		return p, nil
+	case "json":
+		if js, is := p.(string); is {
+			var x interface{}
+			if err := json.Unmarshal([]byte(js), &x); err != nil {
+				return nil, err
+			}
+			return x, nil
+		}
+		return p, nil
+	default:
+		return nil, errors.New("unsupposed pattern syntax: " + syntax)
+	}
+}
 
 // Spec is a specification used to build a machine.
 //
@@ -97,7 +102,7 @@ type Spec struct {
 	Nodes map[string]*Node `json:"nodes,omitempty" yaml:",omitempty"`
 
 	// ErrorNode is an optional name of a node for the machine in
-	// the even of an internal error.
+	// the event of an internal error.
 	//
 	// Probably should just always assume the convention that a
 	// node named 'error' is the error node.  ToDo: Consider.
@@ -189,11 +194,14 @@ func (spec *Spec) ParsePatterns(ctx context.Context) error {
 	}
 
 	for _, n := range spec.Nodes {
-		if n.Branches == nil {
+		if n == nil || n.Branches == nil {
 			continue
 		}
 
 		for _, b := range n.Branches.Branches {
+			if b == nil {
+				continue
+			}
 			x, err := spec.PatternParser(spec.PatternSyntax, b.Pattern)
 			if err != nil {
 				return err
@@ -208,8 +216,9 @@ func (spec *Spec) ParsePatterns(ctx context.Context) error {
 	return nil
 }
 
-// Compile compiles all action-like sources into actions. Might also
-// do some other things.
+// Compile compiles all action-like sources into actions. Might also do some
+// other things. When force is true, everything is built from source even if
+// it's been built before.
 //
 // Action-like sources include Actions, Boot, Toob, and Guards.
 func (spec *Spec) Compile(ctx context.Context, interpreters Interpreters, force bool) error {
@@ -235,7 +244,7 @@ func (spec *Spec) Compile(ctx context.Context, interpreters Interpreters, force 
 	}
 
 	if spec.ErrorNode == "" {
-		spec.ErrorNode = "error"
+		spec.ErrorNode = DefaultErrorNodeName
 	}
 
 	if spec.Nodes == nil {
@@ -243,7 +252,7 @@ func (spec *Spec) Compile(ctx context.Context, interpreters Interpreters, force 
 	}
 
 	if _, have := spec.Nodes[spec.ErrorNode]; !have && !spec.NoAutoErrorNode {
-		spec.Nodes[spec.ErrorNode] = &Node{}
+		spec.Nodes[spec.ErrorNode] = defaultErrorNode
 	}
 
 	for name, n := range spec.Nodes {
