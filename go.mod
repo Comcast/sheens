@@ -3,8 +3,7 @@ module github.com/Comcast/sheens
 go 1.15
 
 require (
-	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20210114204047-983fa61a23a8
+	github.com/dop251/goja v0.0.0-20220501172647-e1eca0b61fa9
 	github.com/eclipse/paho.mqtt.golang v1.3.1
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
@@ -15,7 +14,6 @@ require (
 	go.etcd.io/bbolt v1.3.6
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
-	golang.org/x/text v0.3.5 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
