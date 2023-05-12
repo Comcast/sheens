@@ -45,7 +45,7 @@ import (
 func main() {
 
 	var (
-		// Try to follow mosquitto_sub command line args?
+		// Try to follow mosquito_sub command line args?
 
 		broker = flag.String("b", "tcp://localhost", "MQTT broker (like 'tcps://hostname')")
 		port   = flag.Int("p", 443, "MQTT broker port")
