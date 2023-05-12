@@ -3,6 +3,17 @@
 
 ![Sheens logo](doc/logo.png)
 
+# Welcome to Sheens
+A tool for implementing workflows and state machines.
+
+Sheens is a lightweight and flexible framework for building and executing workflows and state machines. It is written in Go and is designed to be simple to use and highly scalable. Sheens provides a simple yet powerful syntax for describing workflows and state machines, and it can be used to build everything from simple sequential workflows to complex, event-driven systems.
+
+With Sheens, you can define workflows and state machines using a simple JSON-based syntax. You can then execute these workflows using the Sheens runtime, which provides a highly optimized execution engine for running workflows and state machines at scale.
+
+In addition to its powerful workflow and state machine capabilities, Sheens also includes support for timers, allowing you to define timed events and trigger actions based on them. Sheens also includes a number of other features and capabilities, including support for dynamic workflow loading, automatic state machine validation, and much more.
+
+If you're looking for a flexible and powerful tool for implementing workflows and state machines, Sheens is the perfect choice. Whether you're building a simple sequential workflow or a complex, event-driven system, Sheens provides the tools and capabilities you need to get the job done.
+
 # Messaging machines
 
 <a href="specs/door.yaml"><img src="doc/door-graph.png" width="200"></a>
