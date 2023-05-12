@@ -109,7 +109,7 @@ func (s *Storage) Open(ctx context.Context) error {
 	return nil
 }
 
-// Close is a function which uses a specific persistance layer,
+// Close is a function which uses a specific persistence layer,
 // bolt, and call its Close() function on the set Storage object
 func (s *Storage) Close(ctx context.Context) error {
 	if s == nil {
