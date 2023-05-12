@@ -13,7 +13,7 @@
 // Package main is a simple single-crew sheens process that talks to
 // an MQTT broker.
 //
-// The command line args follow those for mosquitto_sub.
+// The command line args follow those for mosquito_sub.
 package main
 
 import (
@@ -42,7 +42,7 @@ import (
 func main() {
 
 	var (
-		// Follow mosquitto_sub command line args.
+		// Follow mosquito_sub command line args.
 
 		broker      = flag.String("h", "tcp://localhost", "Broker hostname")
 		clientId    = flag.String("i", "", "Client id")
