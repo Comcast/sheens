@@ -40,7 +40,8 @@ func Dwimjs(x interface{}) interface{} {
 	case string:
 		var v interface{}
 		if err := json.Unmarshal([]byte(vv), &v); err != nil {
-			panic(err)
+			// Think about what to do here, for now return the original string.
+			return vv
 		}
 		return v
 	default:

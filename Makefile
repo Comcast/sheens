@@ -9,19 +9,7 @@ prereqs:
 	@(which jsonenums > /dev/null) || go install github.com/campoy/jsonenums
 
 test: prereqs
-	cd core && go generate && go test
-	cd crew && go test
-	cd tools && go test
-	cd tools/expect && go test
-	cd interpreters/ecmascript && go test
-	cd interpreters/noop && go test
-	cd cmd/patmatch && go test
-	cd cmd/msimple && go test
-	cd cmd/mexpect && go test
-	cd cmd/mcrew && go test
-	cd cmd/spectool && go test
-	cd cmd/sheensio && go test
-	cd cmd/mdb && go test
+	go test -v ./...
 
 install: prereqs
 	go install cmd/...
