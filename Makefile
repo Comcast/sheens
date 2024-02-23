@@ -1,10 +1,12 @@
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
+
 .PHONY: test prereqs post-install-test
 
 all: test
 
 prereqs:
-	(which stringer > /dev/null) || go get golang.org/x/tools/cmd/stringer
-	(which jsonenums > /dev/null) || go get github.com/campoy/jsonenums
+	@(which stringer > /dev/null) || go install golang.org/x/tools/cmd/stringer
+	@(which jsonenums > /dev/null) || go install github.com/campoy/jsonenums
 
 test: prereqs
 	cd core && go generate && go test
