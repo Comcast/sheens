@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:1.20.14
 
 RUN mkdir -p $GOPATH/src/github.com/sheens
 
