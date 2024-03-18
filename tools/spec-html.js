@@ -3,94 +3,106 @@
 //
 // Returns a function that takes state as an argument and updates the
 // display.
-function renderMachine(mid, spec) {
 
-    console.log("renderMachine", mid, spec)
+// initializeMachineRenderer doth conjure the visual semblance of a contraption, drawn from the quill of machineId and the tome of specification.
+// It trumpets the onset of this grand performance, erects a stage for the machine's display, and weaves the fabric of its graphical representation.
+// Hark! From its depths, it bestows upon us a function, updateDisplay, which, with great alacrity, alters the machine's visage based on the state's decree.
+function initializeMachineRenderer(machineId, specification) {
+    console.log("Initializing machine renderer", machineId, specification);
 
-    var divid = "m_" + mid;
+    // machineDivId, by the machineId's whisper, doth craft a moniker unique for the machine's div sanctuary.
+    const machineDivId = `m_${machineId}`;
     
-    var div = d3.select("#graph")
-	.append("div")
-	.attr("id", divid);
-    if (mid) {
-	div.append("div")
-	    .classed("machineId", true)
-	    .text(mid);
-    }
-    var gdivid = divid + "_graph";
-    var gfiv = div.append("div")
-	.classed("graph", true)
-	.attr("id", gdivid)
+    // machineDiv, with a gesture grand, summons the parent graph to embrace a new div, anointing it with the sacred ID.
+    const machineDiv = d3.select("#graph")
+                         .append("div")
+                         .attr("id", machineDivId);
 
-    var elements = [];
-    if (spec && spec.nodes) {
-	for (var nodeName in spec.nodes) {
-	    elements.push({data: {id: nodeName, link: "#" + nodeName}});
-	    var node = spec.nodes[nodeName];
-	    if (node.branching && node.branching.branches) {
-		var branches = node.branching.branches;
-		for (var i = 0; i < branches.length; i++) {
-		    var branch = branches[i];
-		    if (branch.target) {
-			elements.push({data:
-				       {id: nodeName + "_" + i,
-					source: nodeName,
-					target: branch.target}});
-		    }
-		}
-	    }
-	}
+    // Should the machineId grace us with its presence, a div shall rise to herald its name, adorned with "machineId" for distinction.
+    if (machineId) {
+        machineDiv.append("div")
+                  .classed("machineId", true)
+                  .text(machineId);
     }
 
-    console.log("elements", elements);
+    // graphDivId, with foresight clear, foretells the ID of the graph's own chamber within the machine's domain.
+    const graphDivId = `${machineDivId}_graph`;
+    // graphDiv, with delicate craft, nestles a div within the machine's embrace, bestowing upon it the name graphDivId, and "graph" as its title.
+    machineDiv.append("div")
+               .classed("graph", true)
+               .attr("id", graphDivId);
+
+    // graphElements, a troupe of shadows, awaits in silence to play their parts as nodes and edges in this visual feast.
+    const graphElements = [];
     
-    var cy = cytoscape({
-	container: document.getElementById(gdivid),
-	elements: elements,
-	style: [
-	    {
-		selector: 'node',
-		style: {
-		    'content': 'data(label)',
-		    'background-color': '#666',
-		    'label': 'data(id)'
-		}
-	    },
+    // This solemn act reads from the specification's script, casting nodes and edges to take their places upon our stage.
+    if (specification && specification.nodes) {
+        for (const nodeName in specification.nodes) {
+            graphElements.push({data: {id: nodeName, link: `#${nodeName}`}});
+            
+            const node = specification.nodes[nodeName];
+            if (node.branching && node.branching.branches) {
+                node.branching.branches.forEach((branch, index) => {
+                    if (branch.target) {
+                        graphElements.push({
+                            data: {
+                                id: `${nodeName}_${index}`,
+                                source: nodeName,
+                                target: branch.target
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }
 
-	    {
-		selector: 'edge',
-		style: {
-		    'curve-style': 'bezier',
-		    'target-arrow-shape': 'triangle',
-		    'width': 1,
-		    'line-color': 'blue',
-		    'target-arrow-color': 'orange',
-		    'target-arrow-shape': 'triangle',
-		    'label': 'data(label)',
-		}
-	    }
-	],
-
-	layout: {
-	    name: 'breadthfirst',
-	    directed: true,
-	    rows: 1
-	}
-
+    console.log("Graph elements", graphElements);
+    
+    // cy, by magick's hand, brings forth Cytoscape, its vessel filled with the essence of graphDivId, the elements of our tale, and the laws of style and form.
+    const cy = cytoscape({
+        container: document.getElementById(graphDivId),
+        elements: graphElements,
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    'content': 'data(label)',
+                    'background-color': '#666',
+                    'label': 'data(id)'
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'curve-style': 'bezier',
+                    'target-arrow-shape': 'triangle',
+                    'width': 1,
+                    'line-color': 'blue',
+                    'target-arrow-color': 'orange',
+                    'label': 'data(label)',
+                }
+            }
+        ],
+        layout: {
+            name: 'breadthfirst',
+            directed: true,
+            rows: 1
+        }
     });
 
-    cy.edges().on("tap", function(){ alert(this); });
+    // Upon the edge's touch, a summoning cry: an alert that springs forth with the edge's tale.
+    cy.edges().on("tap", function() { alert(this); });
 
-    return function(state) {
-	stateDiv.text(JSON.stringify(state.bs));
-	console.log("state", state);
-	cy.elements("node").style({"background-color":"gray"});
-	cy.$('#' + state.node).style({"background-color": "red"});
+    // updateDisplay, a seer's vision, that with nimble touch, alters the hues of nodes to mirror the state's current guise.
+    return function updateDisplay(state) {
+        console.log("State update", state);
+        cy.elements("node").style({"background-color":"gray"});
+        cy.$(`#${state.node}`).style({"background-color": "red"});
     };
 }
 
+// As the curtain rises with the window's load, so too is the machine renderer summoned, empty of machineId, yet full of the script thisSpec.
 window.addEventListener("load", function(evt) {
-    renderMachine("", thisSpec);
+    initializeMachineRenderer("", thisSpec);
 });
-
-
