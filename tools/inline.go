@@ -14,7 +14,6 @@ package tools
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -55,32 +54,32 @@ func Inline(bs []byte, f func(string) ([]byte, error)) ([]byte, error) {
 // '%inline("NAME")' is replaced with ReadFile(NAME).
 func ReadFileWithInlines(filename string) ([]byte, error) {
 
-	bs, err := ioutil.ReadFile(filename)
+	bs, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
 	dir := filepath.Dir(filename)
 	f := func(name string) ([]byte, error) {
-		return ioutil.ReadFile(dir + string(os.PathSeparator) + name)
+		return os.ReadFile(dir + string(os.PathSeparator) + name)
 	}
 
 	return Inline(bs, f)
 }
 
-// ReadFileWithInlines is a replacement for ioutil.ReadAll that adds
+// ReadFileWithInlines is a replacement for io.ReadAll that adds
 // automation Inline()ing based on the given directory.
 //
 // '%inline("NAME")' is replaced with ReadFile(NAME).
 func ReadAllWithInlines(in io.Reader, dir string) ([]byte, error) {
 
-	bs, err := ioutil.ReadAll(in)
+	bs, err := io.ReadAll(in)
 	if err != nil {
 		return nil, err
 	}
 
 	f := func(name string) ([]byte, error) {
-		return ioutil.ReadFile(dir + string(os.PathSeparator) + name)
+		return os.ReadFile(dir + string(os.PathSeparator) + name)
 	}
 
 	return Inline(bs, f)
