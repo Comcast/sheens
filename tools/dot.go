@@ -56,7 +56,7 @@ func Dot(spec *Spec, w io.WriteCloser, fromNode, toNode string) error {
 	seen := make(map[string]bool)
 	node := func(name string, n *Node) error {
 		if n == nil {
-			return fmt.Errorf("Unknown node '%s'", name)
+			return fmt.Errorf("unknown node '%s'", name)
 		}
 
 		if _, already := seen[name]; already {
@@ -143,7 +143,6 @@ func Dot(spec *Spec, w io.WriteCloser, fromNode, toNode string) error {
 				}
 				if err != nil {
 					js = []byte(err.Error())
-				} else {
 				}
 				label = string(js)
 				label = strings.Replace(label, "\n", `<BR ALIGN="LEFT"/>`, -1)
@@ -236,14 +235,4 @@ func PNG(spec *Spec, basename string, fromNode, toNode string) (string, error) {
 		return pngname, err
 	}
 	return pngname, nil
-}
-
-func escape(s string) string {
-	return strings.Replace(s, `"`, `\"`, -1)
-}
-
-func escbraces(s string) string {
-	s = strings.Replace(s, "{", "\\{", -1)
-	s = strings.Replace(s, "}", "\\}", -1)
-	return s
 }
