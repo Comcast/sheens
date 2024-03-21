@@ -115,7 +115,6 @@ func Mermaid(spec *Spec, w io.WriteCloser, opts *MermaidOpts, fromNode, toNode s
 					if 40 < len(bs) {
 						bs, err = json.MarshalIndent(b.Pattern, "", "  ")
 					}
-				} else {
 				}
 				if err != nil {
 					return err
